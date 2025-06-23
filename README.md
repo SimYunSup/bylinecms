@@ -152,13 +152,17 @@ If you've built the project (above) and have postgres up and running, you should
 
 Enjoy and stay tuned!
 
-Copyright © 2025 Anthony Bouch and contributors
+## License
 
-This project is licensed under the GNU Affero General Public License v3.0 or later.
+Byline CMS is free software licensed under the GNU Affero General Public License v3.0 or later.
+For full details, please refer to the [LICENSE](LICENSE) and [COPYRIGHT](COPYRIGHT) files in this repository.
 
-Major contributors:
-- Anthony Bouch
-- David Lipsky
+Copyright © 2025 Anthony Bouch and contributors.
+
+### Major Contributors
+
+* Anthony Bouch
+* David Lipsky
 
 
 
