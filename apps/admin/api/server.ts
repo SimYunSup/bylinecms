@@ -1,3 +1,7 @@
+// NOTE: Before you dunk on this, this is a totally naïve and "weekend hack"
+// implementation of our API and used only for prototype development.
+// We'll extract a 'proper' API server into a separate app folder soon.
+
 import cors from '@fastify/cors'
 import { desc, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres'
