@@ -152,7 +152,7 @@ If you've built the project (above) and have postgres up and running, you should
 
 Enjoy and stay tuned!
 
-
+© 2025 Anthony Bouch and contributors — Licensed under the AGPLv3.
 
 
 
