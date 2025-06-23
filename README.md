@@ -6,15 +6,7 @@ We're hoping to build a developer-friendly, customer-friendly, AI-first headless
 
 
 https://github.com/user-attachments/assets/539e4f1e-cb4c-46f8-8d77-060ddbbf0f6d
-
-<figure>
-  <video width="100%" style="max-width: 620px;" controls>
-    <source src="[./byline-prototype.mp4](https://github.com/user-attachments/assets/539e4f1e-cb4c-46f8-8d77-060ddbbf0f6d)" type="video/mp4">
-    Your browser does not support the video tag. <a href="./byline-prototype.mp4">View the video here</a>.
-  </video>
-  <figcaption style="font-size: 0.8rem;"><em>Tiny steps - the Byline prototype.</em></figcaption>
-</figure>
-
+<p style="font-size: 0.8rem;"><em>Tiny steps - the Byline prototype.</em></p>
 
 Here's a no-frills FAQ.
 
