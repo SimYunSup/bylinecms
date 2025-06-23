@@ -4,6 +4,15 @@ Welcome to Byline CMS. We're new!
 
 We're hoping to build a developer-friendly, customer-friendly, AI-first headlesss CMS.
 
+<figure>
+  <video width="100%" style="max-width: 620px;" controls>
+    <source src="https://cdn.infonomic.io/videos/byline-prototype.mp4" type="video/mp4">
+    Your browser does not support the video tag. <a href="https://cdn.infonomic.io/videos/byline-prototype.mp4">View the video here</a>.
+  </video>
+  <figcaption style="font-size: 0.8rem;"><em>Tiny steps - the Byline prototype.</em></figcaption>
+</figure>
+
+
 Here's a no-frills FAQ.
 
 ## FAQ
@@ -129,7 +138,7 @@ mkdir data
 ```sh
 # From the root of the project. The default database password is 'test' (assuming you're using our docker-compose.yml file)
 cd apps/admin/database && ./db_init
-cd ../ && pnpm drizzle:migrate
+cd ../&& pnpm drizzle:migrate
 ```
 
 ### 3. Start dev mode
