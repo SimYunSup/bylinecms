@@ -69,7 +69,7 @@ Absolutely not. There would be no point in taking on the complexity of Payload w
 8. And more....
 
 ## What's Next?
-We need to find our feet, choose a copyright license, publish a roadmap, our values and mission statement, as well as settle on a governance structure. We've published the prototype as [AGPL](https://www.gnu.org/licenses/agpl-3.0.en.html) - for now, although we understand this has implications. Before we accept contributions, we'll likely switch to a more permissive license like Apache 2.0 (this requires consent or a CLA from contributors, which is fine while it's just a few of us).
+We need to find our feet, choose a copyright license, publish a roadmap, our values and mission statement, as well as settle on a governance structure. We've published the prototype under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.en.html) license - for now, although we understand this has implications. Before we accept contributions, we'll likely switch to a more permissive license like Apache 2.0 (this requires consent or a CLA from contributors, which is fine while it's just a few of us).
 
 ## What is there to do?
 
