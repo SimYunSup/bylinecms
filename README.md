@@ -131,7 +131,11 @@ mkdir data
 
 2.2. Initialize the database and schema.
 ```sh
-# From the root of the project. The default database password is 'test' (assuming you're using our docker-compose.yml file)
+# Copy .env.example to .env in the apps/admin directory. Read the notes in .env.example.
+cd apps/admin
+cp .env.example .env
+cd ../../
+# The default database password is 'test' (assuming you're using our docker-compose.yml file). From the root again...
 cd apps/admin/database && ./db_init
 cd ../&& pnpm drizzle:migrate
 ```
