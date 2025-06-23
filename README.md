@@ -152,7 +152,13 @@ If you've built the project (above) and have postgres up and running, you should
 
 Enjoy and stay tuned!
 
-© 2025 Anthony Bouch and contributors — Licensed under the AGPLv3.
+Copyright © 2025 Anthony Bouch and contributors
+
+This project is licensed under the GNU Affero General Public License v3.0 or later.
+
+Major contributors:
+- Anthony Bouch
+- David Lipsky
 
 
 
