@@ -4,6 +4,11 @@ Welcome to Byline CMS. We're new!
 
 We're hoping to build a developer-friendly, customer-friendly, AI-first headlesss CMS.
 
+
+https://github.com/user-attachments/assets/539e4f1e-cb4c-46f8-8d77-060ddbbf0f6d
+
+
+
 <figure>
   <video width="100%" style="max-width: 620px;" controls>
     <source src="./byline-prototype.mp4" type="video/mp4">
