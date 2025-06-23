@@ -6,8 +6,8 @@ We're hoping to build a developer-friendly, customer-friendly, AI-first headless
 
 <figure>
   <video width="100%" style="max-width: 620px;" controls>
-    <source src="https://cdn.infonomic.io/videos/byline-prototype.mp4" type="video/mp4">
-    Your browser does not support the video tag. <a href="https://cdn.infonomic.io/videos/byline-prototype.mp4">View the video here</a>.
+    <source src="./byline-prototype.mp4" type="video/mp4">
+    Your browser does not support the video tag. <a href="./byline-prototype.mp4">View the video here</a>.
   </video>
   <figcaption style="font-size: 0.8rem;"><em>Tiny steps - the Byline prototype.</em></figcaption>
 </figure>
