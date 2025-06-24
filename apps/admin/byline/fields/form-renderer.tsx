@@ -6,6 +6,31 @@ import type { Field } from '~/@types'
 
 import { FieldRenderer } from '~/fields/field-renderer'
 
+const FormStatusDisplay = ({ initialData }: { initialData?: Record<string, any> }) => (
+  <div className="form-status text-sm flex flex-row items-center gap-2">
+    <div className="published flex items-center gap-1 min-w-0">
+      <span className="muted shrink-0">Status:</span>
+      <span className="truncate overflow-hidden">
+        {initialData?.published === true ? 'Published' : 'Unpublished'}
+      </span>
+    </div>
+
+    {initialData?.updated_at != null && (
+      <div className="last-modified flex items-center gap-1 min-w-0">
+        <span className="muted shrink-0">Last modified:</span>
+        <span className="truncate overflow-hidden">{formatDateTime(initialData?.updated_at)}</span>
+      </div>
+    )}
+
+    {initialData?.created_at != null && (
+      <div className="created flex items-center gap-1 min-w-0">
+        <span className="muted shrink-0">Created:</span>
+        <span className="truncate overflow-hidden">{formatDateTime(initialData?.created_at)}</span>
+      </div>
+    )}
+  </div>
+)
+
 export const FormRenderer = ({
   fields,
   onSubmit,
@@ -48,29 +73,9 @@ export const FormRenderer = ({
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col">
-      <input type="hidden" name="published" value={initialData?.published || false} />
       <div className="form-status-and-actions mb-3 lg:mb-0 flex flex-col lg:flex-row items-start lg:items-center gap-2 justify-start lg:justify-between border-t pt-2 mt-1 border-gray-800">
-        <div className="status text-sm flex flex-row items-center gap-2">
-          <div className="published flex items-center gap-1 min-w-0">
-            <span className="muted shrink-0">Status:</span>
-            <span className="truncate overflow-hidden">
-              {initialData?.published === true ? 'Published' : 'Unpublished'}
-            </span>
-          </div>
-          <div className="last-modified flex items-center gap-1 min-w-0">
-            <span className="muted shrink-0">Last modified:</span>
-            <span className="truncate overflow-hidden">
-              {formatDateTime(initialData?.updated_at)}
-            </span>
-          </div>
-          <div className="created flex items-center gap-1 min-w-0">
-            <span className="muted shrink-0">Created:</span>
-            <span className="truncate overflow-hidden">
-              {formatDateTime(initialData?.created_at)}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
+        <FormStatusDisplay initialData={initialData} />
+        <div className="form-actions flex items-center gap-2">
           <Button
             size="sm"
             intent="noeffect"

@@ -10,11 +10,13 @@ export const SelectField = ({
 }) => (
   <div>
     <Select
+      size="sm"
       id={field.name}
       name={field.name}
       placeholder="Select an option"
       required={field.required}
       defaultValue={initialValue || ''}
+      helpText={field.helpText}
     >
       {field.options.map((opt) => (
         <SelectItem key={opt.value} value={opt.value}>

@@ -14,6 +14,7 @@ export const CheckboxField = ({
       name={field.name}
       label={field.label}
       defaultChecked={initialValue || false}
+      helpText={field.helpText}
     />
   </div>
 )

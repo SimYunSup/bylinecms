@@ -16,6 +16,7 @@ export const Pages: CollectionDefinition = {
       name: 'category',
       label: 'Category',
       type: 'select',
+      helpText: 'Select a category for this page',
       options: [
         { label: 'Foo', value: 'foo' },
         { label: 'Bar', value: 'bar' },
@@ -26,8 +27,10 @@ export const Pages: CollectionDefinition = {
       name: 'content',
       label: 'Content',
       type: 'richtext',
+      helpText: 'Enter the main content for this page.',
       required: true,
-    }
+    },
+    { name: 'featured', label: 'Featured', type: 'checkbox', helpText: 'Is this page featured on the home page?', admin: { position: 'sidebar' } },
   ],
 }
 

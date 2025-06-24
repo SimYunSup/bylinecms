@@ -8,6 +8,7 @@ export const TextField = ({ field, initialValue }: { field: FieldType; initialVa
       name={field.name}
       label={field.label}
       required={field.required}
+      helpText={field.helpText}
       defaultValue={initialValue || ''}
     />
   </div>
