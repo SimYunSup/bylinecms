@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { CreateView } from '@/modules/pages/create'
 import { Breadcrumbs } from '@/ui/components/breadcrumbs'
 
-export const Route = createFileRoute('/pages/create')({
+export const Route = createFileRoute('/collections/pages/create')({
   component: RouteComponent,
 })
 
@@ -14,8 +14,8 @@ function RouteComponent() {
         <Container>
           <Breadcrumbs
             breadcrumbs={[
-              { label: 'Pages', href: '/pages' },
-              { label: 'Create Page', href: '/pages/create' },
+              { label: 'Pages', href: '/collections/pages' },
+              { label: 'Create Page', href: '/collections/pages/create' },
             ]}
           />
         </Container>

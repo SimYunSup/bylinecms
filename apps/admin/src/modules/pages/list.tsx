@@ -26,7 +26,7 @@ const tableColumnDefs: Omit<TableHeadingCellSortableProps, 'lng'>[] = [
   {
     fieldName: 'name',
     label: 'Title',
-    path: '/pages',
+    path: '/collections/pages',
     sortable: true,
     scope: 'col',
     align: 'left',
@@ -35,7 +35,7 @@ const tableColumnDefs: Omit<TableHeadingCellSortableProps, 'lng'>[] = [
   {
     fieldName: 'updated_at',
     label: 'Last Updated',
-    path: '/pages',
+    path: '/collections/pages',
     sortable: true,
     scope: 'col',
     align: 'right',
@@ -104,14 +104,14 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
     if (query != null && query.length > 0) {
       searchParams.delete('page')
       searchParams.set('query', query)
-      navigate({ to: `/pages?${searchParams?.toString()}` as string })
+      navigate({ to: `/collections/pages?${searchParams?.toString()}` as string })
     }
   }
 
   const handleOnClear = (): void => {
     searchParams.delete('page')
     searchParams.delete('query')
-    navigate({ to: `/pages?${searchParams?.toString()}` as string })
+    navigate({ to: `/collections/pages?${searchParams?.toString()}` as string })
   }
 
   function handleOnPageSizeChange(value: string): void {
@@ -119,7 +119,7 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
       searchParams.delete('page')
       searchParams.set('page_size', value)
       navigate({
-        to: `/pages?${searchParams?.toString()}` as string,
+        to: `/collections/pages?${searchParams?.toString()}` as string,
       })
     }
   }
@@ -131,7 +131,7 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
           <h1 className="!m-0 pb-[2px]">Pages</h1>
           <Stats total={data?.meta.total} />
           <IconButton aria-label="Create New" asChild>
-            <Link to="/pages/create">
+            <Link to="/collections/pages/create">
               <PlusIcon height="18px" width="18px" svgClassName="stroke-white" />
             </Link>
           </IconButton>
@@ -172,7 +172,7 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
                 return (
                   <Table.Row key={page.id}>
                     <Table.Cell>
-                      <Link to="/pages/$postid" params={{ postid: page.id }}>
+                      <Link to="/collections/pages/$postid" params={{ postid: page.id }}>
                         {page.title ?? '------'}
                       </Link>
                     </Table.Cell>

@@ -10,63 +10,76 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PagesIndexRouteImport } from './routes/pages/index'
-import { Route as PagesCreateRouteImport } from './routes/pages/create'
-import { Route as PagesPostidRouteImport } from './routes/pages/$postid'
+import { Route as CollectionsPagesIndexRouteImport } from './routes/collections/pages/index'
+import { Route as CollectionsPagesCreateRouteImport } from './routes/collections/pages/create'
+import { Route as CollectionsPagesPostidRouteImport } from './routes/collections/pages/$postid'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PagesIndexRoute = PagesIndexRouteImport.update({
-  id: '/pages/',
-  path: '/pages/',
+const CollectionsPagesIndexRoute = CollectionsPagesIndexRouteImport.update({
+  id: '/collections/pages/',
+  path: '/collections/pages/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PagesCreateRoute = PagesCreateRouteImport.update({
-  id: '/pages/create',
-  path: '/pages/create',
+const CollectionsPagesCreateRoute = CollectionsPagesCreateRouteImport.update({
+  id: '/collections/pages/create',
+  path: '/collections/pages/create',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PagesPostidRoute = PagesPostidRouteImport.update({
-  id: '/pages/$postid',
-  path: '/pages/$postid',
+const CollectionsPagesPostidRoute = CollectionsPagesPostidRouteImport.update({
+  id: '/collections/pages/$postid',
+  path: '/collections/pages/$postid',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/pages/$postid': typeof PagesPostidRoute
-  '/pages/create': typeof PagesCreateRoute
-  '/pages': typeof PagesIndexRoute
+  '/collections/pages/$postid': typeof CollectionsPagesPostidRoute
+  '/collections/pages/create': typeof CollectionsPagesCreateRoute
+  '/collections/pages': typeof CollectionsPagesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/pages/$postid': typeof PagesPostidRoute
-  '/pages/create': typeof PagesCreateRoute
-  '/pages': typeof PagesIndexRoute
+  '/collections/pages/$postid': typeof CollectionsPagesPostidRoute
+  '/collections/pages/create': typeof CollectionsPagesCreateRoute
+  '/collections/pages': typeof CollectionsPagesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/pages/$postid': typeof PagesPostidRoute
-  '/pages/create': typeof PagesCreateRoute
-  '/pages/': typeof PagesIndexRoute
+  '/collections/pages/$postid': typeof CollectionsPagesPostidRoute
+  '/collections/pages/create': typeof CollectionsPagesCreateRoute
+  '/collections/pages/': typeof CollectionsPagesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pages/$postid' | '/pages/create' | '/pages'
+  fullPaths:
+    | '/'
+    | '/collections/pages/$postid'
+    | '/collections/pages/create'
+    | '/collections/pages'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pages/$postid' | '/pages/create' | '/pages'
-  id: '__root__' | '/' | '/pages/$postid' | '/pages/create' | '/pages/'
+  to:
+    | '/'
+    | '/collections/pages/$postid'
+    | '/collections/pages/create'
+    | '/collections/pages'
+  id:
+    | '__root__'
+    | '/'
+    | '/collections/pages/$postid'
+    | '/collections/pages/create'
+    | '/collections/pages/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PagesPostidRoute: typeof PagesPostidRoute
-  PagesCreateRoute: typeof PagesCreateRoute
-  PagesIndexRoute: typeof PagesIndexRoute
+  CollectionsPagesPostidRoute: typeof CollectionsPagesPostidRoute
+  CollectionsPagesCreateRoute: typeof CollectionsPagesCreateRoute
+  CollectionsPagesIndexRoute: typeof CollectionsPagesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -78,25 +91,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pages/': {
-      id: '/pages/'
-      path: '/pages'
-      fullPath: '/pages'
-      preLoaderRoute: typeof PagesIndexRouteImport
+    '/collections/pages/': {
+      id: '/collections/pages/'
+      path: '/collections/pages'
+      fullPath: '/collections/pages'
+      preLoaderRoute: typeof CollectionsPagesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pages/create': {
-      id: '/pages/create'
-      path: '/pages/create'
-      fullPath: '/pages/create'
-      preLoaderRoute: typeof PagesCreateRouteImport
+    '/collections/pages/create': {
+      id: '/collections/pages/create'
+      path: '/collections/pages/create'
+      fullPath: '/collections/pages/create'
+      preLoaderRoute: typeof CollectionsPagesCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pages/$postid': {
-      id: '/pages/$postid'
-      path: '/pages/$postid'
-      fullPath: '/pages/$postid'
-      preLoaderRoute: typeof PagesPostidRouteImport
+    '/collections/pages/$postid': {
+      id: '/collections/pages/$postid'
+      path: '/collections/pages/$postid'
+      fullPath: '/collections/pages/$postid'
+      preLoaderRoute: typeof CollectionsPagesPostidRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -104,9 +117,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PagesPostidRoute: PagesPostidRoute,
-  PagesCreateRoute: PagesCreateRoute,
-  PagesIndexRoute: PagesIndexRoute,
+  CollectionsPagesPostidRoute: CollectionsPagesPostidRoute,
+  CollectionsPagesCreateRoute: CollectionsPagesCreateRoute,
+  CollectionsPagesIndexRoute: CollectionsPagesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

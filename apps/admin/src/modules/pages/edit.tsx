@@ -1,9 +1,10 @@
-import { Container, Section } from '@byline/uikit/react'
+import { Button, Container, Section } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
+import type { Page } from '@/modules/pages/@types'
 import { Pages } from '~/collections/pages'
 import { FormRenderer } from '~/fields/form-renderer'
 
-export const EditView = ({ initialData }: { initialData: any }) => {
+export const EditView = ({ initialData }: { initialData: Page }) => {
   const navigate = useNavigate()
 
   const handleSubmit = async (data: any) => {
@@ -17,7 +18,7 @@ export const EditView = ({ initialData }: { initialData: any }) => {
         console.error(`Failed to update page: ${putRes.statusText}`)
       } else {
         navigate({
-          to: '/pages',
+          to: '/collections/pages',
         })
       }
     } catch (err) {
@@ -29,12 +30,36 @@ export const EditView = ({ initialData }: { initialData: any }) => {
   return (
     <Section>
       <Container>
-        <h2 className="mb-2">Edit Page</h2>
+        <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between">
+          <h2 className="mb-2">Edit Page</h2>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="filled"
+              className="min-w-[50px] min-h-[28px]"
+              onClick={() =>
+                navigate({ to: '/collections/pages/$postid', params: { postid: initialData.id } })
+              }
+            >
+              Edit
+            </Button>
+            <Button
+              size="sm"
+              variant="outlined"
+              className="min-w-[50px] min-h-[28px]"
+              onClick={() =>
+                navigate({ to: '/collections/pages/$postid', params: { postid: initialData.id } })
+              }
+            >
+              API
+            </Button>
+          </div>
+        </div>
         <FormRenderer
           fields={Pages.fields}
           onSubmit={handleSubmit}
           initialData={initialData}
-          onCancel={() => navigate({ to: '/pages' })}
+          onCancel={() => navigate({ to: '/collections/pages' })}
         />
       </Container>
     </Section>

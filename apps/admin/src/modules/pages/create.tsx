@@ -22,7 +22,7 @@ export const CreateView = () => {
         console.error(`Failed to fetch pages: ${res.statusText}`)
       } else {
         navigate({
-          to: '/pages',
+          to: '/collections/pages',
         })
       }
     } catch (err) {
@@ -38,7 +38,7 @@ export const CreateView = () => {
         <FormRenderer
           fields={Pages.fields}
           onSubmit={handleSubmit}
-          onCancel={() => navigate({ to: '/pages' })}
+          onCancel={() => navigate({ to: '/collections/pages' })}
         />
       </Container>
     </Section>

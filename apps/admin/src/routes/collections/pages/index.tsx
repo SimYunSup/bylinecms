@@ -1,10 +1,9 @@
 import { Container, Section } from '@byline/uikit/react'
 import { createFileRoute } from '@tanstack/react-router'
-import type { PagesResponse } from '@/modules/pages/@types'
 import { CollectionView } from '@/modules/pages/list'
 import { Breadcrumbs } from '@/ui/components/breadcrumbs'
 
-export const Route = createFileRoute('/pages/')({
+export const Route = createFileRoute('/collections/pages/')({
   loader: async () => {
     const response = await fetch('http://localhost:3001/api/pages')
     if (!response.ok) {
@@ -21,7 +20,7 @@ function Index() {
     <>
       <Section className="py-2">
         <Container>
-          <Breadcrumbs breadcrumbs={[{ label: 'Pages', href: '/pages' }]} />
+          <Breadcrumbs breadcrumbs={[{ label: 'Pages', href: '/collections/pages' }]} />
         </Container>
       </Section>
       <CollectionView data={data} />
