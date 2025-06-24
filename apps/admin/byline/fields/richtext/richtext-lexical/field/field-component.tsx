@@ -18,10 +18,14 @@
  * Debounce strategy adapted from
  * https://github.com/payloadcms/payload/tree/main/packages/richtext-lexical
  *
+ *
  * Note: For historical context see...
+ *
+ * https://github.com/facebook/lexical/commits?author=58bits
  * https://github.com/infonomic/payload-alternative-lexical-richtext-editor
  * https://github.com/AlessioGr/payload-plugin-lexical/commits?author=58bits
  * https://github.com/payloadcms/payload/commits?author=58bits
+ *
  */
 
 import { ErrorText, HelpText, Label } from '@byline/uikit/react'

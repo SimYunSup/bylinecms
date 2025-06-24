@@ -15,10 +15,14 @@
  *
  * https://github.com/payloadcms/payload/
  *
+ *
  * Note: For historical context see...
+ *
+ * https://github.com/facebook/lexical/commits?author=58bits
  * https://github.com/infonomic/payload-alternative-lexical-richtext-editor
  * https://github.com/AlessioGr/payload-plugin-lexical/commits?author=58bits
  * https://github.com/payloadcms/payload/commits?author=58bits
+ *
  *
  */
 
