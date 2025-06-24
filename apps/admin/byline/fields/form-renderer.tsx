@@ -62,7 +62,7 @@ export const FormRenderer = ({
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col">
-      <div className="form-status-and-actions border-t pt-2 mt-1 border-gray-800 flex flex-col sm:flex-row items-center gap-2 sm:justify-between">
+      <div className="form-status-and-actions mb-3 sm:mb-0 flex flex-col sm:flex-row items-start sm:items-center gap-2 justify-start sm:justify-between border-t pt-2 mt-1 border-gray-800">
         <div className="status">
           <span className="muted text-sm">Status, Last Modified, Created etc.</span>
         </div>
