@@ -1,9 +1,28 @@
+export interface BaseSchema {
+  id: string
+  vid: number
+  published: boolean | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CollectionDefinition {
+  name: string
+  path: string
+  fields: Field[]
+}
+
 export type FieldType = 'text' | 'checkbox' | 'select' | 'richtext'
 
 interface BaseField {
   name: string
   label: string
   required?: boolean
+  helpText?: string
+  placeholder?: string
+  admin?: {
+    position?: 'default' | 'sidebar'
+  }
 }
 
 export interface TextField extends BaseField {
@@ -25,9 +44,5 @@ export interface RichTextField extends BaseField {
 
 export type Field = TextField | CheckboxField | SelectField | RichTextField
 
-export interface CollectionDefinition {
-  name: string
-  slug: string
-  fields: Field[]
-}
+
 

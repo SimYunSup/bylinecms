@@ -1,11 +1,10 @@
 // NOTE: Before you dunk on this, this is a totally naïve  and "weekend hack"
 // implementation of a form renderer used only for prototype development.
-
-import { Button, Checkbox, Input, Select, SelectItem } from '@byline/uikit/react'
-import { useEffect, useState } from 'react'
+import { Button } from '@byline/uikit/react'
+import { formatDateTime } from '@/utils/utils.general'
 import type { Field } from '~/@types'
-import { RichTextField } from '~/fields/richtext/richtext-lexical/field'
-import { defaultEditorConfig } from '~/fields/richtext/richtext-lexical/field/config/default'
+
+import { FieldRenderer } from '~/fields/field-renderer'
 
 export const FormRenderer = ({
   fields,
@@ -18,8 +17,6 @@ export const FormRenderer = ({
   onCancel: () => void
   initialData?: Record<string, any>
 }) => {
-  const [richtextValues, setRichtextValues] = useState<Record<string, any>>({})
-
   const handleCancel = () => {
     if (onCancel && typeof onCancel === 'function') {
       onCancel()
@@ -35,8 +32,6 @@ export const FormRenderer = ({
     fields.forEach((field) => {
       if (field.type === 'checkbox') {
         data[field.name] = formData.get(field.name) === 'on'
-      } else if (field.type === 'richtext') {
-        data[field.name] = richtextValues[field.name] || null
       } else {
         data[field.name] = formData.get(field.name)
       }
@@ -47,24 +42,33 @@ export const FormRenderer = ({
     }
   }
 
-  useEffect(() => {
-    if (initialData) {
-      // Initialize richtext values from initial data
-      const richtextInitial: Record<string, any> = {}
-      fields.forEach((field) => {
-        if (field.type === 'richtext' && initialData[field.name]) {
-          richtextInitial[field.name] = initialData[field.name]
-        }
-      })
-      setRichtextValues(richtextInitial)
-    }
-  }, [initialData, fields])
+  // Split fields by admin.position
+  const defaultFields = fields.filter((f) => !f.admin?.position || f.admin.position === 'default')
+  const sidebarFields = fields.filter((f) => f.admin?.position === 'sidebar')
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col">
-      <div className="form-status-and-actions mb-3 sm:mb-0 flex flex-col sm:flex-row items-start sm:items-center gap-2 justify-start sm:justify-between border-t pt-2 mt-1 border-gray-800">
-        <div className="status">
-          <span className="muted text-sm">Status, Last Modified, Created etc.</span>
+      <input type="hidden" name="published" value={initialData?.published || false} />
+      <div className="form-status-and-actions mb-3 lg:mb-0 flex flex-col lg:flex-row items-start lg:items-center gap-2 justify-start lg:justify-between border-t pt-2 mt-1 border-gray-800">
+        <div className="status text-sm flex flex-row items-center gap-2">
+          <div className="published flex items-center gap-1 min-w-0">
+            <span className="muted shrink-0">Status:</span>
+            <span className="truncate overflow-hidden">
+              {initialData?.published === true ? 'Published' : 'Unpublished'}
+            </span>
+          </div>
+          <div className="last-modified flex items-center gap-1 min-w-0">
+            <span className="muted shrink-0">Last modified:</span>
+            <span className="truncate overflow-hidden">
+              {formatDateTime(initialData?.updated_at)}
+            </span>
+          </div>
+          <div className="created flex items-center gap-1 min-w-0">
+            <span className="muted shrink-0">Created:</span>
+            <span className="truncate overflow-hidden">
+              {formatDateTime(initialData?.created_at)}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -79,78 +83,29 @@ export const FormRenderer = ({
           <Button size="sm" type="submit" className="min-w-[70px]">
             Save
           </Button>
+          <Button size="sm" type="submit" intent="success" className="min-w-[80px]">
+            {initialData?.published === true ? 'Unpublish' : 'Publish'}
+          </Button>
         </div>
       </div>
       <div className="page-layout--two-columns--right-sticky">
         <div className="content flex flex-col gap-4">
-          {fields.map((field) => {
-            switch (field.type) {
-              case 'text':
-                return (
-                  <div key={field.name}>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      label={field.label}
-                      required={field.required}
-                      defaultValue={initialData?.[field.name] || ''}
-                    />
-                  </div>
-                )
-              case 'checkbox':
-                return (
-                  <div key={field.name}>
-                    <Checkbox
-                      id={field.name}
-                      name={field.name}
-                      label={field.label}
-                      defaultChecked={initialData?.[field.name] || false}
-                    />
-                  </div>
-                )
-              case 'select':
-                return (
-                  <div key={field.name}>
-                    <Select
-                      id={field.name}
-                      name={field.name}
-                      placeholder="Select an option"
-                      required={field.required}
-                      defaultValue={initialData?.[field.name] || ''}
-                    >
-                      {field.options.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </Select>
-                  </div>
-                )
-              case 'richtext':
-                return (
-                  <div key={field.name}>
-                    <RichTextField
-                      onChange={(value) => {
-                        console.log(`Value for ${field.name}:`, value)
-                        setRichtextValues((prev) => ({
-                          ...prev,
-                          [field.name]: value,
-                        }))
-                      }}
-                      editorConfig={defaultEditorConfig}
-                      id={field.name}
-                      name={field.name}
-                      label={field.label}
-                      required={field.required}
-                      initialValue={initialData?.[field.name]}
-                    />
-                  </div>
-                )
-            }
-          })}
+          {defaultFields.map((field) => (
+            <FieldRenderer
+              key={field.name}
+              field={field}
+              initialValue={initialData?.[field.name]}
+            />
+          ))}
         </div>
-        <div className="sidebar-second">
-          <div className="text-sm text-gray-600 mb-4">Sidebar content.</div>
+        <div className="sidebar-second mt-4 p-4 bg-canvas-900 border-l border-gray-800 flex flex-col gap-4">
+          {sidebarFields.map((field) => (
+            <FieldRenderer
+              key={field.name}
+              field={field}
+              initialValue={initialData?.[field.name]}
+            />
+          ))}
         </div>
       </div>
     </form>

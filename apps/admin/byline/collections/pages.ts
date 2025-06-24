@@ -1,11 +1,17 @@
-import type { CollectionDefinition } from '../@types'
+import type { BaseSchema, CollectionDefinition } from '../@types'
+
+// Hard coded for now. Will generate from collection definition soon.
+export interface Page extends BaseSchema {
+  title: string;
+  category: string | null;
+  content: unknown;
+}
 
 export const Pages: CollectionDefinition = {
   name: 'Pages',
-  slug: 'pages',
+  path: 'pages',
   fields: [
     { name: 'title', label: 'Title', type: 'text', required: true },
-    { name: 'published', label: 'Published', type: 'checkbox' },
     {
       name: 'category',
       label: 'Category',

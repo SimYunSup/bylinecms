@@ -1,13 +1,4 @@
-export interface Page {
-  id: string;
-  vid: number;
-  title: string;
-  published: boolean | null;
-  category: string | null;
-  content: unknown;
-  created_at: string;
-  updated_at: string;
-}
+import type { Page } from '~/collections/pages'
 
 export interface PagesResponse {
   pages: Page[] | null

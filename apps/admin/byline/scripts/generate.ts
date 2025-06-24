@@ -15,9 +15,10 @@ function generateDrizzleSchema(collection: CollectionDefinition) {
   const lines: string[] = []
   lines.push('// NOTE: This file has been auto-generated - do not edit.')
   lines.push(`import { pgTable, text, boolean, uuid, json, timestamp, integer } from 'drizzle-orm/pg-core'`)
-  lines.push(`export const ${collection.slug} = pgTable('${collection.slug}', {`)
+  lines.push(`export const ${collection.path} = pgTable('${collection.path}', {`)
   lines.push(`  id: uuid('id').primaryKey(),`)
   lines.push(`  vid: integer('vid').notNull().default(1),`)
+  lines.push(`  published: boolean('published').default(false),`)
   lines.push(`  created_at: timestamp('created_at', { precision: 6 }).defaultNow(),`)
   lines.push(`  updated_at: timestamp('updated_at', { precision: 6 }).defaultNow(),`)
 
