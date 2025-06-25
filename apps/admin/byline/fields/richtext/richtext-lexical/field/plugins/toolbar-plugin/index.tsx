@@ -73,7 +73,6 @@ import {
 import type * as React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { useEditorConfig } from '../../config/editor-config-context'
-import useModal from '../../hooks/use-modal'
 import { $isLinkNode, type LinkAttributes, TOGGLE_LINK_COMMAND } from '../../nodes/link-nodes'
 import { IS_APPLE } from '../../shared/environment'
 import DropDown, { DropDownItem } from '../../ui/dropdown'
@@ -82,7 +81,7 @@ import { sanitizeUrl } from '../../utils/url'
 import { OPEN_ADMONITION_MODAL_COMMAND } from '../admonition-plugin'
 import { EmbedConfigs } from '../auto-embed-plugin'
 // import { OPEN_INLINE_IMAGE_MODAL_COMMAND } from '../inline-image-plugin'
-import { InsertLayoutDialog } from '../layout-plugin/insert-layout-dialog'
+import { OPEN_INSERT_LAYOUT_MODAL_COMMAND } from '../layout-plugin/layout-plugin'
 import { OPEN_TABLE_MODAL_COMMAND } from '../table-plugin'
 
 const blockTypeToBlockName = {
@@ -321,7 +320,6 @@ function Divider(): React.JSX.Element {
 }
 
 export function ToolbarPlugin(): React.JSX.Element {
-  const [modal, showModal] = useModal()
   const [editor] = useLexicalComposerContext()
   const [activeEditor, setActiveEditor] = useState(editor)
   const [blockType, setBlockType] = useState<keyof typeof blockTypeToBlockName>('paragraph')
@@ -670,7 +668,7 @@ export function ToolbarPlugin(): React.JSX.Element {
                   }}
                   className="item"
                 >
-                  <i className={'icon ' + (isRTL ? 'indent' : 'outdent')} />
+                  <i className={`icon ${isRTL ? 'indent' : 'outdent'}`} />
                   <span className="text">Outdent</span>
                 </DropDownItem>
                 <DropDownItem
@@ -679,7 +677,7 @@ export function ToolbarPlugin(): React.JSX.Element {
                   }}
                   className="item"
                 >
-                  <i className={'icon ' + (isRTL ? 'outdent' : 'indent')} />
+                  <i className={`icon ${isRTL ? 'outdent' : 'indent'}`} />
                   <span className="text">Indent</span>
                 </DropDownItem>
               </DropDown>
@@ -716,7 +714,7 @@ export function ToolbarPlugin(): React.JSX.Element {
             onClick={() => {
               activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')
             }}
-            className={'toolbar-item spaced ' + (isBold ? 'active' : '')}
+            className={`toolbar-item spaced ${isBold ? 'active' : ''}`}
             title={IS_APPLE ? 'Bold (⌘B)' : 'Bold (Ctrl+B)'}
             type="button"
             aria-label={`Format text as bold. Shortcut: ${IS_APPLE ? '⌘B' : 'Ctrl+B'}`}
@@ -728,7 +726,7 @@ export function ToolbarPlugin(): React.JSX.Element {
             onClick={() => {
               activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')
             }}
-            className={'toolbar-item spaced ' + (isItalic ? 'active' : '')}
+            className={`toolbar-item spaced ${isItalic ? 'active' : ''}`}
             title={IS_APPLE ? 'Italic (⌘I)' : 'Italic (Ctrl+I)'}
             type="button"
             aria-label={`Format text as italics. Shortcut: ${IS_APPLE ? '⌘I' : 'Ctrl+I'}`}
@@ -740,7 +738,7 @@ export function ToolbarPlugin(): React.JSX.Element {
             onClick={() => {
               activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')
             }}
-            className={'toolbar-item spaced ' + (isUnderline ? 'active' : '')}
+            className={`toolbar-item spaced ${isUnderline ? 'active' : ''}`}
             title={IS_APPLE ? 'Underline (⌘U)' : 'Underline (Ctrl+U)'}
             type="button"
             aria-label={`Format text to underlined. Shortcut: ${IS_APPLE ? '⌘U' : 'Ctrl+U'}`}
@@ -753,7 +751,7 @@ export function ToolbarPlugin(): React.JSX.Element {
               onClick={() => {
                 activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code')
               }}
-              className={'toolbar-item spaced ' + (isCode ? 'active' : '')}
+              className={`toolbar-item spaced ${isCode ? 'active' : ''}`}
               title="Insert code block"
               type="button"
               aria-label="Insert code block"
@@ -786,7 +784,7 @@ export function ToolbarPlugin(): React.JSX.Element {
               onClick={() => {
                 activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough')
               }}
-              className={'item ' + dropDownActiveClass(isStrikethrough)}
+              className={`item ${dropDownActiveClass(isStrikethrough)}`}
               title="Strikethrough"
               aria-label="Format text with a strikethrough"
             >
@@ -797,7 +795,7 @@ export function ToolbarPlugin(): React.JSX.Element {
               onClick={() => {
                 activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript')
               }}
-              className={'item ' + dropDownActiveClass(isSubscript)}
+              className={`item ${dropDownActiveClass(isSubscript)}`}
               title="Subscript"
               aria-label="Format text with a subscript"
             >
@@ -808,7 +806,7 @@ export function ToolbarPlugin(): React.JSX.Element {
               onClick={() => {
                 activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'superscript')
               }}
-              className={'item ' + dropDownActiveClass(isSuperscript)}
+              className={`item ${dropDownActiveClass(isSuperscript)}`}
               title="Superscript"
               aria-label="Format text with a superscript"
             >
@@ -852,9 +850,7 @@ export function ToolbarPlugin(): React.JSX.Element {
                   {layoutPlugin && (
                     <DropDownItem
                       onClick={() => {
-                        showModal('Insert Columns Layout', (onClose) => (
-                          <InsertLayoutDialog activeEditor={activeEditor} onClose={onClose} />
-                        ))
+                        activeEditor.dispatchCommand(OPEN_INSERT_LAYOUT_MODAL_COMMAND, null)
                       }}
                       className="item"
                     >
@@ -915,7 +911,6 @@ export function ToolbarPlugin(): React.JSX.Element {
             )}
         </>
       )}
-      {modal}
     </div>
   )
 }

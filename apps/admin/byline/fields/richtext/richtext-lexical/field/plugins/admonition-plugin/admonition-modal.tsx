@@ -26,8 +26,8 @@ import {
   IconButton,
   Input,
   Modal,
-  Select,
-  SelectItem,
+  RadioGroup,
+  RadioGroupItem,
 } from '@byline/uikit/react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
@@ -35,9 +35,22 @@ import type { AdmonitionType } from '../../nodes/admonition-node/types'
 import { admonitionTypeOptions, getInitialState, validateFields } from './fields'
 import type { AdmonitionDrawerProps, AdmonitionFormState } from './types'
 
-import './admonition-drawer.css'
+import './admonition-modal.css'
 
-export function AdmonitionDrawer({
+function intent(type: AdmonitionType): 'info' | 'success' | 'warning' | 'danger' {
+  switch (type) {
+    case 'note':
+      return 'info'
+    case 'tip':
+      return 'success'
+    case 'warning':
+      return 'warning'
+    case 'danger':
+      return 'danger'
+  }
+}
+
+export function AdmonitionModal({
   open = false,
   onSubmit,
   onClose,
@@ -95,15 +108,16 @@ export function AdmonitionDrawer({
 
   return (
     <Modal isOpen={open} onDismiss={handleOnCancel} closeOnOverlayClick={false}>
-      <Modal.Container className="sm:w-[500px]">
+      <Modal.Container className="sm:max-w-[500px]">
         <Modal.Header className="flex items-center justify-between mb-4">
-          <h2>Admonition</h2>
+          <h3>Admonition</h3>
           <IconButton arial-label="Close" size="sm" onClick={handleOnCancel}>
             <CloseIcon width="16px" height="16px" svgClassName="white-icon" />
           </IconButton>
         </Modal.Header>
         <Modal.Content>
           <Input
+            className="sm:mb-2"
             id="title"
             name="title"
             placeholder="Title"
@@ -122,7 +136,9 @@ export function AdmonitionDrawer({
             value={synchronizedFormState?.title.value ?? ''}
             data-test-id="admonition-modal-title-input"
           />
-          <Select
+          <RadioGroup
+            defaultValue="note"
+            direction="row"
             id="admonitionType"
             name="admonitionType"
             value={synchronizedFormState?.admonitionType.value ?? 'note'}
@@ -143,13 +159,20 @@ export function AdmonitionDrawer({
             data-test-id="admonition-modal-type-select"
           >
             {admonitionTypeOptions.map((value) => (
-              <SelectItem key={value.value} value={value.value}>
-                {value.label}
-              </SelectItem>
+              <RadioGroupItem
+                intent={intent(value.value as AdmonitionType)}
+                key={value.id}
+                id={value.id}
+                value={value.value}
+                label={value.label}
+              />
             ))}
-          </Select>
+          </RadioGroup>
         </Modal.Content>
         <Modal.Actions>
+          <Button size="sm" intent="noeffect" onClick={handleOnCancel} data-autofocus>
+            Close
+          </Button>
           <Button
             size="sm"
             intent="primary"
@@ -158,9 +181,6 @@ export function AdmonitionDrawer({
             data-test-id="admonition-modal-submit-button"
           >
             Submit
-          </Button>
-          <Button size="sm" intent="noeffect" onClick={handleOnCancel} data-autofocus>
-            Close
           </Button>
         </Modal.Actions>
       </Modal.Container>

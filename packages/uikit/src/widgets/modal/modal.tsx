@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -20,12 +21,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { AnimatePresence, type FeatureBundle, LazyMotion } from 'motion/react'
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import type React from 'react'
 import { createContext, useCallback, useState } from 'react'
 import { createPortal } from 'react-dom'
-
-import { AnimatePresence, type FeatureBundle, LazyMotion } from 'motion/react'
 
 import { Overlay } from '../../components/overlay'
 import { useMediaQuery } from '../../hooks/use-media-query'

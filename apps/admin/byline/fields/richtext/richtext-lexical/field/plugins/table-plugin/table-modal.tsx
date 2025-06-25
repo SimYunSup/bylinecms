@@ -1,8 +1,25 @@
 'use client'
+/**
+ * Byline CMS
+ *
+ * Copyright © 2025 Anthony Bouch and contributors.
+ *
+ * This file is part of Byline CMS.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
 
-import { Button, CloseIcon, IconButton, Input, Modal } from '@byline/uikit/react'
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { INSERT_TABLE_COMMAND } from '@lexical/table'
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -10,10 +27,15 @@ import { INSERT_TABLE_COMMAND } from '@lexical/table'
  * LICENSE file in the root directory of this source tree.
  *
  */
+
+import { Button, CloseIcon, IconButton, Input, Modal } from '@byline/uikit/react'
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
+import { INSERT_TABLE_COMMAND } from '@lexical/table'
+
 import type * as React from 'react'
 import { useEffect, useState } from 'react'
 
-export function TableDrawer({
+export function TableModal({
   open,
   onClose,
 }: {
@@ -66,9 +88,9 @@ export function TableDrawer({
 
   return (
     <Modal isOpen={open} onDismiss={handleOnCancel} closeOnOverlayClick={false}>
-      <Modal.Container className="sm:w-[500px]">
+      <Modal.Container className="sm:max-w-[500px]">
         <Modal.Header className="flex items-center justify-between mb-4">
-          <h2>Insert Table</h2>
+          <h3>Insert Table</h3>
           <IconButton arial-label="Close" size="sm" onClick={handleOnCancel}>
             <CloseIcon width="16px" height="16px" svgClassName="white-icon" />
           </IconButton>
@@ -96,6 +118,9 @@ export function TableDrawer({
           />
         </Modal.Content>
         <Modal.Actions>
+          <Button size="sm" intent="noeffect" onClick={handleOnCancel} data-autofocus>
+            Close
+          </Button>
           <Button
             size="sm"
             intent="primary"
@@ -104,9 +129,6 @@ export function TableDrawer({
             data-test-id="table-modal-submit"
           >
             Submit
-          </Button>
-          <Button size="sm" intent="noeffect" onClick={handleOnCancel} data-autofocus>
-            Close
           </Button>
         </Modal.Actions>
       </Modal.Container>

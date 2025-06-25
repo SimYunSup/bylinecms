@@ -24,13 +24,6 @@
 // import * as React from 'react'
 // import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 
-// import { formatDrawerSlug } from '@payloadcms/ui'
-// import { useEditDepth } from '@payloadcms/ui'
-// import { useConfig } from '@payloadcms/ui'
-// import { requests } from '@payloadcms/ui/utilities/api'
-
-// import { useModal } from '@payloadcms/ui'
-
 // import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 // import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
 // import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
@@ -59,7 +52,7 @@
 // import { useSharedHistoryContext } from '../../context/shared-history-context'
 // import { useSharedOnChange } from '../../context/shared-on-change-context'
 // import { FloatingTextFormatToolbarPlugin } from '../../plugins/floating-text-format-toolbar-plugin/index'
-// import { InlineImageDrawer } from '../../plugins/inline-image-plugin/inline-image-drawer'
+// import { InlineImageModal } from '../../plugins/inline-image-plugin/inline-image-drawer'
 // import { getPreferredSize } from '../../plugins/inline-image-plugin/utils'
 // import { FloatingLinkEditorPlugin } from '../../plugins/link-plugin/link/floating-link-editor'
 // import { LinkPlugin } from '../../plugins/link-plugin/link'
@@ -431,7 +424,7 @@
 //         </span>
 
 //         {id != null && id.length > 0 && (
-//           <InlineImageDrawer
+//           <InlineImageModal
 //             isOpen={isModalOpen(inlineImageDrawerSlug)}
 //             drawerSlug={inlineImageDrawerSlug}
 //             data={{ id, altText, position, showCaption }}

@@ -7,7 +7,6 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
-
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { $insertNodeToNearestRoot, mergeRegister } from '@lexical/utils'
 import type { ElementNode, LexicalCommand, LexicalNode, NodeKey } from 'lexical'
@@ -15,8 +14,11 @@ import {
   $createParagraphNode,
   $getNodeByKey,
   COMMAND_PRIORITY_EDITOR,
+  COMMAND_PRIORITY_NORMAL,
   createCommand,
 } from 'lexical'
+
+import * as React from 'react'
 import { useEffect } from 'react'
 import {
   $createLayoutContainerNode,
@@ -29,6 +31,10 @@ import {
   LayoutItemNode,
 } from '../../nodes/layout-container-node/layout-item-node'
 
+import { InsertLayoutModal } from './insert-layout-modal'
+
+export const OPEN_INSERT_LAYOUT_MODAL_COMMAND = createCommand('OPEN_INSERT_LAYOUT_MODAL_COMMAND')
+
 export const INSERT_LAYOUT_COMMAND: LexicalCommand<string> = createCommand<string>()
 
 export const UPDATE_LAYOUT_COMMAND: LexicalCommand<{
@@ -36,8 +42,23 @@ export const UPDATE_LAYOUT_COMMAND: LexicalCommand<{
   nodeKey: NodeKey
 }> = createCommand<{ template: string; nodeKey: NodeKey }>()
 
-export function LayoutPlugin(): null {
+export function LayoutPlugin(): React.JSX.Element {
   const [editor] = useLexicalComposerContext()
+  const [open, setOpen] = React.useState(false)
+
+  const handleOnClose = (): void => {
+    setOpen(false)
+  }
+
+  const handleOnSubmit = (layout: string) => {
+    if (layout != null) {
+      editor.dispatchCommand(INSERT_LAYOUT_COMMAND, layout)
+    } else {
+      console.error('Error: missing layout for insertion.')
+    }
+    setOpen(false)
+  }
+
   useEffect(() => {
     if (!editor.hasNodes([LayoutContainerNode, LayoutItemNode])) {
       throw new Error(
@@ -46,6 +67,14 @@ export function LayoutPlugin(): null {
     }
 
     return mergeRegister(
+      editor.registerCommand<null>(
+        OPEN_INSERT_LAYOUT_MODAL_COMMAND,
+        () => {
+          setOpen(true)
+          return true
+        },
+        COMMAND_PRIORITY_NORMAL
+      ),
       editor.registerCommand(
         INSERT_LAYOUT_COMMAND,
         (template) => {
@@ -125,7 +154,7 @@ export function LayoutPlugin(): null {
     )
   }, [editor])
 
-  return null
+  return <InsertLayoutModal open={open} onClose={handleOnClose} onSubmit={handleOnSubmit} />
 }
 
 function getItemsCountFromTemplate(template: string): number {

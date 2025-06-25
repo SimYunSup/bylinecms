@@ -28,7 +28,7 @@ import type { Field } from '~/@types'
 import { FieldRenderer } from '~/fields/field-renderer'
 
 const FormStatusDisplay = ({ initialData }: { initialData?: Record<string, any> }) => (
-  <div className="form-status text-sm flex flex-row items-center gap-2">
+  <div className="form-status text-sm flex flex-col sm:flex-row sm:items-center sm:gap-2">
     <div className="published flex items-center gap-1 min-w-0">
       <span className="muted shrink-0">Status:</span>
       <span className="truncate overflow-hidden">

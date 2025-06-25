@@ -34,13 +34,6 @@
 
 // import React, { useEffect } from 'react'
 
-// import { formatDrawerSlug } from '@payloadcms/ui'
-// import { useEditDepth } from '@payloadcms/ui'
-// import { useConfig } from '@payloadcms/ui'
-// import { useModal } from '@payloadcms/ui'
-
-// import { requests } from '@payloadcms/ui/utilities/api'
-
 // import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 // import { $wrapNodeInElement, mergeRegister, $insertNodeToNearestRoot } from '@lexical/utils'
 // import {
@@ -63,7 +56,7 @@
 //   COMMAND_PRIORITY_NORMAL
 // } from 'lexical'
 
-// import { InlineImageDrawer } from './inline-image-drawer'
+// import { InlineImageModal } from './inline-image-modal'
 // import { getPreferredSize } from './utils'
 // import { useEditorConfig } from '../../config/editor-config-context'
 // import {

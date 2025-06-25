@@ -28,11 +28,11 @@ import type { Position } from '../../nodes/inline-image-node'
 import { getInitialState, validateFields } from './fields'
 import type { InlineImageData, InlineImageDrawerProps, InlineImageFormState } from './types'
 
-import './inline-image-drawer.css'
+import './inline-image-modal.css'
 
 const baseClass = 'inline-image-plugin--modal'
 
-export const InlineImageDrawer: React.FC<InlineImageDrawerProps> = ({
+export const InlineImageModal: React.FC<InlineImageDrawerProps> = ({
   isOpen = false,
   drawerSlug,
   onSubmit,
@@ -94,9 +94,9 @@ export const InlineImageDrawer: React.FC<InlineImageDrawerProps> = ({
 
   return (
     <Modal isOpen={isOpen} onDismiss={handleOnCancel} closeOnOverlayClick={false}>
-      <Modal.Container className="sm:w-[500px]">
+      <Modal.Container className="sm:max-w-[500px]">
         <Modal.Header className="flex items-center justify-between mb-4">
-          <h2>Inline Image</h2>
+          <h3>Inline Image</h3>
           <IconButton arial-label="Close" size="sm" onClick={handleOnCancel}>
             <CloseIcon width="16px" height="16px" svgClassName="white-icon" />
           </IconButton>

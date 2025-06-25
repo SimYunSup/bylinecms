@@ -49,7 +49,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { useEditorConfig } from '../../config/editor-config-context'
 import { useSharedHistoryContext } from '../../context/shared-history-context'
 import { useSharedOnChange } from '../../context/shared-on-change-context'
-import { AdmonitionDrawer } from '../../plugins/admonition-plugin/admonition-drawer'
+import { AdmonitionModal } from '../../plugins/admonition-plugin/admonition-modal'
 import type { AdmonitionData } from '../../plugins/admonition-plugin/types'
 import { FloatingTextFormatToolbarPlugin } from '../../plugins/floating-text-format-toolbar-plugin/index'
 // import { LinkPlugin } from '../../plugins/link-plugin/link'
@@ -258,7 +258,7 @@ export default function AdmonitionNodeComponent({
       </div>
 
       {uuid != null && uuid.length > 0 && (
-        <AdmonitionDrawer
+        <AdmonitionModal
           open={open}
           onClose={handleToggleModal}
           onSubmit={handleUpdateAdmonition}

@@ -35,7 +35,7 @@ import * as React from 'react'
 import { useEffect } from 'react'
 import { $createAdmonitionNode, AdmonitionNode } from '../../nodes/admonition-node'
 import type { AdmonitionAttributes } from '../../nodes/admonition-node/types'
-import { AdmonitionDrawer } from './admonition-drawer'
+import { AdmonitionModal } from './admonition-modal'
 import type { AdmonitionData } from './types'
 
 export type InsertAdmonitionPayload = Readonly<AdmonitionAttributes>
@@ -106,7 +106,7 @@ export function AdmonitionPlugin(): React.JSX.Element {
   }
 
   return (
-    <AdmonitionDrawer
+    <AdmonitionModal
       open={open}
       data={{ title: '', admonitionType: undefined }}
       onClose={() => setOpen(false)}

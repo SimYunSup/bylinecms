@@ -2,7 +2,7 @@
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { COMMAND_PRIORITY_NORMAL, createCommand } from 'lexical'
 import * as React from 'react'
-import { TableDrawer } from './table-drawer'
+import { TableModal } from './table-modal'
 
 export const OPEN_TABLE_MODAL_COMMAND = createCommand('OPEN_TABLE_MODAL_COMMAND')
 
@@ -26,5 +26,5 @@ export function TablePlugin(): React.JSX.Element {
     setOpen(false)
   }
 
-  return <TableDrawer open={open} onClose={handleOnClose} />
+  return <TableModal open={open} onClose={handleOnClose} />
 }

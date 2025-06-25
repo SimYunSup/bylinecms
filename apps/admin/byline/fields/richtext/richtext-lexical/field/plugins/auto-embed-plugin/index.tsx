@@ -13,22 +13,19 @@ import {
   type EmbedConfig,
   type EmbedMatchResult,
   LexicalAutoEmbedPlugin,
-  URL_MATCHER,
 } from '@lexical/react/LexicalAutoEmbedPlugin'
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import type { LexicalEditor } from 'lexical'
 import type * as React from 'react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import * as ReactDOM from 'react-dom'
-import useModal from '../../hooks/use-modal'
-import Button from '../../ui/button'
-import { DialogActions } from '../../ui/dialog'
 import { INSERT_VIMEO_COMMAND } from '../vimeo-plugin'
+import { INSERT_YOUTUBE_COMMAND } from '../youtube-plugin'
 // import { INSERT_FIGMA_COMMAND } from '../FigmaPlugin'
 // import { INSERT_TWEET_COMMAND } from '../TwitterPlugin'
-import { INSERT_YOUTUBE_COMMAND } from '../youtube-plugin'
 
-interface PlaygroundEmbedConfig extends EmbedConfig {
+import { AutoEmbedModal } from './auto-embed-modal'
+
+export interface AutoEmbedConfig extends EmbedConfig {
   // Human readable name of the embedded content e.g. Tweet or Google Map.
   contentName: string
 
@@ -45,7 +42,7 @@ interface PlaygroundEmbedConfig extends EmbedConfig {
   description?: string
 }
 
-export const YoutubeEmbedConfig: PlaygroundEmbedConfig = {
+export const YoutubeEmbedConfig: AutoEmbedConfig = {
   contentName: 'Youtube Video',
 
   exampleUrl: 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
@@ -78,7 +75,7 @@ export const YoutubeEmbedConfig: PlaygroundEmbedConfig = {
   type: 'youtube-video',
 }
 
-export const VimeoEmbedConfig: PlaygroundEmbedConfig = {
+export const VimeoEmbedConfig: AutoEmbedConfig = {
   contentName: 'Vimeo Video',
 
   exampleUrl: 'https://vimeo.com/584985260',
@@ -109,7 +106,7 @@ export const VimeoEmbedConfig: PlaygroundEmbedConfig = {
   type: 'vimeo-video',
 }
 
-// export const TwitterEmbedConfig: PlaygroundEmbedConfig = {
+// export const TwitterEmbedConfig: AutoEmbedConfig = {
 //   // e.g. Tweet or Google Map.
 //   contentName: 'Tweet',
 
@@ -143,7 +140,7 @@ export const VimeoEmbedConfig: PlaygroundEmbedConfig = {
 //   type: 'tweet'
 // }
 
-// export const FigmaEmbedConfig: PlaygroundEmbedConfig = {
+// export const FigmaEmbedConfig: AutoEmbedConfig = {
 //   contentName: 'Figma Document',
 
 //   exampleUrl: 'https://www.figma.com/file/LKQ4FJ4bTnCSjedbRpk931/Sample-File',
@@ -250,89 +247,17 @@ function AutoEmbedMenu({
   )
 }
 
-const debounce = (callback: (text: string) => void, delay: number): ((text: string) => void) => {
-  let timeoutId: number
-  return (text: string) => {
-    window.clearTimeout(timeoutId)
-    timeoutId = window.setTimeout(() => {
-      callback(text)
-    }, delay)
-  }
-}
-
-export function AutoEmbedDialog({
-  embedConfig,
-  onClose,
-}: {
-  embedConfig: PlaygroundEmbedConfig
-  onClose: () => void
-}): React.JSX.Element {
-  const [text, setText] = useState('')
-  const [editor] = useLexicalComposerContext()
-  const [embedResult, setEmbedResult] = useState<EmbedMatchResult | null>(null)
-
-  const validateText = useMemo(
-    () =>
-      debounce((inputText: string) => {
-        const urlMatch = URL_MATCHER.exec(inputText)
-        if (embedConfig != null && inputText != null && urlMatch != null) {
-          void Promise.resolve(embedConfig.parseUrl(inputText)).then((parseResult) => {
-            setEmbedResult(parseResult)
-          })
-        } else if (embedResult == null) {
-          setEmbedResult(null)
-        }
-      }, 200),
-    [embedConfig, embedResult]
-  )
-
-  const onClick = (): void => {
-    if (embedResult != null) {
-      embedConfig.insertNode(editor, embedResult)
-      onClose()
-    }
-  }
-
-  return (
-    <div style={{ width: '600px' }}>
-      <div className="Input__wrapper">
-        <input
-          type="text"
-          className="Input__input"
-          placeholder={embedConfig.exampleUrl}
-          value={text}
-          data-test-id={`${embedConfig.type}-embed-modal-url`}
-          onChange={(e) => {
-            const { value } = e.target
-            setText(value)
-            validateText(value)
-          }}
-        />
-      </div>
-      <DialogActions>
-        <Button
-          disabled={embedResult == null}
-          onClick={onClick}
-          data-test-id={`${embedConfig.type}-embed-modal-submit-btn`}
-        >
-          Embed
-        </Button>
-      </DialogActions>
-    </div>
-  )
-}
-
 export function AutoEmbedPlugin(): React.JSX.Element {
-  const [modal, showModal] = useModal()
+  const [open, setOpen] = useState(false)
+  const [embedConfig, setEmbedConfig] = useState<AutoEmbedConfig | null>(null)
 
-  const openEmbedModal = (embedConfig: PlaygroundEmbedConfig): void => {
-    showModal(`Embed ${embedConfig.contentName}`, (onClose) => (
-      <AutoEmbedDialog embedConfig={embedConfig} onClose={onClose} />
-    ))
+  const handleOnOpenEmbedModalForConfig = (config: AutoEmbedConfig): void => {
+    setEmbedConfig(config)
+    setOpen(true)
   }
 
   const getMenuOptions = (
-    activeEmbedConfig: PlaygroundEmbedConfig,
+    activeEmbedConfig: AutoEmbedConfig,
     embedFn: () => void,
     dismissFn: () => void
   ): AutoEmbedOption[] => {
@@ -348,10 +273,9 @@ export function AutoEmbedPlugin(): React.JSX.Element {
 
   return (
     <>
-      {modal}
-      <LexicalAutoEmbedPlugin<PlaygroundEmbedConfig>
+      <LexicalAutoEmbedPlugin<AutoEmbedConfig>
         embedConfigs={EmbedConfigs}
-        onOpenEmbedModalForConfig={openEmbedModal}
+        onOpenEmbedModalForConfig={handleOnOpenEmbedModalForConfig}
         getMenuOptions={getMenuOptions}
         menuRenderFn={(
           anchorElementRef,
@@ -382,6 +306,14 @@ export function AutoEmbedPlugin(): React.JSX.Element {
               )
             : null
         }
+      />
+      <AutoEmbedModal
+        open={open}
+        embedConfig={embedConfig as AutoEmbedConfig}
+        onClose={() => {
+          setOpen(false)
+          setEmbedConfig(null)
+        }}
       />
     </>
   )

@@ -19,24 +19,28 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { SelectValue } from '@byline/uikit/react'
+import type { RadioGroupValue } from '@byline/uikit/react'
 import type { AdmonitionType } from '../../nodes/admonition-node'
 import type { AdmonitionFormState } from './types';
 
-export const admonitionTypeOptions: SelectValue[] = [
+export const admonitionTypeOptions: RadioGroupValue[] = [
   {
+    id: "note",
     label: 'Note',
     value: 'note'
   },
   {
+    id: "tip",
     label: 'Tip',
     value: 'tip'
   },
   {
+    id: "warning",
     label: 'Warning',
     value: 'warning'
   },
   {
+    id: "danger",
     label: 'Danger',
     value: 'danger'
   }
