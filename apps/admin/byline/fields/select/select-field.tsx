@@ -25,9 +25,11 @@ import type { SelectField as FieldType } from '~/@types'
 export const SelectField = ({
   field,
   initialValue,
+   onChange
 }: {
   field: FieldType
   initialValue?: string
+   onChange?: (value: any) => void
 }) => (
   <div>
     <Select
@@ -38,6 +40,7 @@ export const SelectField = ({
       required={field.required}
       defaultValue={initialValue || ''}
       helpText={field.helpText}
+      onValueChange={(value) => onChange?.(value)}
     >
       {field.options.map((opt) => (
         <SelectItem key={opt.value} value={opt.value}>
