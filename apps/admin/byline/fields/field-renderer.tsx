@@ -21,10 +21,10 @@
 
 import type { Field } from '~/@types'
 import { CheckboxField } from '~/fields/checkbox/checkbox-field'
+import { useFormContext } from '~/fields/form-context'
 import { RichTextField } from '~/fields/richtext/richtext-lexical/richtext-field'
 import { SelectField } from '~/fields/select/select-field'
 import { TextField } from '~/fields/text/text-field'
-import { useFormContext } from '~/fields/form-context'
 
 interface FieldRendererProps {
   field: Field
@@ -42,17 +42,13 @@ export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
     case 'text':
       return <TextField field={field} initialValue={initialValue || ''} onChange={handleChange} />
     case 'checkbox':
-      return <CheckboxField field={field} initialValue={initialValue || false} onChange={handleChange} />
+      return (
+        <CheckboxField field={field} initialValue={initialValue || false} onChange={handleChange} />
+      )
     case 'select':
       return <SelectField field={field} initialValue={initialValue || ''} onChange={handleChange} />
     case 'richtext':
-      return (
-        <RichTextField
-          field={field}
-          initialValue={initialValue}
-          onChange={handleChange}
-        />
-      )
+      return <RichTextField field={field} initialValue={initialValue} onChange={handleChange} />
     default:
       return null
   }

@@ -39,7 +39,7 @@ export const CheckboxField = ({
       defaultChecked={initialValue || false}
       helpText={field.helpText}
       // TODO: Handle indeterminate state
-      onCheckedChange={(value) => onChange?.(value == "indeterminate" ? false : value)}
+      onCheckedChange={(value) => onChange?.(value === 'indeterminate' ? false : value)}
     />
   </div>
 )

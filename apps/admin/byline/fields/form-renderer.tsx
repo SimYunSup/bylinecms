@@ -74,13 +74,10 @@ const FormContent = ({
 
   const serializeValueForFormData = (field: Field, value: any) => {
     switch (field.type) {
-      // case 'richtext':
-      //   // Serialize JSON to string only on submit
-      //   return value ? JSON.stringify(value) : ''
-      // case 'checkbox':
-      //   return value === true
+      case 'checkbox':
+        return value === true
       default:
-        return value || ''
+        return value ?? ''
     }
   }
 
