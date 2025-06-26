@@ -21,6 +21,7 @@
 
 import type { Field } from '~/@types'
 import { CheckboxField } from '~/fields/checkbox/checkbox-field'
+import { useFormContext } from '~/fields/form-context'
 import { RichTextField } from '~/fields/richtext/richtext-lexical/richtext-field'
 import { SelectField } from '~/fields/select/select-field'
 import { TextField } from '~/fields/text/text-field'
@@ -31,21 +32,23 @@ interface FieldRendererProps {
 }
 
 export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
+  const { setFieldValue } = useFormContext()
+
+  const handleChange = (value: any) => {
+    setFieldValue(field.name, value)
+  }
+
   switch (field.type) {
     case 'text':
-      return <TextField field={field} initialValue={initialValue || ''} />
+      return <TextField field={field} initialValue={initialValue || ''} onChange={handleChange} />
     case 'checkbox':
-      return <CheckboxField field={field} initialValue={initialValue || false} />
-    case 'select':
-      return <SelectField field={field} initialValue={initialValue || ''} />
-    case 'richtext':
       return (
-        <RichTextField
-          field={field}
-          initialValue={initialValue}
-          onChange={(value) => console.log('RichText changed:', value)}
-        />
+        <CheckboxField field={field} initialValue={initialValue || false} onChange={handleChange} />
       )
+    case 'select':
+      return <SelectField field={field} initialValue={initialValue || ''} onChange={handleChange} />
+    case 'richtext':
+      return <RichTextField field={field} initialValue={initialValue} onChange={handleChange} />
     default:
       return null
   }

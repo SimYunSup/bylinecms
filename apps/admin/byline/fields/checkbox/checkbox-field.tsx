@@ -25,9 +25,11 @@ import type { CheckboxField as FieldType } from '~/@types'
 export const CheckboxField = ({
   field,
   initialValue,
+  onChange,
 }: {
   field: FieldType
   initialValue?: boolean
+  onChange?: (value: boolean) => void
 }) => (
   <div>
     <Checkbox
@@ -36,6 +38,8 @@ export const CheckboxField = ({
       label={field.label}
       defaultChecked={initialValue || false}
       helpText={field.helpText}
+      // TODO: Handle indeterminate state
+      onCheckedChange={(value) => onChange?.(value === 'indeterminate' ? false : value)}
     />
   </div>
 )

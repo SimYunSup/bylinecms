@@ -26,6 +26,7 @@ import { formatDateTime } from '@/utils/utils.general'
 import type { Field } from '~/@types'
 
 import { FieldRenderer } from '~/fields/field-renderer'
+import { FormProvider, useFormContext } from '~/fields/form-context'
 
 const FormStatusDisplay = ({ initialData }: { initialData?: Record<string, any> }) => (
   <div className="form-status text-sm flex flex-col sm:flex-row sm:items-center sm:gap-2">
@@ -52,7 +53,7 @@ const FormStatusDisplay = ({ initialData }: { initialData?: Record<string, any> 
   </div>
 )
 
-export const FormRenderer = ({
+const FormContent = ({
   fields,
   onSubmit,
   onCancel,
@@ -63,24 +64,36 @@ export const FormRenderer = ({
   onCancel: () => void
   initialData?: Record<string, any>
 }) => {
+  const { getFieldValues } = useFormContext()
+
   const handleCancel = () => {
     if (onCancel && typeof onCancel === 'function') {
       onCancel()
     }
   }
 
+  const serializeValueForFormData = (field: Field, value: any) => {
+    switch (field.type) {
+      case 'checkbox':
+        return value === true
+      default:
+        return value ?? ''
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = e.currentTarget
-    const formData = new FormData(form)
+    const fieldValues = getFieldValues()
     const data: any = {}
 
     fields.forEach((field) => {
-      if (field.type === 'checkbox') {
-        data[field.name] = formData.get(field.name) === 'on'
-      } else {
-        data[field.name] = formData.get(field.name)
-      }
+      const contextValue = fieldValues[field.name]
+      const initialValue = initialData?.[field.name]
+
+      // Use context value if available, otherwise fall back to initial value
+      const currentValue = contextValue !== undefined ? contextValue : initialValue
+
+      data[field.name] = serializeValueForFormData(field, currentValue)
     })
 
     if (onSubmit && typeof onSubmit === 'function') {
@@ -137,3 +150,14 @@ export const FormRenderer = ({
     </form>
   )
 }
+
+export const FormRenderer = (props: {
+  fields: Field[]
+  onSubmit: (data: any) => void
+  onCancel: () => void
+  initialData?: Record<string, any>
+}) => (
+  <FormProvider>
+    <FormContent {...props} />
+  </FormProvider>
+)
