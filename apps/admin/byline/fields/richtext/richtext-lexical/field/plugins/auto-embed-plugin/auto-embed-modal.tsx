@@ -14,6 +14,8 @@ const debounce = (callback: (text: string) => void, delay: number): ((text: stri
   }
 }
 
+import './auto-embed-modal.css'
+
 export function AutoEmbedModal({
   open,
   embedConfig,
@@ -61,16 +63,15 @@ export function AutoEmbedModal({
 
   return (
     <Modal isOpen={open} onDismiss={handleOnClose} closeOnOverlayClick={false}>
-      <Modal.Container className="min-w-[340px] sm:max-w-[500px]">
-        <Modal.Header>
+      <Modal.Container className="auto-embed-modal-container">
+        <Modal.Header className="auto-embed-modal-header">
           <h3>{embedConfig.contentName}</h3>
           <IconButton arial-label="Close" size="sm" onClick={handleOnClose}>
             <CloseIcon width="16px" height="16px" svgClassName="white-icon" />
           </IconButton>
         </Modal.Header>
-        <Modal.Content>
+        <Modal.Content className="auto-embed-modal-content">
           <Input
-            className="my-2 mt-4"
             id="text"
             name="text"
             placeholder={embedConfig.exampleUrl}
@@ -83,8 +84,9 @@ export function AutoEmbedModal({
             }}
           />
         </Modal.Content>
-        <Modal.Actions>
+        <Modal.Actions className="auto-embed-modal-actions">
           <Button
+            size="sm"
             intent="noeffect"
             onClick={handleOnClose}
             data-test-id={`${embedConfig.type}-embed-modal-cancel-btn`}
@@ -92,6 +94,7 @@ export function AutoEmbedModal({
             Cancel
           </Button>
           <Button
+            size="sm"
             disabled={embedResult == null}
             onClick={handleOnSubmit}
             data-test-id={`${embedConfig.type}-embed-modal-submit-btn`}

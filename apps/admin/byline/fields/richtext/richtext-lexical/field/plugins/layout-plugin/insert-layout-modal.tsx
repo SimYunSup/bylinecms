@@ -49,6 +49,8 @@ const layouts: SelectValue[] = [
   { label: '4 columns (equal width)', value: '1fr 1fr 1fr 1fr' },
 ]
 
+import './insert-layout-modal.css'
+
 export function InsertLayoutModal({
   open = false,
   onClose,
@@ -74,8 +76,8 @@ export function InsertLayoutModal({
 
   return (
     <Modal isOpen={open} onDismiss={handleOnCancel} closeOnOverlayClick={false}>
-      <Modal.Container className="min-w-[340px] sm:max-w-[500px]">
-        <Modal.Header className="flex items-center justify-between mb-4">
+      <Modal.Container className="insert-layout-modal-container">
+        <Modal.Header>
           <h3>Insert Layout</h3>
           <IconButton arial-label="Close" size="sm" onClick={handleOnCancel}>
             <CloseIcon width="16px" height="16px" svgClassName="white-icon" />
@@ -83,7 +85,7 @@ export function InsertLayoutModal({
         </Modal.Header>
         <Modal.Content>
           <Select
-            className="w-full"
+            containerClassName="insert-layout-modal-select"
             onValueChange={(value) => {
               setLayout(value)
             }}
@@ -96,7 +98,7 @@ export function InsertLayoutModal({
             ))}
           </Select>
         </Modal.Content>
-        <Modal.Actions>
+        <Modal.Actions className="insert-layout-modal-actions">
           <Button size="sm" intent="noeffect" onClick={handleOnCancel} data-autofocus>
             Cancel
           </Button>

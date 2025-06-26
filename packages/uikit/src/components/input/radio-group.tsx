@@ -79,7 +79,7 @@ export const RadioGroup = ({
 }) => (
   <RadioGroupPrimitive.Root
     ref={forwardedRef}
-    className={styles[direction]}
+    className={cx(styles[direction], className)}
     // aria-label="View density"
     {...props}
   >

@@ -108,16 +108,16 @@ export function AdmonitionModal({
 
   return (
     <Modal isOpen={open} onDismiss={handleOnCancel} closeOnOverlayClick={false}>
-      <Modal.Container className="sm:max-w-[500px]">
-        <Modal.Header className="flex items-center justify-between mb-4">
+      <Modal.Container className="admonition-modal-container">
+        <Modal.Header className="admonition-modal-header">
           <h3>Admonition</h3>
           <IconButton arial-label="Close" size="sm" onClick={handleOnCancel}>
             <CloseIcon width="16px" height="16px" svgClassName="white-icon" />
           </IconButton>
         </Modal.Header>
-        <Modal.Content>
+        <Modal.Content className="admonition-modal-content">
           <Input
-            className="sm:mb-2"
+            inputWrapperClassName="admonition-modal-title"
             id="title"
             name="title"
             placeholder="Title"
@@ -137,10 +137,12 @@ export function AdmonitionModal({
             data-test-id="admonition-modal-title-input"
           />
           <RadioGroup
+            className="admonition-modal-radio-group"
             defaultValue="note"
             direction="row"
             id="admonitionType"
             name="admonitionType"
+            aria-label="Admonition Type"
             value={synchronizedFormState?.admonitionType.value ?? 'note'}
             onValueChange={(value: AdmonitionType) => {
               if (synchronizedFormState != null) {
@@ -156,7 +158,7 @@ export function AdmonitionModal({
                 })
               }
             }}
-            data-test-id="admonition-modal-type-select"
+            data-test-id="admonition-modal-type-radio"
           >
             {admonitionTypeOptions.map((value) => (
               <RadioGroupItem
@@ -169,8 +171,14 @@ export function AdmonitionModal({
             ))}
           </RadioGroup>
         </Modal.Content>
-        <Modal.Actions>
-          <Button size="sm" intent="noeffect" onClick={handleOnCancel} data-autofocus>
+        <Modal.Actions className="admonition-modal-actions">
+          <Button
+            size="sm"
+            intent="noeffect"
+            onClick={handleOnCancel}
+            data-test-id="admonition-modal-submit-button"
+            data-autofocus
+          >
             Close
           </Button>
           <Button

@@ -35,6 +35,8 @@ import { INSERT_TABLE_COMMAND } from '@lexical/table'
 import type * as React from 'react'
 import { useEffect, useState } from 'react'
 
+import './table-modal.css'
+
 export function TableModal({
   open,
   onClose,
@@ -88,8 +90,8 @@ export function TableModal({
 
   return (
     <Modal isOpen={open} onDismiss={handleOnCancel} closeOnOverlayClick={false}>
-      <Modal.Container className="sm:max-w-[500px]">
-        <Modal.Header className="flex items-center justify-between mb-4">
+      <Modal.Container className="table-modal-container">
+        <Modal.Header className="table-modal-header">
           <h3>Insert Table</h3>
           <IconButton arial-label="Close" size="sm" onClick={handleOnCancel}>
             <CloseIcon width="16px" height="16px" svgClassName="white-icon" />
@@ -117,7 +119,7 @@ export function TableModal({
             data-test-id="table-modal-columns"
           />
         </Modal.Content>
-        <Modal.Actions>
+        <Modal.Actions className="table-modal-actions">
           <Button size="sm" intent="noeffect" onClick={handleOnCancel} data-autofocus>
             Close
           </Button>
