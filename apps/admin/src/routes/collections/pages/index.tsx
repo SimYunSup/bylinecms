@@ -21,8 +21,8 @@
 
 import { Container, Section } from '@byline/uikit/react'
 import { createFileRoute } from '@tanstack/react-router'
+import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { CollectionView } from '@/modules/pages/list'
-import { Breadcrumbs } from '@/ui/components/breadcrumbs'
 
 export const Route = createFileRoute('/collections/pages/')({
   loader: async () => {
@@ -39,11 +39,7 @@ function Index() {
   const data = Route.useLoaderData()
   return (
     <>
-      <Section className="py-2">
-        <Container>
-          <Breadcrumbs breadcrumbs={[{ label: 'Pages', href: '/collections/pages' }]} />
-        </Container>
-      </Section>
+      <BreadcrumbsClient breadcrumbs={[{ label: 'Pages', href: '/collections/pages' }]} />
       <CollectionView data={data} />
     </>
   )

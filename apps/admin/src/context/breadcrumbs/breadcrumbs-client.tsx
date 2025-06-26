@@ -1,3 +1,5 @@
+'use client'
+import { useEffect } from 'react'
 /**
  * Byline CMS
  *
@@ -19,24 +21,21 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { createFileRoute } from '@tanstack/react-router'
-import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
-import { CreateView } from '@/modules/pages/create'
+import type { Breadcrumb } from './@types'
+import { useBreadcrumbs } from './breadcrumbs-provider'
 
-export const Route = createFileRoute('/collections/pages/create')({
-  component: RouteComponent,
-})
-
-function RouteComponent() {
-  return (
-    <>
-      <BreadcrumbsClient
-        breadcrumbs={[
-          { label: 'Pages', href: '/collections/pages' },
-          { label: 'Create Page', href: '/collections/pages/create' },
-        ]}
-      />
-      <CreateView />
-    </>
-  )
+export function BreadcrumbsClient({
+  breadcrumbs,
+  homeLabel = 'Home',
+  homePath = '/',
+}: {
+  breadcrumbs: Breadcrumb[]
+  homeLabel?: string
+  homePath?: string
+}) {
+  const { setBreadcrumbs } = useBreadcrumbs()
+  useEffect(() => {
+    setBreadcrumbs({ homeLabel, homePath, breadcrumbs })
+  }, [breadcrumbs, homeLabel, homePath, setBreadcrumbs])
+  return null
 }

@@ -19,10 +19,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Container, Section } from '@byline/uikit/react'
 import { createFileRoute } from '@tanstack/react-router'
+import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { EditView } from '@/modules/pages/edit'
-import { Breadcrumbs } from '@/ui/components/breadcrumbs'
 import type { Page } from '~/collections/pages'
 
 export const Route = createFileRoute('/collections/pages/$postid')({
@@ -44,16 +43,12 @@ function Index() {
 
   return (
     <>
-      <Section className="py-2">
-        <Container>
-          <Breadcrumbs
-            breadcrumbs={[
-              { label: 'Pages', href: '/collections/pages' },
-              { label: pageData.title || 'Edit Page', href: `/pages/${pageData.id}` },
-            ]}
-          />
-        </Container>
-      </Section>
+      <BreadcrumbsClient
+        breadcrumbs={[
+          { label: 'Pages', href: '/collections/pages' },
+          { label: pageData.title || 'Edit Page', href: `/pages/${pageData.id}` },
+        ]}
+      />
       <EditView initialData={pageData} />
     </>
   )
