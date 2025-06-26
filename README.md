@@ -3,7 +3,8 @@
 Welcome to Byline CMS. We're new!
 
 We're hoping to build a developer-friendly, customer-friendly, AI-first headlesss CMS.
-<img width="722" alt="byline-screeenshot-02" src="https://github.com/user-attachments/assets/5279337b-01bd-4897-9e2b-d0a98df17037" />
+
+<img width="734" alt="byline-screeenshot-03" src="https://github.com/user-attachments/assets/c7d6efa1-71bb-4add-b0a2-34611f17be4c" />
 
 <p style="font-size: 0.8rem;"><em>Tiny steps - the Byline prototype.</em></p>
 
