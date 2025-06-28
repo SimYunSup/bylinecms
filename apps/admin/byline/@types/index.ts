@@ -33,7 +33,7 @@ export interface CollectionDefinition {
   fields: Field[]
 }
 
-export type FieldType = 'text' | 'checkbox' | 'select' | 'richtext'
+export type FieldType = 'text' | 'checkbox' | 'select' | 'richtext' | 'datetime'
 
 interface BaseField {
   name: string
@@ -63,7 +63,15 @@ export interface RichTextField extends BaseField {
   type: 'richtext'
 }
 
-export type Field = TextField | CheckboxField | SelectField | RichTextField
+export interface DateTimeField extends BaseField {
+  type: 'datetime'
+  mode?: 'date' | 'datetime'
+  yearsInFuture?: number
+  yearsInPast?: number
+  initialValue?: Date
+}
+
+export type Field = TextField | CheckboxField | SelectField | RichTextField | DateTimeField
 
 
 

@@ -24,6 +24,7 @@ import styles from './datepicker.module.css'
 export interface DatePickerProps extends React.InputHTMLAttributes<HTMLInputElement> {
   id: string
   name: string
+  label?: string
   initialValue?: Date
   mode?: 'date' | 'datetime'
   yearsInFuture?: number
@@ -50,6 +51,7 @@ export interface DatePickerProps extends React.InputHTMLAttributes<HTMLInputElem
 export function DatePicker({
   id,
   name,
+  label,
   initialValue,
   mode = 'datetime',
   yearsInFuture = 1,
@@ -104,6 +106,7 @@ export function DatePicker({
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
         <Input
           id={id}
+          label={label}
           readOnly
           name={name}
           variant={variant}

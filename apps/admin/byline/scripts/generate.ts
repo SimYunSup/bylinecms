@@ -33,6 +33,9 @@ function generateDrizzleSchema(collection: CollectionDefinition) {
       case 'select':
         lines.push(`  ${field.name}: text('${field.name}')${field.required ? '.notNull()' : ''},`)
         break
+      case 'datetime':
+        lines.push(`  ${field.name}: timestamp('${field.name}')${field.required ? '.notNull()' : ''},`)
+        break
       case 'richtext':
         lines.push(`  ${field.name}: json('${field.name}')${field.required ? '.notNull()' : ''},`)
         break

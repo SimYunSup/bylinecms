@@ -1,5 +1,5 @@
 // NOTE: This file has been auto-generated - do not edit.
-import { boolean, integer, json, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { pgTable, text, boolean, uuid, json, timestamp, integer } from 'drizzle-orm/pg-core'
 export const pages = pgTable('pages', {
   id: uuid('id').primaryKey(),
   vid: integer('vid').notNull().default(1),
@@ -9,5 +9,6 @@ export const pages = pgTable('pages', {
   title: text('title').notNull(),
   category: text('category'),
   content: json('content').notNull(),
+  publishedOn: timestamp('publishedOn'),
   featured: boolean('featured'),
 })
