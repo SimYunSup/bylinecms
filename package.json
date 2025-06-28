@@ -20,7 +20,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.2"
+    "@biomejs/biome": "2.0.6"
   },
   "dependencies": {
     "turbo": "^2.5.4",
