@@ -22,17 +22,81 @@ importers:
         specifier: 2.0.6
         version: 2.0.6
 
-  apps/admin:
+  apps/api:
     dependencies:
+      '@byline/byline':
+        specifier: workspace:*
+        version: link:../../packages/byline
+      '@byline/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@fastify/cors':
+        specifier: ^11.0.1
+        version: 11.0.1
+      fastify:
+        specifier: ^5.4.0
+        version: 5.4.0
+      jose:
+        specifier: ^6.0.11
+        version: 6.0.11
+      npm-run-all:
+        specifier: ^4.1.5
+        version: 4.1.5
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
+      zod:
+        specifier: ^3.25.67
+        version: 3.25.67
+      zod-form-data:
+        specifier: ^3.0.0
+        version: 3.0.0(zod@3.25.67)
+    devDependencies:
+      '@biomejs/biome':
+        specifier: 2.0.6
+        version: 2.0.6
+      '@types/node':
+        specifier: ^24.0.7
+        version: 24.0.7
+      '@types/nodemailer':
+        specifier: ^6.4.17
+        version: 6.4.17
+      '@types/nodemailer-html-to-text':
+        specifier: ^3.1.3
+        version: 3.1.3
+      '@types/pg':
+        specifier: ^8.15.4
+        version: 8.15.4
+      '@types/uuid':
+        specifier: ^10.0.0
+        version: 10.0.0
+      drizzle-kit:
+        specifier: ^0.31.4
+        version: 0.31.4
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.2(@types/pg@8.15.4)(pg@8.16.3)
+      tsx:
+        specifier: ^4.20.3
+        version: 4.20.3
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
+
+  apps/dashboard:
+    dependencies:
+      '@byline/byline':
+        specifier: workspace:*
+        version: link:../../packages/byline
       '@byline/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@byline/uikit':
         specifier: workspace:*
         version: link:../../packages/uikit
-      '@fastify/cors':
-        specifier: ^11.0.1
-        version: 11.0.1
       '@lexical/clipboard':
         specifier: 0.32.1
         version: 0.32.1
@@ -87,9 +151,6 @@ importers:
       '@tanstack/react-router-devtools':
         specifier: ^1.122.0
         version: 1.122.0(@tanstack/react-router@1.122.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@tanstack/router-core@1.122.0)(csstype@3.1.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(solid-js@1.9.7)(tiny-invariant@1.3.3)
-      fastify:
-        specifier: ^5.4.0
-        version: 5.4.0
       intl-messageformat:
         specifier: ^10.7.16
         version: 10.7.16
@@ -102,9 +163,6 @@ importers:
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
-      pg:
-        specifier: ^8.16.3
-        version: 8.16.3
       react:
         specifier: 19.1.0
         version: 19.1.0
@@ -145,9 +203,6 @@ importers:
       '@types/nodemailer-html-to-text':
         specifier: ^3.1.3
         version: 3.1.3
-      '@types/pg':
-        specifier: ^8.15.4
-        version: 8.15.4
       '@types/react':
         specifier: ^19.1.8
         version: 19.1.8
@@ -163,24 +218,88 @@ importers:
       classnames:
         specifier: ^2.5.1
         version: 2.5.1
-      drizzle-kit:
-        specifier: ^0.31.4
-        version: 0.31.4
-      drizzle-orm:
-        specifier: ^0.44.2
-        version: 0.44.2(@types/pg@8.15.4)(pg@8.16.3)
       tailwindcss:
         specifier: 4.1.11
         version: 4.1.11
-      tsx:
-        specifier: ^4.20.3
-        version: 4.20.3
       typescript:
         specifier: 5.8.3
         version: 5.8.3
       vite:
         specifier: ^7.0.0
         version: 7.0.0(@types/node@24.0.7)(jiti@2.4.2)(less@4.3.0)(lightningcss@1.30.1)(sass@1.89.2)(stylus@0.62.0)(tsx@4.20.3)(yaml@2.8.0)
+
+  packages/byline:
+    dependencies:
+      '@byline/shared':
+        specifier: workspace:*
+        version: link:../shared
+      drizzle-kit:
+        specifier: ^0.31.4
+        version: 0.31.4
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.2(@types/pg@8.15.4)(pg@8.16.3)
+      intl-messageformat:
+        specifier: ^10.7.16
+        version: 10.7.16
+      jose:
+        specifier: ^6.0.11
+        version: 6.0.11
+      npm-run-all:
+        specifier: ^4.1.5
+        version: 4.1.5
+      react:
+        specifier: 19.1.0
+        version: 19.1.0
+      react-dom:
+        specifier: 19.1.0
+        version: 19.1.0(react@19.1.0)
+      react-error-boundary:
+        specifier: ^6.0.0
+        version: 6.0.0(react@19.1.0)
+      react-hook-form:
+        specifier: ^7.59.0
+        version: 7.59.0(react@19.1.0)
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
+      zod:
+        specifier: ^3.25.67
+        version: 3.25.67
+      zod-form-data:
+        specifier: ^3.0.0
+        version: 3.0.0(zod@3.25.67)
+    devDependencies:
+      '@biomejs/biome':
+        specifier: 2.0.6
+        version: 2.0.6
+      '@types/node':
+        specifier: ^24.0.7
+        version: 24.0.7
+      '@types/nodemailer':
+        specifier: ^6.4.17
+        version: 6.4.17
+      '@types/nodemailer-html-to-text':
+        specifier: ^3.1.3
+        version: 3.1.3
+      '@types/react':
+        specifier: ^19.1.8
+        version: 19.1.8
+      '@types/react-dom':
+        specifier: ^19.1.6
+        version: 19.1.6(@types/react@19.1.8)
+      '@types/uuid':
+        specifier: ^10.0.0
+        version: 10.0.0
+      classnames:
+        specifier: ^2.5.1
+        version: 2.5.1
+      tsx:
+        specifier: ^4.20.3
+        version: 4.20.3
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
 
   packages/shared:
     dependencies:
@@ -7383,8 +7502,8 @@ snapshots:
 
   '@typescript-eslint/project-service@8.34.1(typescript@5.8.3)':
     dependencies:
-      '@typescript-eslint/tsconfig-utils': 8.34.1(typescript@5.8.3)
-      '@typescript-eslint/types': 8.34.1
+      '@typescript-eslint/tsconfig-utils': 8.35.0(typescript@5.8.3)
+      '@typescript-eslint/types': 8.35.0
       debug: 4.4.1
       typescript: 5.8.3
     transitivePeerDependencies:

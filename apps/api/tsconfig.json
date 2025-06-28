@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["es2020"],
+    "module": "NodeNext",
+    "target": "es2020",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "incremental": true,
+    "noImplicitAny": false,
+    "moduleResolution": "NodeNext",
+    "sourceMap": true,
+    "noEmit": false,
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "baseUrl": "./",
+    "strict": true
+  },
+  "include": [
+    "api/**/*",
+    "database/**/*",
+    "byline/collections/registry.ts",
+    "byline/validation/index.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
