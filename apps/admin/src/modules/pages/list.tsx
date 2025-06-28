@@ -125,14 +125,20 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
     if (query != null && query.length > 0) {
       searchParams.delete('page')
       searchParams.set('query', query)
-      navigate({ to: `/collections/pages?${searchParams?.toString()}` as string })
+      navigate({
+        to: '/collections/pages',
+        search: searchParams?.toString(),
+      })
     }
   }
 
   const handleOnClear = (): void => {
     searchParams.delete('page')
     searchParams.delete('query')
-    navigate({ to: `/collections/pages?${searchParams?.toString()}` as string })
+    navigate({
+      to: '/collections/pages',
+      search: searchParams?.toString(),
+    })
   }
 
   function handleOnPageSizeChange(value: string): void {
@@ -140,7 +146,8 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
       searchParams.delete('page')
       searchParams.set('page_size', value)
       navigate({
-        to: `/collections/pages?${searchParams?.toString()}` as string,
+        to: '/collections/pages',
+        search: searchParams?.toString(),
       })
     }
   }

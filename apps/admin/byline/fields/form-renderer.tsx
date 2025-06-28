@@ -88,8 +88,6 @@ const FormContent = ({
     const fieldValues = getFieldValues()
     const data: any = {}
 
-    console.log('Submitting form with field values:', fieldValues)
-
     fields.forEach((field) => {
       const contextValue = fieldValues[field.name]
       const initialValue = initialData?.[field.name]

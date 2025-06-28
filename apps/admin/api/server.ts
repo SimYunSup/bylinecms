@@ -29,6 +29,7 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
+import { z } from 'zod'
 import * as schema from '../database/schema/index.js'
 
 const server = Fastify({
@@ -80,12 +81,34 @@ server.get('/api/pages/:id', async (request, reply) => {
   return page[0]
 })
 
+// Note: Temporary schema before generated types and field API 
+// have been properly implemented
+const pageUpdateSchema = z.object({
+  title: z.string().optional(),
+  category: z.string().optional(),
+  content: z.any().optional(),
+  publishedOn: z.coerce.date().optional(), // This will coerce string to Date
+  featured: z.boolean().optional(),
+  // Add other fields as needed
+})
+
 server.put<{ Body: Record<string, any>; Params: { id: string } }>('/api/pages/:id', async (request, reply) => {
   const { id } = request.params
   const body = request.body
-
-  await db.update(schema.pages).set(body).where(eq(schema.pages.id, id))
-  reply.code(200).send({ status: 'ok' })
+  try {
+    const validatedData = pageUpdateSchema.parse(body)
+    await db.update(schema.pages).set(validatedData).where(eq(schema.pages.id, id))
+    reply.code(200).send({ status: 'ok' })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      reply.code(400).send({
+        error: 'Validation failed',
+        details: error.errors
+      })
+    } else {
+      reply.code(500).send({ error: 'Internal server error' })
+    }
+  }
 })
 
 const port = Number(process.env.PORT) || 3001

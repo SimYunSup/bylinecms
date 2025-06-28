@@ -19,7 +19,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Container, Section } from '@byline/uikit/react'
 import { createFileRoute } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { CollectionView } from '@/modules/pages/list'
