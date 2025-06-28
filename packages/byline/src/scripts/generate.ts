@@ -75,11 +75,22 @@ function generateIndexFiles(collections: any[], schemaDir: string, validationDir
     schemaIndexLines.join('\n')
   )
 
-  // Validation schema index
+  // Validation schema index with registries
   const validationIndexLines = [
     '// NOTE: This file has been auto-generated - do not edit.',
     '',
     ...collections.map(c => `export * from './${c.path}'`),
+    '',
+    ...collections.map(c => `import { ${c.path}CreateSchema, ${c.path}UpdateSchema } from './${c.path}'`),
+    '',
+    '// Schema registries for dynamic lookup',
+    'export const createSchemas = {',
+    ...collections.map(c => `  ${c.path}: ${c.path}CreateSchema,`),
+    '}',
+    '',
+    'export const updateSchemas = {',
+    ...collections.map(c => `  ${c.path}: ${c.path}UpdateSchema,`),
+    '}',
   ]
 
   fs.writeFileSync(

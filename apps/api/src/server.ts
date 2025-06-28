@@ -217,22 +217,20 @@ server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/
 
 // Helper function to get create schema
 function getCreateSchema(collectionPath: string) {
-  switch (collectionPath) {
-    case 'pages':
-      return validation.createPagesSchema
-    default:
-      throw new Error(`No create schema found for collection: ${collectionPath}`)
+  const schema = validation.createSchemas[collectionPath]
+  if (!schema) {
+    throw new Error(`No create schema found for collection: ${collectionPath}`)
   }
+  return schema
 }
 
 // Helper function to get update schema
 function getUpdateSchema(collectionPath: string) {
-  switch (collectionPath) {
-    case 'pages':
-      return validation.updatePagesSchema
-    default:
-      throw new Error(`No update schema found for collection: ${collectionPath}`)
+  const schema = validation.updateSchemas[collectionPath]
+  if (!schema) {
+    throw new Error(`No update schema found for collection: ${collectionPath}`)
   }
+  return schema
 }
 
 const port = Number(process.env.PORT) || 3001

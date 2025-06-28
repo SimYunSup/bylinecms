@@ -20,9 +20,9 @@ const pagesFieldsSchema = z.object({
 
 export const pagesSchema = baseSchema.merge(pagesFieldsSchema)
 
-export const createPagesSchema = pagesFieldsSchema
-export const updatePagesSchema = pagesFieldsSchema.partial()
+export const pagesCreateSchema = pagesFieldsSchema
+export const pagesUpdateSchema = pagesFieldsSchema.partial()
 
 export type Pages = z.infer<typeof pagesSchema>
-export type CreatePages = z.infer<typeof createPagesSchema>
-export type UpdatePages = z.infer<typeof updatePagesSchema>
+export type CreatePages = z.infer<typeof pagesCreateSchema>
+export type UpdatePages = z.infer<typeof pagesUpdateSchema>
