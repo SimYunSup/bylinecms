@@ -11,8 +11,8 @@ import { format } from 'date-fns'
 import { Popover } from 'radix-ui'
 import type React from 'react'
 import { useRef, useState } from 'react'
-import type { Mode } from 'react-day-picker'
-import { Button, IconButton } from '../../components/button/index.js'
+import { Button } from '../../components/button/button.js'
+import { IconButton } from '../../components/button/icon-button.js'
 import { Calendar } from '../../components/calendar/calendar.js'
 import { Input, InputAdornment } from '../../components/input'
 import type { Intent, Size, Variant } from '../../components/input/@types/input.js'
@@ -67,7 +67,7 @@ export function DatePicker({
   validatorFn,
   helpText,
   errorText,
-  placeHolderText = 'Date',
+  placeHolderText = '',
   ariaLabelForSearch = 'date',
   ariaLabelForClear = 'clear',
   ...rest
@@ -121,7 +121,7 @@ export function DatePicker({
             e.stopPropagation()
             setIsOpen(true)
           }}
-          value={date ? `${format(date, 'PP HH:mm')}` : 'Pick a date'}
+          value={date ? `${format(date, 'PP HH:mm')}` : ''}
           placeHolder={placeHolderText}
           helpText={helpText}
           disabled={false}

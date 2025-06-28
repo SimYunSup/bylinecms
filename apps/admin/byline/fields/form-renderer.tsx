@@ -76,6 +76,8 @@ const FormContent = ({
     switch (field.type) {
       case 'checkbox':
         return value === true
+      case 'datetime':
+        return value ? value : null
       default:
         return value ?? ''
     }
@@ -85,6 +87,8 @@ const FormContent = ({
     e.preventDefault()
     const fieldValues = getFieldValues()
     const data: any = {}
+
+    console.log('Submitting form with field values:', fieldValues)
 
     fields.forEach((field) => {
       const contextValue = fieldValues[field.name]

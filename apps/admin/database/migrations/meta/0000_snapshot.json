@@ -1,5 +1,5 @@
 {
-  "id": "39d90bab-bde1-4beb-9b2e-9b72b7a9a45e",
+  "id": "b34bbe39-5293-4666-97a8-40a65db06557",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -21,6 +21,13 @@
           "notNull": true,
           "default": 1
         },
+        "published": {
+          "name": "published",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp (6)",
@@ -41,12 +48,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "published": {
-          "name": "published",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false
-        },
         "category": {
           "name": "category",
           "type": "text",
@@ -58,6 +59,18 @@
           "type": "json",
           "primaryKey": false,
           "notNull": true
+        },
+        "publishedOn": {
+          "name": "publishedOn",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "featured": {
+          "name": "featured",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

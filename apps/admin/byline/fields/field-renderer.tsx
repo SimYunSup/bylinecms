@@ -25,6 +25,7 @@ import { useFormContext } from '~/fields/form-context'
 import { RichTextField } from '~/fields/richtext/richtext-lexical/richtext-field'
 import { SelectField } from '~/fields/select/select-field'
 import { TextField } from '~/fields/text/text-field'
+import { DateTimeField } from './datetime/datetime-field'
 
 interface FieldRendererProps {
   field: Field
@@ -49,6 +50,8 @@ export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
       return <SelectField field={field} initialValue={initialValue || ''} onChange={handleChange} />
     case 'richtext':
       return <RichTextField field={field} initialValue={initialValue} onChange={handleChange} />
+    case 'datetime':
+      return <DateTimeField field={field} initialValue={initialValue} onChange={handleChange} />
     default:
       return null
   }
