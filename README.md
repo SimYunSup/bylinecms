@@ -135,7 +135,8 @@ mkdir data
 cd apps/api
 cp .env.example .env
 
-# Again, the default database root password is 'test' (assuming you're using our docker-compose.yml file).
+# Again, the default database root password is 'test' 
+# (assuming you're using our docker-compose.yml file).
 cd database && ./db_init
 
 # IMPORTANT: our ./db_init script sources (imports) common.sh, 
