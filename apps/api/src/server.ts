@@ -26,7 +26,7 @@
 import { getCollection } from '@byline/byline/collections/registry'
 import * as zodTypes from '@byline/byline/outputs/zod-types/index'
 import cors from '@fastify/cors'
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, name } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
 import { Pool } from 'pg'
@@ -74,8 +74,10 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
         total_pages: 1,
       },
       included: {
-        collection: collection.name,
-        path: collection.path,
+        collection: {
+          name: collection.name,
+          path: collection.path,
+        }
       }
     }
   } catch (error) {

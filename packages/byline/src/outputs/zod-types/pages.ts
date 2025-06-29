@@ -33,8 +33,10 @@ export const pagesListSchema = z.object({
     total_pages: z.number().int().positive(),
   }),
   included: z.object({
-    collection: z.literal('Pages'),
-    path: z.literal('pages'),
+    collection: z.object({
+      name: z.literal('Pages'),
+      path: z.literal('pages'),
+    }),
   }),
 })
 

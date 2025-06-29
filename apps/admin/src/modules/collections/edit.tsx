@@ -19,18 +19,24 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { Page } from '@byline/byline/collections/pages'
-import { Pages } from '@byline/byline/collections/pages'
+import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { Button, Container, Section } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
 import { FormRenderer } from '@/ui/fields/form-renderer'
 
-export const EditView = ({ path, initialData }: { path: string; initialData: Page }) => {
+export const EditView = <T extends Record<string, any>>({
+  collectionDefinition,
+  initialData,
+}: {
+  collectionDefinition: CollectionDefinition
+  initialData: T
+}) => {
   const navigate = useNavigate()
+  const { name, path, fields } = collectionDefinition
 
   const handleSubmit = async (data: any) => {
     try {
-      const putRes = await fetch(`http://localhost:3001/api/pages/${initialData.id}`, {
+      const putRes = await fetch(`http://localhost:3001/api/${path}/${initialData.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -56,7 +62,7 @@ export const EditView = ({ path, initialData }: { path: string; initialData: Pag
     <Section>
       <Container>
         <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between">
-          <h2 className="mb-2">Edit Page</h2>
+          <h2 className="mb-2">Edit {name}</h2>
           <div className="flex items-center gap-2">
             <Button
               size="sm"
@@ -64,8 +70,8 @@ export const EditView = ({ path, initialData }: { path: string; initialData: Pag
               className="min-w-[50px] min-h-[28px]"
               onClick={() =>
                 navigate({
-                  to: '/collections/$collection/$postid',
-                  params: { collection: path, postid: initialData.id },
+                  to: '/collections/$collection/$id',
+                  params: { collection: path, id: String(initialData.id) },
                 })
               }
             >
@@ -77,8 +83,8 @@ export const EditView = ({ path, initialData }: { path: string; initialData: Pag
               className="min-w-[50px] min-h-[28px]"
               onClick={() =>
                 navigate({
-                  to: '/collections/$collection/$postid',
-                  params: { collection: path, postid: initialData.id },
+                  to: '/collections/$collection/$id',
+                  params: { collection: path, id: String(initialData.id) },
                 })
               }
             >
@@ -87,7 +93,7 @@ export const EditView = ({ path, initialData }: { path: string; initialData: Pag
           </div>
         </div>
         <FormRenderer
-          fields={Pages.fields}
+          fields={fields}
           onSubmit={handleSubmit}
           initialData={initialData}
           onCancel={() =>

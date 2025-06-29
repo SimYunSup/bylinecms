@@ -19,35 +19,41 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { getCollection } from '@byline/byline/collections/registry'
 import type { ListTypes } from '@byline/byline/outputs/zod-types/index'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, notFound } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
-import { CollectionView } from '@/modules/pages/list'
+import { ListView } from '@/modules/collections/list'
 
 export const Route = createFileRoute('/collections/$collection/')({
   loader: async ({ params }): Promise<ListTypes[keyof ListTypes]> => {
+    const collectionDef = getCollection(params.collection)
+    if (!collectionDef) {
+      throw notFound()
+    }
+
     const response = await fetch(`http://localhost:3001/api/${params.collection}`)
     if (!response.ok) {
       throw new Error('Failed to fetch collection')
     }
     return (await response.json()) as ListTypes[typeof params.collection & keyof ListTypes]
   },
-  component: Index,
+  component: RouteComponent,
 })
 
-function Index() {
+function RouteComponent() {
   const data = Route.useLoaderData()
   const { collection } = Route.useParams()
-  const collectionDef = getCollection(collection)
-  const columns = collectionDef?.columns || []
+  const collectionDef = getCollection(collection) as CollectionDefinition
+  const columns = collectionDef.columns || []
 
   return (
     <>
       <BreadcrumbsClient
-        breadcrumbs={[{ label: data.included.collection, href: `/collections/${collection}` }]}
+        breadcrumbs={[{ label: data.included.collection.name, href: `/collections/${collection}` }]}
       />
-      <CollectionView data={data} columns={columns} />
+      <ListView data={data} columns={columns} />
     </>
   )
 }

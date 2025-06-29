@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CollectionsCollectionIndexRouteImport } from './routes/collections/$collection/index'
 import { Route as CollectionsCollectionCreateRouteImport } from './routes/collections/$collection/create'
-import { Route as CollectionsCollectionPostidRouteImport } from './routes/collections/$collection/$postid'
+import { Route as CollectionsCollectionIdRouteImport } from './routes/collections/$collection/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -31,29 +31,28 @@ const CollectionsCollectionCreateRoute =
     path: '/collections/$collection/create',
     getParentRoute: () => rootRouteImport,
   } as any)
-const CollectionsCollectionPostidRoute =
-  CollectionsCollectionPostidRouteImport.update({
-    id: '/collections/$collection/$postid',
-    path: '/collections/$collection/$postid',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const CollectionsCollectionIdRoute = CollectionsCollectionIdRouteImport.update({
+  id: '/collections/$collection/$id',
+  path: '/collections/$collection/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/collections/$collection/$postid': typeof CollectionsCollectionPostidRoute
+  '/collections/$collection/$id': typeof CollectionsCollectionIdRoute
   '/collections/$collection/create': typeof CollectionsCollectionCreateRoute
   '/collections/$collection': typeof CollectionsCollectionIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/collections/$collection/$postid': typeof CollectionsCollectionPostidRoute
+  '/collections/$collection/$id': typeof CollectionsCollectionIdRoute
   '/collections/$collection/create': typeof CollectionsCollectionCreateRoute
   '/collections/$collection': typeof CollectionsCollectionIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/collections/$collection/$postid': typeof CollectionsCollectionPostidRoute
+  '/collections/$collection/$id': typeof CollectionsCollectionIdRoute
   '/collections/$collection/create': typeof CollectionsCollectionCreateRoute
   '/collections/$collection/': typeof CollectionsCollectionIndexRoute
 }
@@ -61,26 +60,26 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/collections/$collection/$postid'
+    | '/collections/$collection/$id'
     | '/collections/$collection/create'
     | '/collections/$collection'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/collections/$collection/$postid'
+    | '/collections/$collection/$id'
     | '/collections/$collection/create'
     | '/collections/$collection'
   id:
     | '__root__'
     | '/'
-    | '/collections/$collection/$postid'
+    | '/collections/$collection/$id'
     | '/collections/$collection/create'
     | '/collections/$collection/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CollectionsCollectionPostidRoute: typeof CollectionsCollectionPostidRoute
+  CollectionsCollectionIdRoute: typeof CollectionsCollectionIdRoute
   CollectionsCollectionCreateRoute: typeof CollectionsCollectionCreateRoute
   CollectionsCollectionIndexRoute: typeof CollectionsCollectionIndexRoute
 }
@@ -108,11 +107,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CollectionsCollectionCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/collections/$collection/$postid': {
-      id: '/collections/$collection/$postid'
-      path: '/collections/$collection/$postid'
-      fullPath: '/collections/$collection/$postid'
-      preLoaderRoute: typeof CollectionsCollectionPostidRouteImport
+    '/collections/$collection/$id': {
+      id: '/collections/$collection/$id'
+      path: '/collections/$collection/$id'
+      fullPath: '/collections/$collection/$id'
+      preLoaderRoute: typeof CollectionsCollectionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -120,7 +119,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CollectionsCollectionPostidRoute: CollectionsCollectionPostidRoute,
+  CollectionsCollectionIdRoute: CollectionsCollectionIdRoute,
   CollectionsCollectionCreateRoute: CollectionsCollectionCreateRoute,
   CollectionsCollectionIndexRoute: CollectionsCollectionIndexRoute,
 }

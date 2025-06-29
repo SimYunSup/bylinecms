@@ -19,28 +19,29 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Pages } from '@byline/byline/collections/pages'
+import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { Container, Section } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
 import { FormRenderer } from '@/ui/fields/form-renderer'
 
-export const CreateView = ({ path }: { path: string }) => {
+export const CreateView = ({
+  collectionDefinition,
+}: {
+  collectionDefinition: CollectionDefinition
+}) => {
   const navigate = useNavigate()
+  const { name, path, fields } = collectionDefinition
   // const location = useRouterState({ select: (s) => s.location })
 
   const handleSubmit = async (data: any) => {
     try {
-      const postRes = await fetch('http://localhost:3001/api/pages', {
+      const postRes = await fetch(`http://localhost:3001/api/${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
       if (!postRes.ok) {
         console.error(`Failed to create page: ${postRes.statusText}`)
-      }
-      const res = await fetch('http://localhost:3001/api/pages')
-      if (!res.ok) {
-        console.error(`Failed to fetch pages: ${res.statusText}`)
       } else {
         navigate({
           to: '/collections/$collection',
@@ -56,13 +57,16 @@ export const CreateView = ({ path }: { path: string }) => {
   return (
     <Section>
       <Container>
-        <h2 className="mb-2">Create Page</h2>
+        <h2 className="mb-2">Create {name}</h2>
         <FormRenderer
-          fields={Pages.fields}
+          fields={fields}
           onSubmit={handleSubmit}
           onCancel={() =>
-            navigate({ to: '/collections/$collection', params: { collection: path } })
-          } // Adjust the path as needed
+            navigate({
+              to: '/collections/$collection',
+              params: { collection: path },
+            })
+          }
         />
       </Container>
     </Section>

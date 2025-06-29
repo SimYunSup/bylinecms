@@ -1,12 +1,12 @@
 // NOTE: This file has been auto-generated - do not edit.
 
-import { pagesListSchema, pagesCreateSchema, pagesGetSchema, pagesUpdateSchema } from './pages'
+import type { CreateNews, News, NewsGet, NewsList, UpdateNews } from './news'
 import { newsListSchema, newsCreateSchema, newsGetSchema, newsUpdateSchema } from './news'
 import type { Pages, PagesList, CreatePages, PagesGet, UpdatePages } from './pages'
-import type { News, NewsList, CreateNews, NewsGet, UpdateNews } from './news'
+import { pagesCreateSchema, pagesGetSchema, pagesListSchema, pagesUpdateSchema } from './pages'
 
-export * from './pages'
 export * from './news'
+export * from './pages'
 // Schema registries for dynamic lookup
 
 export const listSchemas = {

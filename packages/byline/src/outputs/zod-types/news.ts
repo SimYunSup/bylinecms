@@ -31,8 +31,10 @@ export const newsListSchema = z.object({
     total_pages: z.number().int().positive(),
   }),
   included: z.object({
-    collection: z.literal('News'),
-    path: z.literal('news'),
+    collection: z.object({
+      name: z.literal('News'),
+      path: z.literal('news'),
+    }),
   }),
 })
 

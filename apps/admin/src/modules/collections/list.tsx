@@ -72,7 +72,7 @@ function padRows(value: number) {
   ))
 }
 
-export const CollectionView = <T extends ListTypes[keyof ListTypes]>({
+export const ListView = <T extends ListTypes[keyof ListTypes]>({
   data,
   columns,
 }: {
@@ -89,8 +89,8 @@ export const CollectionView = <T extends ListTypes[keyof ListTypes]>({
       searchParams.set('query', query)
       navigate({
         to: '/collections/$collection',
-        params: { collection: data.included.path },
-        search: searchParams?.toString(),
+        params: { collection: data.included.collection.path },
+        search: Object.fromEntries(searchParams.entries()),
       })
     }
   }
@@ -100,8 +100,8 @@ export const CollectionView = <T extends ListTypes[keyof ListTypes]>({
     searchParams.delete('query')
     navigate({
       to: '/collections/$collection',
-      params: { collection: data.included.path },
-      search: searchParams?.toString(),
+      params: { collection: data.included.collection.path },
+      search: Object.fromEntries(searchParams.entries()),
     })
   }
 
@@ -111,8 +111,8 @@ export const CollectionView = <T extends ListTypes[keyof ListTypes]>({
       searchParams.set('page_size', value)
       navigate({
         to: '/collections/$collection',
-        params: { collection: data.included.path },
-        search: searchParams?.toString(),
+        params: { collection: data.included.collection.path },
+        search: Object.fromEntries(searchParams.entries()),
       })
     }
   }
@@ -121,10 +121,13 @@ export const CollectionView = <T extends ListTypes[keyof ListTypes]>({
     <Section>
       <Container>
         <div className="flex items-center gap-3 py-[2px]">
-          <h1 className="!m-0 pb-[2px]">{data.included.collection}</h1>
+          <h1 className="!m-0 pb-[2px]">{data.included.collection.name}</h1>
           <Stats total={data?.meta.total} />
           <IconButton aria-label="Create New" asChild>
-            <Link to="/collections/$collection/create" params={{ collection: data.included.path }}>
+            <Link
+              to="/collections/$collection/create"
+              params={{ collection: data.included.collection.path }}
+            >
               <PlusIcon height="18px" width="18px" svgClassName="stroke-white" />
             </Link>
           </IconButton>
@@ -185,8 +188,11 @@ export const CollectionView = <T extends ListTypes[keyof ListTypes]>({
                       >
                         {column.fieldName === 'title' ? (
                           <Link
-                            to="/collections/$collection/$postid"
-                            params={{ collection: data.included.path, postid: record.id }}
+                            to="/collections/$collection/$id"
+                            params={{
+                              collection: data.included.collection.path,
+                              id: record.id,
+                            }}
                           >
                             {column.formatter
                               ? column.formatter((record as any)[column.fieldName], record)

@@ -21,33 +21,50 @@
 
 import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { getCollection } from '@byline/byline/collections/registry'
+import type { UpdateTypes } from '@byline/byline/outputs/zod-types/index'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
-import { CreateView } from '@/modules/collections/create'
+import { EditView } from '@/modules/collections/edit'
 
-export const Route = createFileRoute('/collections/$collection/create')({
-  loader: async ({ params }): Promise<CollectionDefinition> => {
+export const Route = createFileRoute('/collections/$collection/$id')({
+  loader: async ({ params }): Promise<UpdateTypes[keyof UpdateTypes]> => {
     const collectionDef = getCollection(params.collection)
     if (!collectionDef) {
       throw notFound()
     }
-    return collectionDef
+
+    const response = await fetch(`http://localhost:3001/api/${params.collection}/${params.id}`)
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw notFound()
+      }
+      throw new Error('Failed to fetch record')
+    }
+    return (await response.json()) as UpdateTypes[typeof params.collection & keyof UpdateTypes]
   },
+  staleTime: 0,
+  gcTime: 0,
+  shouldReload: true,
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const { collection } = Route.useParams()
-  const collectionDef = Route.useLoaderData()
+  const data = Route.useLoaderData()
+  const { collection, id } = Route.useParams()
+  const collectionDef = getCollection(collection) as CollectionDefinition
+
   return (
     <>
       <BreadcrumbsClient
         breadcrumbs={[
           { label: collectionDef.name, href: `/collections/${collection}` },
-          { label: 'Create', href: `/collections/${collection}/create` },
+          {
+            label: 'Edit',
+            href: `/collections/${collection}/${id}`,
+          },
         ]}
       />
-      <CreateView collectionDefinition={collectionDef} />
+      <EditView collectionDefinition={collectionDef} initialData={data} />
     </>
   )
 }
