@@ -40,7 +40,7 @@ export interface TableHeadingCellSortableProps extends TableHeadingCellProps {
   fieldName?: string
   sortable?: boolean
   desc?: boolean
-  align?: 'left' | 'right' | 'center'
+  align?: 'left' | 'center' | 'right'
   className?: string
 }
 
@@ -87,7 +87,15 @@ export function TableHeadingCellSortable({
 
   if (sortable === false) {
     return (
-      <Table.HeadingCell className={className} {...rest}>
+      <Table.HeadingCell
+        className={cx(
+          className,
+          { 'text-left': align === 'left' },
+          { 'text-center': align === 'center' },
+          { 'text-right': align === 'right' }
+        )}
+        {...rest}
+      >
         {label}
       </Table.HeadingCell>
     )
@@ -109,9 +117,13 @@ export function TableHeadingCellSortable({
     <Table.HeadingCell className={className} {...rest}>
       <button
         type="button"
-        className={cx('flex font-bold text-[0.975rem] gap-1 pl-[2px] pr-[6px] hover:underline', {
-          'ml-auto': align === 'right',
-        })}
+        className={cx(
+          'flex font-bold gap-1 pl-[2px] pr-[6px] hover:underline',
+          { 'text-left': align === 'left' },
+          { 'text-center': align === 'center' },
+          { 'text-right': align === 'right' },
+          { 'ml-auto': align === 'right' }
+        )}
         onClick={handleOnSort(desc !== true)}
       >
         <span>{label}</span>

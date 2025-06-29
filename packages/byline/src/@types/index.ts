@@ -27,10 +27,20 @@ export interface BaseSchema {
   updated_at: string
 }
 
+export interface ColumnDefinition<T = any> {
+  fieldName: keyof T
+  label: string
+  sortable?: boolean
+  align?: 'left' | 'center' | 'right'
+  className?: string
+  formatter?: (value: any, record: T) => React.ReactNode
+}
+
 export interface CollectionDefinition {
   name: string
   path: string
   fields: Field[]
+  columns?: ColumnDefinition[]
 }
 
 export type FieldType = 'text' | 'checkbox' | 'select' | 'richtext' | 'datetime'

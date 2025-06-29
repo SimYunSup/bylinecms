@@ -66,7 +66,7 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
     const records = await db.select().from(table).orderBy(desc(table.updated_at))
     console.log(`Records fetched: ${records.length}`)
     return {
-      [collection.path]: records,
+      records,
       meta: {
         page: 1,
         page_size: records.length,

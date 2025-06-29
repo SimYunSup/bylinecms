@@ -25,7 +25,7 @@ export const pagesUpdateSchema = pagesFieldsSchema.partial()
 
 // List schema with pagination and metadata
 export const pagesListSchema = z.object({
-  pages: z.array(pagesSchema),
+  records: z.array(pagesSchema),
   meta: z.object({
     page: z.number().int().positive(),
     page_size: z.number().int().positive(),

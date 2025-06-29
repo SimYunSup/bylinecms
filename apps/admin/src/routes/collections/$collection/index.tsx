@@ -19,6 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { getCollection } from '@byline/byline/collections/registry'
 import type { ListTypes } from '@byline/byline/outputs/zod-types/index'
 import { createFileRoute } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
@@ -30,17 +31,23 @@ export const Route = createFileRoute('/collections/$collection/')({
     if (!response.ok) {
       throw new Error('Failed to fetch collection')
     }
-    return response.json() // as ListTypes[typeof params.collection & keyof ListTypes]
+    return (await response.json()) as ListTypes[typeof params.collection & keyof ListTypes]
   },
   component: Index,
 })
 
 function Index() {
   const data = Route.useLoaderData()
+  const { collection } = Route.useParams()
+  const collectionDef = getCollection(collection)
+  const columns = collectionDef?.columns || []
+
   return (
     <>
-      <BreadcrumbsClient breadcrumbs={[{ label: 'Pages', href: '/collections/pages' }]} />
-      <CollectionView data={data} />
+      <BreadcrumbsClient
+        breadcrumbs={[{ label: data.included.collection, href: `/collections/${collection}` }]}
+      />
+      <CollectionView data={data} columns={columns} />
     </>
   )
 }

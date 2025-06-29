@@ -1,2 +1,1 @@
-
-export * from '@byline/byline/outputs/drizzle-schemas/index';
+export * from '@byline/byline/drizzle-schemas';

@@ -19,6 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { ColumnDefinition } from '@byline/byline/@types/index'
 import type { ListTypes } from '@byline/byline/outputs/zod-types/index'
 import {
   Container,
@@ -35,32 +36,8 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import cx from 'classnames'
 import { useState } from 'react'
 import { RouterPager } from '@/ui/components/router-pager'
-import {
-  TableHeadingCellSortable,
-  type TableHeadingCellSortableProps,
-} from '@/ui/components/th-sortable.tsx'
+import { TableHeadingCellSortable } from '@/ui/components/th-sortable.tsx'
 import { formatDateTime, formatNumber } from '@/utils/utils.general.ts'
-
-const tableColumnDefs: Omit<TableHeadingCellSortableProps, 'lng'>[] = [
-  {
-    fieldName: 'title',
-    label: 'Title',
-    path: '/collections/pages',
-    sortable: true,
-    scope: 'col',
-    align: 'left',
-    className: 'w-[30%]',
-  },
-  {
-    fieldName: 'updated_at',
-    label: 'Last Updated',
-    path: '/collections/pages',
-    sortable: true,
-    scope: 'col',
-    align: 'right',
-    className: 'w-[20%]',
-  },
-]
 
 function Stats({ total }: { total: number }) {
   const [showLoader, _] = useState(false)
@@ -95,7 +72,13 @@ function padRows(value: number) {
   ))
 }
 
-export const CollectionView = <T extends ListTypes[keyof ListTypes]>({ data }: { data: T }) => {
+export const CollectionView = <T extends ListTypes[keyof ListTypes]>({
+  data,
+  columns,
+}: {
+  data: T
+  columns: ColumnDefinition[]
+}) => {
   const navigate = useNavigate()
   const location = useRouterState({ select: (s) => s.location })
   const searchParams = new URLSearchParams(location.search)
@@ -138,7 +121,7 @@ export const CollectionView = <T extends ListTypes[keyof ListTypes]>({ data }: {
     <Section>
       <Container>
         <div className="flex items-center gap-3 py-[2px]">
-          <h1 className="!m-0 pb-[2px]">Pages</h1>
+          <h1 className="!m-0 pb-[2px]">{data.included.collection}</h1>
           <Stats total={data?.meta.total} />
           <IconButton aria-label="Create New" asChild>
             <Link to="/collections/$collection/create" params={{ collection: data.included.path }}>
@@ -169,35 +152,59 @@ export const CollectionView = <T extends ListTypes[keyof ListTypes]>({ data }: {
           <Table>
             <Table.Header>
               <Table.Row>
-                {tableColumnDefs.map((column) => {
+                {columns.map((column) => {
                   return (
-                    <TableHeadingCellSortable key={column.fieldName} {...column} ref={undefined} />
+                    <TableHeadingCellSortable
+                      key={String(column.fieldName)}
+                      fieldName={String(column.fieldName)}
+                      label={column.label}
+                      sortable={column.sortable}
+                      scope="col"
+                      align={column.align}
+                      className={column.className}
+                    />
                   )
                 })}
               </Table.Row>
             </Table.Header>
 
             <Table.Body>
-              {data?.pages?.map((page) => {
+              {data?.records?.map((record) => {
                 return (
-                  <Table.Row key={page.id}>
-                    <Table.Cell>
-                      <Link
-                        to="/collections/$collection/$postid"
-                        params={{ collection: data.included.path, postid: page.id }}
+                  <Table.Row key={record.id}>
+                    {columns.map((column) => (
+                      <Table.Cell
+                        key={String(column.fieldName)}
+                        className={
+                          column.align === 'right'
+                            ? 'text-right'
+                            : column.align === 'center'
+                              ? 'text-center'
+                              : ''
+                        }
                       >
-                        {page.title ?? '------'}
-                      </Link>
-                    </Table.Cell>
-                    <Table.Cell className="text-right">
-                      {formatDateTime(page.updated_at)}
-                    </Table.Cell>
+                        {column.fieldName === 'title' ? (
+                          <Link
+                            to="/collections/$collection/$postid"
+                            params={{ collection: data.included.path, postid: record.id }}
+                          >
+                            {column.formatter
+                              ? column.formatter((record as any)[column.fieldName], record)
+                              : ((record as any)[column.fieldName] ?? '------')}
+                          </Link>
+                        ) : column.formatter ? (
+                          column.formatter((record as any)[column.fieldName], record)
+                        ) : (
+                          String((record as any)[column.fieldName] ?? '')
+                        )}
+                      </Table.Cell>
+                    ))}
                   </Table.Row>
                 )
               })}
             </Table.Body>
           </Table>
-          {padRows(6 - (data?.pages?.length ?? 0))}
+          {padRows(6 - (data?.records?.length ?? 0))}
         </Table.Container>
         <div className="options flex flex-col gap-2 sm:flex-row items-start sm:items-center mb-5">
           <Select

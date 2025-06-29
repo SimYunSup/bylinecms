@@ -16,11 +16,6 @@
     "baseUrl": "./",
     "strict": true
   },
-  "include": [
-    "api/**/*",
-    "database/**/*",
-    "byline/collections/registry.ts",
-    "byline/validation/index.ts"
-  ],
+  "include": ["database/**/*", "src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

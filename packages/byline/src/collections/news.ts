@@ -23,26 +23,18 @@ import type { BaseSchema, CollectionDefinition, ColumnDefinition } from '../@typ
 // import { formatDateTime } from '../utils/formatDateTime'
 
 // Hard coded for now. Will generate from collection definition soon.
-export interface Page extends BaseSchema {
+export interface News extends BaseSchema {
   title: string;
-  category: string | null;
   content: unknown;
 }
 
-const pagesColumns: ColumnDefinition[] = [
+const newsColumns: ColumnDefinition[] = [
   {
     fieldName: 'title',
     label: 'Title',
     sortable: true,
     align: 'left',
-    className: 'w-[30%]',
-  },
-  {
-    fieldName: 'featured',
-    label: 'Featured',
-    align: 'center',
-    className: 'w-[10%]',
-    formatter: (value) => value ? '★' : '',
+    className: 'w-[25%]',
   },
   {
     fieldName: 'published',
@@ -59,25 +51,13 @@ const pagesColumns: ColumnDefinition[] = [
     className: 'w-[20%]',
     // formatter: (value) => formatDateTime(value),
   },
-
 ]
 
-export const Pages: CollectionDefinition = {
-  name: 'Pages',
-  path: 'pages',
+export const News: CollectionDefinition = {
+  name: 'News',
+  path: 'news',
   fields: [
     { name: 'title', label: 'Title', type: 'text', required: true },
-    {
-      name: 'category',
-      label: 'Category',
-      type: 'select',
-      helpText: 'Select a category for this page',
-      options: [
-        { label: 'Foo', value: 'foo' },
-        { label: 'Bar', value: 'bar' },
-        { label: 'Baz', value: 'baz' },
-      ],
-    },
     {
       name: 'content',
       label: 'Content',
@@ -86,8 +66,7 @@ export const Pages: CollectionDefinition = {
       required: true,
     },
     { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', admin: { position: 'sidebar' } },
-    { name: 'featured', label: 'Featured', type: 'checkbox', helpText: 'Is this page featured on the home page?', admin: { position: 'sidebar' } },
   ],
-  columns: pagesColumns,
+  columns: newsColumns,
 }
 

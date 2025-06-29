@@ -51,14 +51,16 @@ function Index() {
               <p>Docs collection description or stats here...</p>
             </Card.Content>
           </Card>
-          <Card>
-            <Card.Header>
-              <Card.Title>News</Card.Title>
-              <Card.Description>News collection...</Card.Description>
-            </Card.Header>
-            <Card.Content>
-              <p>News collection description or stats here...</p>
-            </Card.Content>
+          <Card asChild hover={true}>
+            <Link to="/collections/$collection" params={{ collection: 'news' }} className="block">
+              <Card.Header>
+                <Card.Title>News</Card.Title>
+                <Card.Description>News collection...</Card.Description>
+              </Card.Header>
+              <Card.Content>
+                <p>News collection description or stats here...</p>
+              </Card.Content>
+            </Link>
           </Card>
         </div>
       </Container>

@@ -41,7 +41,7 @@ export function generateZodSchema(collection: CollectionDefinition): string {
   // List and Get schemas
   lines.push('// List schema with pagination and metadata')
   lines.push(`export const ${collection.path}ListSchema = z.object({`)
-  lines.push(`  ${collection.path}: z.array(${collection.path}Schema),`)
+  lines.push(`  records: z.array(${collection.path}Schema),`)
   lines.push('  meta: z.object({')
   lines.push('    page: z.number().int().positive(),')
   lines.push('    page_size: z.number().int().positive(),')

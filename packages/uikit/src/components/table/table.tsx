@@ -19,9 +19,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type * as React from 'react'
-
 import cx from 'classnames'
+import type * as React from 'react'
 
 import styles from './table.module.css'
 
@@ -165,7 +164,7 @@ function Footer({
   ref?: React.RefObject<HTMLTableSectionElement>
 }): React.JSX.Element {
   const classes = cx(
-    'text-xs text-gray-700 uppercase bg-canvas-100 dark:bg-canvas-700 dark:text-gray-400',
+    'text-xs text-gray-700 bg-canvas-100 dark:bg-canvas-700 dark:text-gray-400',
     className
   )
 

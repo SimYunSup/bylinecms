@@ -8,6 +8,16 @@
       "types": "./dist/*.d.ts",
       "import": "./dist/*.js"
     },
+    "./drizzle-schemas": {
+      "types": "./dist/outputs/drizzle-schemas/index.d.ts",
+      "import": "./dist/outputs/drizzle-schemas/index.js",
+      "require": "./dist/outputs/drizzle-schemas/index.js"
+    },
+    "./zod-types": {
+      "types": "./dist/outputs/zod-types/index.d.ts",
+      "import": "./dist/outputs/zod-types/index.js",
+      "require": "./dist/outputs/zod-types/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
