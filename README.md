@@ -109,7 +109,7 @@ At the moment, the project is mostly a prototype and 'weekend hack'. But it buil
 
 ```sh
 # git clone this repo
-git clone https://github.com/Byline-CMS/bylinecms.app
+git clone git@github.com:Byline-CMS/bylinecms.app.git
 cd bylinecms.app
 # install deps
 pnpm install
