@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "scripts": {
+    "byline:generate": "tsx src/scripts/generate.ts",
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf node_modules dist build .turbo"
+  },
   "exports": {
     "./*": {
       "types": "./dist/*.d.ts",
@@ -23,11 +28,6 @@
   "files": [
     "dist"
   ],
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "generate": "tsx src/scripts/generate.ts",
-    "clean": "rimraf node_modules dist build .turbo"
-  },
   "dependencies": {
     "@byline/shared": "workspace:*",
     "drizzle-kit": "^0.31.4",

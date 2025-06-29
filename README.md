@@ -109,16 +109,15 @@ At the moment, the project is mostly a prototype and 'weekend hack'. But it buil
 
 ```sh
 # git clone this repo
-git clone https://github.com/Byline-CMS/bylinecms.org
-cd bylinecms.org
-# install deps and build (you must build at least once before you can start the dev server)
+git clone https://github.com/Byline-CMS/bylinecms.app
+cd bylinecms.app
+# install deps
 pnpm install
-pnpm build
 ```
 
 ### 2 Setup your database. 
 
-The prototype currently requires PostgreSQL. There is a docker-compose.yml in the root postgres directory. 
+The prototype currently requires PostgreSQL. There is a docker-compose.yml in the root postgres directory. Note that the default root password is set to 'test' in docker-compose.yml.
 
 2.1. Create the 'data' subdirectory first, and then start postgres.
 
@@ -129,20 +128,30 @@ mkdir data
 ./postgres.sh
 ```
 
-2.2. Initialize the database and schema.
+2.2. Initialize the database
 ```sh
 # Copy .env.example to .env in the apps/admin directory. Read the notes in .env.example.
-cd apps/admin
+cd apps/api
 cp .env.example .env
-cd ../../
-# The default database password is 'test' (assuming you're using our docker-compose.yml file). From the root again...
-cd apps/admin/database && ./db_init
-cd ../&& pnpm drizzle:migrate
+
+# Again, the default database root password is 'test' (assuming you're using our docker-compose.yml file).
+cd database && ./db_init
+
+# IMPORTANT: our ./db_init script sources (imports) common.sh, which has a hardcoded value for the name of the development database. This is a 'foot gun' protection, so the script can only ever drop and recreate this database name. If you'd like to use a database name other than byline_dev - change the last line in common.sh, as well as your corresponding .env settings.
+```
+
+2.3 Generate Byline types and schemas
+```sh
+# From the root
+pnpm byline:generate
+pnpm build # we have to build once here for all workspace deps, including byline types and schemas (for now)
+pnpm drizzle:generate
+pnpm drizzle:migrate
 ```
 
 ### 3. Start dev mode
 
-Switch back to the root of the project and start the dev environment.
+Again, from the root of the project and start the dev environment.
 
 ```sh
 pnpm dev

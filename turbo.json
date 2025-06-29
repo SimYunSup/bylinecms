@@ -23,7 +23,18 @@
       ],
       "persistent": true
     },
-    "generate": {
+    "db:init": {
+      "cache": false,
+      "persistent": true,
+      "interactive": true
+    },
+    "byline:generate": {
+      "cache": false
+    },
+    "drizzle:generate": {
+      "cache": false
+    },
+    "drizzle:migrate": {
       "cache": false
     },
     "dev:seed": {

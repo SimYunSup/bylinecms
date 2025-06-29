@@ -6,7 +6,10 @@
   "packageManager": "pnpm@10.12.4",
   "scripts": {
     "clean": "turbo run clean && rimraf node_modules",
-    "generate": "turbo run generate",
+    "db:init": "TURBO_UI=true turbo run db:init",
+    "byline:generate": "turbo run byline:generate",
+    "drizzle:generate": "turbo run drizzle:generate",
+    "drizzle:migrate": "turbo run drizzle:migrate",
     "build": "turbo run build",
     "release": "turbo run release",
     "start": "turbo run start",

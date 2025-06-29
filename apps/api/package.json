@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "tsx --env-file=.env --watch src/server.ts",
     "build": "tsc -p tsconfig.json",
+    "db:init": "cd database && ./db_init.sh",
     "drizzle:generate": "tsc -p tsconfig.json && drizzle-kit generate --config=drizzle.config.ts",
-    "drizzle:push": "tsc -p tsconfig.json && drizzle-kit push --config=drizzle.config.ts",
     "drizzle:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
+    "drizzle:push": "tsc -p tsconfig.json && drizzle-kit push --config=drizzle.config.ts",
     "drizzle:drop": "drizzle-kit drop --config=drizzle.config.ts",
     "drizzle:seed": "tsx --no-warnings --env-file=.env ./database/seeds/index.ts",
     "clean": "rimraf node_modules dist build .turbo "
