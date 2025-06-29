@@ -130,21 +130,29 @@ mkdir data
 
 2.2. Initialize the database
 ```sh
-# Copy .env.example to .env in the apps/admin directory. Read the notes in .env.example.
+# Copy .env.example to .env in the apps/admin directory. 
+# Read the notes in .env.example.
 cd apps/api
 cp .env.example .env
 
 # Again, the default database root password is 'test' (assuming you're using our docker-compose.yml file).
 cd database && ./db_init
 
-# IMPORTANT: our ./db_init script sources (imports) common.sh, which has a hardcoded value for the name of the development database. This is a 'foot gun' protection, so the script can only ever drop and recreate this database name. If you'd like to use a database name other than byline_dev - change the last line in common.sh, as well as your corresponding .env settings.
+# IMPORTANT: our ./db_init script sources (imports) common.sh, 
+# which has a hardcoded value for the name of the development database.
+# This is a 'foot gun' protection, so the script can only ever drop
+# and recreate this database name. If you'd like to use a database
+# name other than byline_dev - change the last line in common.sh, 
+# as well as your corresponding .env settings.
 ```
 
 2.3 Generate Byline types and schemas
 ```sh
 # From the root
 pnpm byline:generate
-pnpm build # we have to build once here for all workspace deps, including byline types and schemas (for now)
+# We have to build once here for all workspace deps, including
+# byline types and schemas (for now)
+pnpm build 
 pnpm drizzle:generate
 pnpm drizzle:migrate
 ```
