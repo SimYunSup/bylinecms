@@ -24,7 +24,7 @@ import { Container, Section } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
 import { FormRenderer } from '@/ui/fields/form-renderer'
 
-export const CreateView = () => {
+export const CreateView = ({ path }: { path: string }) => {
   const navigate = useNavigate()
   // const location = useRouterState({ select: (s) => s.location })
 
@@ -43,7 +43,8 @@ export const CreateView = () => {
         console.error(`Failed to fetch pages: ${res.statusText}`)
       } else {
         navigate({
-          to: '/collections/pages',
+          to: '/collections/$collection',
+          params: { collection: path },
         })
       }
     } catch (err) {
@@ -59,7 +60,9 @@ export const CreateView = () => {
         <FormRenderer
           fields={Pages.fields}
           onSubmit={handleSubmit}
-          onCancel={() => navigate({ to: '/collections/pages' })}
+          onCancel={() =>
+            navigate({ to: '/collections/$collection', params: { collection: path } })
+          } // Adjust the path as needed
         />
       </Container>
     </Section>

@@ -23,6 +23,26 @@ export const pagesSchema = baseSchema.merge(pagesFieldsSchema)
 export const pagesCreateSchema = pagesFieldsSchema
 export const pagesUpdateSchema = pagesFieldsSchema.partial()
 
+// List schema with pagination and metadata
+export const pagesListSchema = z.object({
+  pages: z.array(pagesSchema),
+  meta: z.object({
+    page: z.number().int().positive(),
+    page_size: z.number().int().positive(),
+    total: z.number().int().nonnegative(),
+    total_pages: z.number().int().positive(),
+  }),
+  included: z.object({
+    collection: z.literal('Pages'),
+    path: z.literal('pages'),
+  }),
+})
+
+// Get schema (individual item)
+export const pagesGetSchema = pagesSchema
+
 export type Pages = z.infer<typeof pagesSchema>
+export type PagesList = z.infer<typeof pagesListSchema>
+export type PagesGet = z.infer<typeof pagesGetSchema>
 export type CreatePages = z.infer<typeof pagesCreateSchema>
 export type UpdatePages = z.infer<typeof pagesUpdateSchema>

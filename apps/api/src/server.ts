@@ -24,7 +24,7 @@
 // We'll extract a 'proper' API server into a separate app folder soon.
 
 import { getCollection } from '@byline/byline/collections/registry'
-import * as validation from '@byline/byline/outputs/validation/index'
+import * as zodTypes from '@byline/byline/outputs/zod-types/index'
 import cors from '@fastify/cors'
 import { desc, eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
@@ -72,7 +72,10 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
         page_size: records.length,
         total: records.length,
         total_pages: 1,
+      },
+      included: {
         collection: collection.name,
+        path: collection.path,
       }
     }
   } catch (error) {
@@ -98,7 +101,7 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
   }
 
   try {
-    // Get the create schema for validation
+    // Get the create schema for zodTypes
     const createSchema = getCreateSchema(collection.path)
     const validatedData = createSchema.parse(body)
 
@@ -111,7 +114,7 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
   } catch (error) {
     if (error instanceof z.ZodError) {
       reply.code(400).send({
-        error: 'Validation failed',
+        error: 'zodTypes failed',
         details: error.errors
       })
     } else {
@@ -168,7 +171,7 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
   }
 
   try {
-    // Get the update schema for validation
+    // Get the update schema for zodTypes
     const updateSchema = getUpdateSchema(collection.path)
     const validatedData = updateSchema.parse(body)
 
@@ -181,7 +184,7 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
   } catch (error) {
     if (error instanceof z.ZodError) {
       reply.code(400).send({
-        error: 'Validation failed',
+        error: 'zodTypes failed',
         details: error.errors
       })
     } else {
@@ -217,7 +220,7 @@ server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/
 
 // Helper function to get create schema
 function getCreateSchema(collectionPath: string) {
-  const schema = validation.createSchemas[collectionPath]
+  const schema = zodTypes.createSchemas[collectionPath]
   if (!schema) {
     throw new Error(`No create schema found for collection: ${collectionPath}`)
   }
@@ -226,7 +229,7 @@ function getCreateSchema(collectionPath: string) {
 
 // Helper function to get update schema
 function getUpdateSchema(collectionPath: string) {
-  const schema = validation.updateSchemas[collectionPath]
+  const schema = zodTypes.updateSchemas[collectionPath]
   if (!schema) {
     throw new Error(`No update schema found for collection: ${collectionPath}`)
   }

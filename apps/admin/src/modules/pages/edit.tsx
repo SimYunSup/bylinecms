@@ -25,7 +25,7 @@ import { Button, Container, Section } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
 import { FormRenderer } from '@/ui/fields/form-renderer'
 
-export const EditView = ({ initialData }: { initialData: Page }) => {
+export const EditView = ({ path, initialData }: { path: string; initialData: Page }) => {
   const navigate = useNavigate()
 
   const handleSubmit = async (data: any) => {
@@ -42,7 +42,8 @@ export const EditView = ({ initialData }: { initialData: Page }) => {
         // TODO: Show error to user
       } else {
         navigate({
-          to: '/collections/pages',
+          to: '/collections/$collection',
+          params: { collection: path },
         })
       }
     } catch (err) {
@@ -62,7 +63,10 @@ export const EditView = ({ initialData }: { initialData: Page }) => {
               variant="filled"
               className="min-w-[50px] min-h-[28px]"
               onClick={() =>
-                navigate({ to: '/collections/pages/$postid', params: { postid: initialData.id } })
+                navigate({
+                  to: '/collections/$collection/$postid',
+                  params: { collection: path, postid: initialData.id },
+                })
               }
             >
               Edit
@@ -72,7 +76,10 @@ export const EditView = ({ initialData }: { initialData: Page }) => {
               variant="outlined"
               className="min-w-[50px] min-h-[28px]"
               onClick={() =>
-                navigate({ to: '/collections/pages/$postid', params: { postid: initialData.id } })
+                navigate({
+                  to: '/collections/$collection/$postid',
+                  params: { collection: path, postid: initialData.id },
+                })
               }
             >
               API
@@ -83,7 +90,9 @@ export const EditView = ({ initialData }: { initialData: Page }) => {
           fields={Pages.fields}
           onSubmit={handleSubmit}
           initialData={initialData}
-          onCancel={() => navigate({ to: '/collections/pages' })}
+          onCancel={() =>
+            navigate({ to: '/collections/$collection', params: { collection: path } })
+          }
         />
       </Container>
     </Section>

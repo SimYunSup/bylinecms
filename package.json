@@ -6,18 +6,15 @@
   "packageManager": "pnpm@10.12.4",
   "scripts": {
     "clean": "turbo run clean && rimraf node_modules",
+    "generate": "turbo run generate",
     "build": "turbo run build",
     "release": "turbo run release",
     "start": "turbo run start",
     "storybook": "turbo run storybook",
     "dev": "turbo run dev --parallel",
-    "tauri:dev": "turbo run tauri:dev",
-    "devturbo": "turbo run devturbo --parallel",
-    "dev:seed": "turbo run dev:seed --parallel",
     "lint": "turbo run lint --continue",
     "typecheck": "turbo run typecheck --continue",
-    "test": "turbo run test",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "test": "turbo run test"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.6"

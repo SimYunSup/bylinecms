@@ -19,24 +19,28 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { ListTypes } from '@byline/byline/outputs/zod-types/index'
 import { createFileRoute } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
-import { CreateView } from '@/modules/pages/create'
+import { CollectionView } from '@/modules/pages/list'
 
-export const Route = createFileRoute('/collections/pages/create')({
-  component: RouteComponent,
+export const Route = createFileRoute('/collections/$collection/')({
+  loader: async ({ params }): Promise<ListTypes[keyof ListTypes]> => {
+    const response = await fetch(`http://localhost:3001/api/${params.collection}`)
+    if (!response.ok) {
+      throw new Error('Failed to fetch collection')
+    }
+    return response.json() // as ListTypes[typeof params.collection & keyof ListTypes]
+  },
+  component: Index,
 })
 
-function RouteComponent() {
+function Index() {
+  const data = Route.useLoaderData()
   return (
     <>
-      <BreadcrumbsClient
-        breadcrumbs={[
-          { label: 'Pages', href: '/collections/pages' },
-          { label: 'Create Page', href: '/collections/pages/create' },
-        ]}
-      />
-      <CreateView />
+      <BreadcrumbsClient breadcrumbs={[{ label: 'Pages', href: '/collections/pages' }]} />
+      <CollectionView data={data} />
     </>
   )
 }

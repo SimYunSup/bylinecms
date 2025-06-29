@@ -38,8 +38,31 @@ export function generateZodSchema(collection: CollectionDefinition): string {
   lines.push(`export const ${collection.path}UpdateSchema = ${collection.path}FieldsSchema.partial()`)
   lines.push('')
 
+  // List and Get schemas
+  lines.push('// List schema with pagination and metadata')
+  lines.push(`export const ${collection.path}ListSchema = z.object({`)
+  lines.push(`  ${collection.path}: z.array(${collection.path}Schema),`)
+  lines.push('  meta: z.object({')
+  lines.push('    page: z.number().int().positive(),')
+  lines.push('    page_size: z.number().int().positive(),')
+  lines.push('    total: z.number().int().nonnegative(),')
+  lines.push('    total_pages: z.number().int().positive(),')
+  lines.push('  }),')
+  lines.push('  included: z.object({')
+  lines.push(`    collection: z.literal('${collection.name}'),`)
+  lines.push(`    path: z.literal('${collection.path}'),`)
+  lines.push('  }),')
+  lines.push('})')
+  lines.push('')
+
+  lines.push('// Get schema (individual item)')
+  lines.push(`export const ${collection.path}GetSchema = ${collection.path}Schema`)
+  lines.push('')
+
   // Type exports
   lines.push(`export type ${capitalize(collection.name)} = z.infer<typeof ${collection.path}Schema>`)
+  lines.push(`export type ${capitalize(collection.name)}List = z.infer<typeof ${collection.path}ListSchema>`)
+  lines.push(`export type ${capitalize(collection.name)}Get = z.infer<typeof ${collection.path}GetSchema>`)
   lines.push(`export type Create${capitalize(collection.name)} = z.infer<typeof ${collection.path}CreateSchema>`)
   lines.push(`export type Update${capitalize(collection.name)} = z.infer<typeof ${collection.path}UpdateSchema>`)
 

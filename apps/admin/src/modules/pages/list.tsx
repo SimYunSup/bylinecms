@@ -19,6 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { ListTypes } from '@byline/byline/outputs/zod-types/index'
 import {
   Container,
   IconButton,
@@ -40,12 +41,9 @@ import {
 } from '@/ui/components/th-sortable.tsx'
 import { formatDateTime, formatNumber } from '@/utils/utils.general.ts'
 
-import type { PagesResponse } from './@types'
-
-// TODO: Extract from Pages collection definition
 const tableColumnDefs: Omit<TableHeadingCellSortableProps, 'lng'>[] = [
   {
-    fieldName: 'name',
+    fieldName: 'title',
     label: 'Title',
     path: '/collections/pages',
     sortable: true,
@@ -65,26 +63,7 @@ const tableColumnDefs: Omit<TableHeadingCellSortableProps, 'lng'>[] = [
 ]
 
 function Stats({ total }: { total: number }) {
-  // const progress = useProgressBarContext()
-  // const [showLoader, setShowLoader] = useState(false)
   const [showLoader, _] = useState(false)
-
-  // useEffect(() => {
-  //   let timeoutId: NodeJS.Timeout
-  //   if (progress.loading === true) {
-  //     timeoutId = setTimeout(() => {
-  //       setShowLoader(true)
-  //     }, 200)
-  //   } else {
-  //     setShowLoader(false)
-  //   }
-
-  //   return () => {
-  //     if (timeoutId) {
-  //       clearTimeout(timeoutId)
-  //     }
-  //   }
-  // }, [progress.loading])
 
   if (showLoader) {
     return <LoaderRing className="mr-auto -mb-[4px]" size={24} color="#666666" />
@@ -116,7 +95,7 @@ function padRows(value: number) {
   ))
 }
 
-export const CollectionView = ({ data }: { data: PagesResponse }) => {
+export const CollectionView = <T extends ListTypes[keyof ListTypes]>({ data }: { data: T }) => {
   const navigate = useNavigate()
   const location = useRouterState({ select: (s) => s.location })
   const searchParams = new URLSearchParams(location.search)
@@ -126,7 +105,8 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
       searchParams.delete('page')
       searchParams.set('query', query)
       navigate({
-        to: '/collections/pages',
+        to: '/collections/$collection',
+        params: { collection: data.included.path },
         search: searchParams?.toString(),
       })
     }
@@ -136,7 +116,8 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
     searchParams.delete('page')
     searchParams.delete('query')
     navigate({
-      to: '/collections/pages',
+      to: '/collections/$collection',
+      params: { collection: data.included.path },
       search: searchParams?.toString(),
     })
   }
@@ -146,7 +127,8 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
       searchParams.delete('page')
       searchParams.set('page_size', value)
       navigate({
-        to: '/collections/pages',
+        to: '/collections/$collection',
+        params: { collection: data.included.path },
         search: searchParams?.toString(),
       })
     }
@@ -159,7 +141,7 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
           <h1 className="!m-0 pb-[2px]">Pages</h1>
           <Stats total={data?.meta.total} />
           <IconButton aria-label="Create New" asChild>
-            <Link to="/collections/pages/create">
+            <Link to="/collections/$collection/create" params={{ collection: data.included.path }}>
               <PlusIcon height="18px" width="18px" svgClassName="stroke-white" />
             </Link>
           </IconButton>
@@ -200,12 +182,15 @@ export const CollectionView = ({ data }: { data: PagesResponse }) => {
                 return (
                   <Table.Row key={page.id}>
                     <Table.Cell>
-                      <Link to="/collections/pages/$postid" params={{ postid: page.id }}>
+                      <Link
+                        to="/collections/$collection/$postid"
+                        params={{ collection: data.included.path, postid: page.id }}
+                      >
                         {page.title ?? '------'}
                       </Link>
                     </Table.Cell>
                     <Table.Cell className="text-right">
-                      {formatDateTime(page.created_at)}
+                      {formatDateTime(page.updated_at)}
                     </Table.Cell>
                   </Table.Row>
                 )

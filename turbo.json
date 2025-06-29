@@ -23,6 +23,9 @@
       ],
       "persistent": true
     },
+    "generate": {
+      "cache": false
+    },
     "dev:seed": {
       "cache": false
     },

@@ -32,7 +32,7 @@ function Index() {
       <Container>
         <div className="grid grid-cols-auto-fit-320 gap-6">
           <Card asChild hover={true}>
-            <Link to="/collections/pages" className="block">
+            <Link to="/collections/$collection" params={{ collection: 'pages' }} className="block">
               <Card.Header>
                 <Card.Title>Pages</Card.Title>
                 <Card.Description>Pages collection...</Card.Description>

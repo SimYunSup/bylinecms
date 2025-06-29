@@ -19,27 +19,37 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { Types } from '@byline/byline/outputs/zod-types/index'
 import { createFileRoute } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
-import { CollectionView } from '@/modules/pages/list'
+import { EditView } from '@/modules/pages/edit'
 
-export const Route = createFileRoute('/collections/pages/')({
-  loader: async () => {
-    const response = await fetch('http://localhost:3001/api/pages')
+export const Route = createFileRoute('/collections/$collection/$postid')({
+  loader: async ({ params }): Promise<Types[keyof Types]> => {
+    const response = await fetch(`http://localhost:3001/api/${params.collection}/${params.postid}`)
     if (!response.ok) {
-      throw new Error('Failed to fetch pages')
+      throw new Error('Failed to fetch page')
     }
     return response.json()
   },
+  staleTime: 0,
+  gcTime: 0,
+  shouldReload: true,
   component: Index,
 })
 
 function Index() {
-  const data = Route.useLoaderData()
+  const pageData = Route.useLoaderData()
+
   return (
     <>
-      <BreadcrumbsClient breadcrumbs={[{ label: 'Pages', href: '/collections/pages' }]} />
-      <CollectionView data={data} />
+      <BreadcrumbsClient
+        breadcrumbs={[
+          { label: 'Pages', href: '/collections/pages' },
+          { label: pageData.title || 'Edit Page', href: `/pages/${pageData.id}` },
+        ]}
+      />
+      {/* <EditView path={'pages'} initialData={pageData} /> */}
     </>
   )
 }

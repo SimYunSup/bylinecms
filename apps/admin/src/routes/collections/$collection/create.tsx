@@ -19,37 +19,24 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { Page } from '@byline/byline/collections/pages'
 import { createFileRoute } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
-import { EditView } from '@/modules/pages/edit'
+import { CreateView } from '@/modules/pages/create'
 
-export const Route = createFileRoute('/collections/pages/$postid')({
-  loader: async ({ params }): Promise<Page> => {
-    const response = await fetch(`http://localhost:3001/api/pages/${params.postid}`)
-    if (!response.ok) {
-      throw new Error('Failed to fetch page')
-    }
-    return response.json()
-  },
-  staleTime: 0,
-  gcTime: 0,
-  shouldReload: true,
-  component: Index,
+export const Route = createFileRoute('/collections/$collection/create')({
+  component: RouteComponent,
 })
 
-function Index() {
-  const pageData = Route.useLoaderData()
-
+function RouteComponent() {
   return (
     <>
       <BreadcrumbsClient
         breadcrumbs={[
           { label: 'Pages', href: '/collections/pages' },
-          { label: pageData.title || 'Edit Page', href: `/pages/${pageData.id}` },
+          { label: 'Create Page', href: '/collections/pages/create' },
         ]}
       />
-      <EditView initialData={pageData} />
+      {/* <CreateView /> */}
     </>
   )
 }
