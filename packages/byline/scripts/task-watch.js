@@ -24,13 +24,12 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import chokidar from 'chokidar'
-import { generate } from './generate.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // Define source and output paths
-const srcDir = path.join(__dirname, '..', 'src/collections')
+const srcDir = path.join(__dirname, '..', 'src')
 const outputDir = path.join(__dirname, '..', 'dist')
 
 const runTypeScriptCompilation = () => {
@@ -60,7 +59,6 @@ const run = async () => {
     // Ensure output directory exists
     fs.mkdirSync(outputDir, { recursive: true })
 
-    await generate()
     await runTypeScriptCompilation()
 
     console.log('✅ Byline config building complete...')

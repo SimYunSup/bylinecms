@@ -1,9 +1,75 @@
 {
-  "id": "b34bbe39-5293-4666-97a8-40a65db06557",
+  "id": "46a61473-7a42-43cb-ac1b-c534ebe0f87b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.news": {
+      "name": "news",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "vid": {
+          "name": "vid",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "status": {
+          "name": "status",
+          "type": "status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'draft'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp (6) with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "publishedOn": {
+          "name": "publishedOn",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.pages": {
       "name": "pages",
       "schema": "",
@@ -21,23 +87,24 @@
           "notNull": true,
           "default": 1
         },
-        "published": {
-          "name": "published",
-          "type": "boolean",
+        "status": {
+          "name": "status",
+          "type": "status",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": false,
-          "default": false
+          "default": "'draft'"
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp (6)",
+          "type": "timestamp (6) with time zone",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp (6)",
+          "type": "timestamp (6) with time zone",
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
@@ -62,9 +129,9 @@
         },
         "publishedOn": {
           "name": "publishedOn",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "featured": {
           "name": "featured",
@@ -82,7 +149,17 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {},
+  "enums": {
+    "public.status": {
+      "name": "status",
+      "schema": "public",
+      "values": [
+        "draft",
+        "published",
+        "archived"
+      ]
+    }
+  },
   "schemas": {},
   "sequences": {},
   "roles": {},

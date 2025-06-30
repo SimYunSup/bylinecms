@@ -20,7 +20,7 @@
  */
 
 import type { ColumnDefinition } from '@byline/byline/@types/index'
-import type { ListTypes } from '@byline/byline/outputs/zod-types/index'
+import type { AnyCollectionSchemaTypes } from '@byline/byline/schemas/zod/types'
 import {
   Container,
   IconButton,
@@ -72,11 +72,11 @@ function padRows(value: number) {
   ))
 }
 
-export const ListView = <T extends ListTypes[keyof ListTypes]>({
+export const ListView = ({
   data,
   columns,
 }: {
-  data: T
+  data: AnyCollectionSchemaTypes['ListType']
   columns: ColumnDefinition[]
 }) => {
   const navigate = useNavigate()

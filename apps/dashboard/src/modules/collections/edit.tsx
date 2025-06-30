@@ -20,16 +20,17 @@
  */
 
 import type { CollectionDefinition } from '@byline/byline/@types/index'
+import type { AnyCollectionSchemaTypes } from '@byline/byline/schemas/zod/types'
 import { Button, Container, Section } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
 import { FormRenderer } from '@/ui/fields/form-renderer'
 
-export const EditView = <T extends Record<string, any>>({
+export const EditView = ({
   collectionDefinition,
   initialData,
 }: {
   collectionDefinition: CollectionDefinition
-  initialData: T
+  initialData: AnyCollectionSchemaTypes['UpdateType']
 }) => {
   const navigate = useNavigate()
   const { name, path, fields } = collectionDefinition

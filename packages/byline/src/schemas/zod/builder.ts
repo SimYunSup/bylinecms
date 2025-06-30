@@ -1,7 +1,8 @@
-import type { ZodDate, ZodEffects } from 'zod'
+// TODO: complete the migration to Zod v4 and remove this comment
+import type { ZodDate, ZodEffects } from 'zod/'
 import { z } from 'zod/v4'
-import type { CollectionDefinition, DateTimeField, Field, TextField, ValidationRule } from '../@types/index.js'
-import { getCollectionDefinition } from '../collections/registry.js'
+import type { CollectionDefinition, DateTimeField, Field, TextField, ValidationRule } from '../../@types/index.js'
+import { getCollectionDefinition } from '../../collections/registry.js'
 
 // Helper function to apply custom validation rules
 const applyValidationRules = (schema: z.ZodType, rules: ValidationRule[]): z.ZodType => {
@@ -147,7 +148,7 @@ export const createCollectionMetaSchema = (collection: CollectionDefinition) => 
   path: z.literal(collection.path),
 })
 
-// Helper function to get collection definition before calling createCollectionSchemas
+// Helper function to get collection definition before calling createCollectionSchemas  
 export const createCollectionSchemasForPath = (path: string) => {
   const collectionDefinition = getCollectionDefinition(path)
   if (collectionDefinition == null) {
@@ -181,3 +182,7 @@ export const createCollectionSchemas = (collection: CollectionDefinition) => {
     update: fieldsSchema.partial(),
   }
 }
+
+// Aliases for consistency
+export const createTypedCollectionSchemas = createCollectionSchemas
+export const createTypedCollectionSchemasForPath = createCollectionSchemasForPath

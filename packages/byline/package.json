@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "byline:generate": "tsx src/scripts/generate.ts",
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx ./scripts/task-watch.js",
-    "skip": "chokidar 'src/collections/**/*' -c 'npm-run-all byline:generate build'",
+    "skip": "tsx ./scripts/task-watch.js",
+    "generate": "tsx scripts/generate.ts",
+    "dev": "chokidar 'src/collections/**/*' -c 'npm-run-all generate build'",
     "clean": "rimraf node_modules dist build .turbo"
   },
   "exports": {
@@ -16,14 +16,9 @@
       "import": "./dist/*.js"
     },
     "./drizzle-schemas": {
-      "types": "./dist/outputs/drizzle-schemas/index.d.ts",
-      "import": "./dist/outputs/drizzle-schemas/index.js",
-      "require": "./dist/outputs/drizzle-schemas/index.js"
-    },
-    "./zod-types": {
-      "types": "./dist/outputs/zod-types/index.d.ts",
-      "import": "./dist/outputs/zod-types/index.js",
-      "require": "./dist/outputs/zod-types/index.js"
+      "types": "./dist/output/drizzle-schemas/index.d.ts",
+      "import": "./dist/output/drizzle-schemas/index.js",
+      "require": "./dist/output/drizzle-schemas/index.js"
     },
     "./package.json": "./package.json"
   },

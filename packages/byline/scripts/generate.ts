@@ -41,7 +41,7 @@ export async function generate() {
   const collections = getAllCollectionDefinitions()
 
   // Ensure directories exist
-  const drizzleSchemasDir = path.join(__dirname, '../src/outputs/drizzle-schemas')
+  const drizzleSchemasDir = path.join(__dirname, '../src/output/drizzle-schemas')
 
   if (!fs.existsSync(drizzleSchemasDir)) {
     fs.mkdirSync(drizzleSchemasDir, { recursive: true })
@@ -70,6 +70,7 @@ function generateIndexFiles(collections, drizzleSchemasDir) {
   const schemaIndexLines = [
     '// NOTE: This file has been auto-generated - do not edit.',
     '',
+    'export * from \'./status\'',
     ...collections.map(c => `export * from './${c.path}'`),
     '',
     ...collections.map(c => `import { ${c.path} } from './${c.path}'`),

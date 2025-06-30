@@ -24,8 +24,7 @@
 // We'll extract a 'proper' API server into a separate app folder soon.
 
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
-import * as zodTypes from '@byline/byline/outputs/zod-types/index'
-import { getCollectionSchemasForPath } from '@byline/byline/schemas/schema-cache'
+import { getCollectionSchemasForPath } from '@byline/byline/schemas/zod/cache'
 import cors from '@fastify/cors'
 import { desc, eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
@@ -70,7 +69,7 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
       records,
       meta: {
         page: 1,
-        page_size: records.length,
+        page_size: 10,
         total: records.length,
         total_pages: 1,
       },

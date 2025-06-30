@@ -2,19 +2,23 @@
 
 import { pgTable, text, boolean, uuid, json, timestamp, integer } from 'drizzle-orm/pg-core'
 
-export const news = pgTable('news', {
+import { statusEnum } from './status.js'
+
+export const pages = pgTable('pages', {
   // Base schema fields
   id: uuid('id').primaryKey(),
   vid: integer('vid').notNull().default(1),
-  published: boolean('published').default(false),
+  status: statusEnum().default('draft'),
   created_at: timestamp('created_at', { precision: 6, withTimezone: true }).defaultNow(),
   updated_at: timestamp('updated_at', { precision: 6, withTimezone: true }).defaultNow(),
 
   // Collection-specific fields
   title: text('title').notNull(),
+  category: text('category'),
   content: json('content').notNull(),
-  publishedOn: timestamp('publishedOn', { withTimezone: true }),
+  publishedOn: timestamp('publishedOn', { withTimezone: true }).notNull(),
+  featured: boolean('featured'),
 })
 
-export type NewsRecord = typeof news.$inferSelect
-export type NewNewsRecord = typeof news.$inferInsert
+export type PagesRecord = typeof pages.$inferSelect
+export type NewPagesRecord = typeof pages.$inferInsert

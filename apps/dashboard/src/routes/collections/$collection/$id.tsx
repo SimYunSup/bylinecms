@@ -21,17 +21,20 @@
 
 import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
-import type { UpdateTypes } from '@byline/byline/outputs/zod-types/index'
+import { getCollectionSchemasForPath } from '@byline/byline/schemas/zod/cache'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { EditView } from '@/modules/collections/edit'
 
 export const Route = createFileRoute('/collections/$collection/$id')({
-  loader: async ({ params }): Promise<UpdateTypes[keyof UpdateTypes]> => {
+  loader: async ({ params }) => {
     const collectionDef = getCollectionDefinition(params.collection)
     if (!collectionDef) {
       throw notFound()
     }
+
+    // Get typed schemas for better type inference
+    const schemas = getCollectionSchemasForPath(params.collection)
 
     const response = await fetch(`http://localhost:3001/api/${params.collection}/${params.id}`)
     if (!response.ok) {
@@ -40,7 +43,12 @@ export const Route = createFileRoute('/collections/$collection/$id')({
       }
       throw new Error('Failed to fetch record')
     }
-    return (await response.json()) as UpdateTypes[typeof params.collection & keyof UpdateTypes]
+
+    const rawData = await response.json()
+    // Validate with schema for runtime type safety
+    const data = schemas.get.parse(rawData)
+
+    return data
   },
   staleTime: 0,
   gcTime: 0,

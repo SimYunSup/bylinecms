@@ -21,23 +21,31 @@
 
 import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
-import type { ListTypes } from '@byline/byline/outputs/zod-types/index'
+import { getCollectionSchemasForPath } from '@byline/byline/schemas/zod/cache'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { ListView } from '@/modules/collections/list'
 
 export const Route = createFileRoute('/collections/$collection/')({
-  loader: async ({ params }): Promise<ListTypes[keyof ListTypes]> => {
+  loader: async ({ params }) => {
     const collectionDef = getCollectionDefinition(params.collection)
     if (!collectionDef) {
       throw notFound()
     }
 
+    // Get typed schemas for better type inference
+    const schemas = getCollectionSchemasForPath(params.collection)
+
     const response = await fetch(`http://localhost:3001/api/${params.collection}`)
     if (!response.ok) {
       throw new Error('Failed to fetch collection')
     }
-    return (await response.json()) as ListTypes[typeof params.collection & keyof ListTypes]
+
+    const rawData = await response.json()
+    // Validate with schema for runtime type safety
+    const data = schemas.list.parse(rawData)
+
+    return data
   },
   component: RouteComponent,
 })

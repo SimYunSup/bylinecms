@@ -28,14 +28,15 @@ export function generateDrizzleSchema(collection: CollectionDefinition): string 
   lines.push('')
   lines.push('import { pgTable, text, boolean, uuid, json, timestamp, integer } from \'drizzle-orm/pg-core\'')
   lines.push('')
-
+  lines.push('import { statusEnum } from \'./status.js\'')
+  lines.push('')
   lines.push(`export const ${collection.path} = pgTable('${collection.path}', {`)
   lines.push('  // Base schema fields')
 
   // Generate base field definitions
   lines.push('  id: uuid(\'id\').primaryKey(),')
   lines.push('  vid: integer(\'vid\').notNull().default(1),')
-  lines.push('  published: boolean(\'published\').default(false),')
+  lines.push('  status: statusEnum().default(\'draft\'),')
   lines.push('  created_at: timestamp(\'created_at\', { precision: 6, withTimezone: true }).defaultNow(),')
   lines.push('  updated_at: timestamp(\'updated_at\', { precision: 6, withTimezone: true }).defaultNow(),')
   lines.push('')
