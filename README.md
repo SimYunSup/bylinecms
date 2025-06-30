@@ -56,6 +56,11 @@ Not much: The embryo of a 'proof of concept' CMS - but there will be more soon.
 Absolutely not. There would be no point in taking on the complexity of Payload when it's the complexity of the project itself we'd like to avoid. 
 </details>
 
+<details>
+<summary>9. Why is the project's copyright assigned to Anthony Bouch?</summary>
+While we're still finding our feet in terms of overall strategy, we felt it would be simpler if we assigned all copyright to Anthony Bouch (also the lead maintainer of the  project at the moment). We have a CLA that has been implemented via [https://cla-assistant.io/](https://cla-assistant.io/). You can read more about the AGPL 3.0 license here [https://fossa.com/blog/open-source-software-licenses-101-agpl-license/](https://fossa.com/blog/open-source-software-licenses-101-agpl-license/) We'll update this section as soon as there is more to report. 
+</details>
+
 ## Design Goals
 1. We'd like to create an extensible, plugin-based framework for our headless CMS that will allow users to easily create admin dashboards and serialization frameworks for front-end clients.
    
