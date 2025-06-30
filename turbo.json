@@ -28,6 +28,9 @@
       "persistent": true,
       "interactive": true
     },
+    "byline:generate": {
+      "cache": false
+    },
     "drizzle:generate": {
       "cache": false
     },

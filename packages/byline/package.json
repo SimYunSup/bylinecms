@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "dev": "chokidar 'src/collections/**/*' -c 'npm-run-all byline:generate build'",
     "build": "tsc -p tsconfig.json",
     "skip": "tsx ./scripts/task-watch.js",
-    "generate": "tsx scripts/generate.ts",
-    "dev": "chokidar 'src/collections/**/*' -c 'npm-run-all generate build'",
+    "byline:generate": "tsx scripts/generate.ts",
     "clean": "rimraf node_modules dist build .turbo"
   },
   "exports": {
