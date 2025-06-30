@@ -130,7 +130,7 @@ mkdir data
 
 2.2. Initialize the database
 ```sh
-# Copy .env.example to .env in the apps/admin directory. 
+# Copy .env.example to .env in the apps/api directory. 
 # Read the notes in .env.example.
 cd apps/api
 cp .env.example .env
@@ -149,7 +149,7 @@ cd database && ./db_init
 
 2.3 Generate Byline types and schemas
 ```sh
-# From the root
+# Back again from the project root
 pnpm byline:generate
 # We have to build once here for all workspace deps, including
 # byline types and schemas (for now)
