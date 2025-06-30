@@ -105,7 +105,7 @@ Plus lots more... whew!
 
 At the moment, the project is mostly a prototype and 'weekend hack'. But it builds and runs if you wanted to poke around or follow along.
 
-### 1. Clone, install and build
+### 1. Clone and install dependencies
 
 ```sh
 # git clone this repo
