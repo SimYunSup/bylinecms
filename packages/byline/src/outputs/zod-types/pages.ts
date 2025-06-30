@@ -14,7 +14,10 @@ const pagesFieldsSchema = z.object({
   title: z.string(),
   category: z.enum(['foo', 'bar', 'baz']).optional(),
   content: z.any(),
-  publishedOn: z.coerce.date().optional(),
+  publishedOn: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined) ? null : val,
+    z.coerce.date().nullable().optional()
+  ),
   featured: z.boolean().optional(),
 })
 

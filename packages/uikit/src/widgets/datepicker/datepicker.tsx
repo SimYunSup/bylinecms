@@ -10,7 +10,7 @@ import cx from 'classnames'
 import { format } from 'date-fns'
 import { Popover } from 'radix-ui'
 import type React from 'react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '../../components/button/button.js'
 import { IconButton } from '../../components/button/icon-button.js'
 import { Calendar } from '../../components/calendar/calendar.js'
@@ -25,6 +25,7 @@ export interface DatePickerProps extends React.InputHTMLAttributes<HTMLInputElem
   id: string
   name: string
   label?: string
+  required?: boolean
   initialValue?: Date
   mode?: 'date' | 'datetime'
   yearsInFuture?: number
@@ -52,6 +53,7 @@ export function DatePicker({
   id,
   name,
   label,
+  required,
   initialValue,
   mode = 'datetime',
   yearsInFuture = 1,
@@ -74,18 +76,27 @@ export function DatePicker({
 }: DatePickerProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false)
   const [time, setTime] = useState<string>('08:00')
-  const [date, setDate] = useState<Date | undefined>(initialValue ?? new Date())
+  const [date, setDate] = useState<Date | undefined>(() => {
+    if (initialValue) {
+      return initialValue
+    }
+    if (initialValue == null && required === true) {
+      return new Date()
+    }
+    return undefined
+  })
   const [month, setMonth] = useState<Date | undefined>(date)
   const calendarRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const hasInitialized = useRef(false)
 
   const handleClear = (): void => {
-    setDate(undefined)
     if (inputRef?.current != null) {
       inputRef.current.value = ''
     }
-    onClear()
+    setDate(undefined)
     onDateChange(undefined)
+    onClear()
   }
 
   const handleOnDateChange = (value: Date | undefined): void => {
@@ -101,6 +112,19 @@ export function DatePicker({
     }
   }
 
+  // Runs only once on mount
+  useEffect(() => {
+    if (
+      initialValue == null &&
+      date != null &&
+      required === true &&
+      hasInitialized.current === false
+    ) {
+      hasInitialized.current = true
+      onDateChange(date)
+    }
+  })
+
   return (
     <div className={cx(styles.container, containerClassName)}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
@@ -108,6 +132,7 @@ export function DatePicker({
           id={id}
           label={label}
           readOnly
+          required={required}
           name={name}
           variant={variant}
           intent={intent}

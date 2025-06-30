@@ -1,6 +1,6 @@
 // NOTE: This file has been auto-generated - do not edit.
 
-import { pgTable, text, boolean, uuid, json, timestamp, integer } from 'drizzle-orm/pg-core'
+import { boolean, integer, json, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 export const pages = pgTable('pages', {
   // Base schema fields

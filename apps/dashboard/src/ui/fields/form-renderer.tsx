@@ -77,7 +77,7 @@ const FormContent = ({
       case 'checkbox':
         return value === true
       case 'datetime':
-        return value ? value : null
+        return value ? value : undefined
       default:
         return value ?? ''
     }
@@ -112,7 +112,7 @@ const FormContent = ({
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col">
       {errors.length > 0 && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
+        <div className="mb-4 p-3 bg-canvas-800 border border-red-200 rounded">
           <h4 className="text-red-800 font-medium">Please fix the following errors:</h4>
           <ul className="mt-2 text-sm text-red-700">
             {errors.map((error, index) => (

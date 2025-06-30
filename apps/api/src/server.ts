@@ -106,6 +106,7 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
     // Get the create schema for zodTypes
     const createSchema = getCreateSchema(collection.path)
     const validatedData = createSchema.parse(body)
+    console.log(`Validated create data: ${JSON.stringify(validatedData)}`)
 
     await db.insert(table).values({
       id: uuidv7(),
@@ -176,6 +177,8 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
     // Get the update schema for zodTypes
     const updateSchema = getUpdateSchema(collection.path)
     const validatedData = updateSchema.parse(body)
+
+    console.log(`Validated update data: ${JSON.stringify(validatedData)}`)
 
     await db.update(table).set({
       ...validatedData,
