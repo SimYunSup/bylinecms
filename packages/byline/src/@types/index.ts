@@ -19,14 +19,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-export interface BaseSchema {
-  id: string
-  vid: number
-  published: boolean | null
-  created_at: string
-  updated_at: string
-}
-
 export interface ColumnDefinition<T = any> {
   fieldName: keyof T
   label: string
@@ -45,6 +37,12 @@ export interface CollectionDefinition {
 
 export type FieldType = 'text' | 'checkbox' | 'select' | 'richtext' | 'datetime'
 
+export interface ValidationRule {
+  type: 'min' | 'max' | 'pattern' | 'custom' | 'email' | 'url'
+  value: any
+  message?: string
+}
+
 interface BaseField {
   name: string
   label: string
@@ -58,6 +56,12 @@ interface BaseField {
 
 export interface TextField extends BaseField {
   type: 'text'
+  validation?: {
+    minLength?: number
+    maxLength?: number
+    pattern?: string
+    rules?: ValidationRule[]
+  }
 }
 
 export interface CheckboxField extends BaseField {
@@ -71,6 +75,10 @@ export interface SelectField extends BaseField {
 
 export interface RichTextField extends BaseField {
   type: 'richtext'
+  validation?: {
+    minLength?: number
+    maxLength?: number
+  }
 }
 
 export interface DateTimeField extends BaseField {
@@ -79,6 +87,10 @@ export interface DateTimeField extends BaseField {
   yearsInFuture?: number
   yearsInPast?: number
   initialValue?: Date
+  validation?: {
+    min?: number
+    max?: number
+  }
 }
 
 export type Field = TextField | CheckboxField | SelectField | RichTextField | DateTimeField

@@ -23,10 +23,11 @@
 // implementation of our API and used only for prototype development.
 // We'll extract a 'proper' API server into a separate app folder soon.
 
-import { getCollection } from '@byline/byline/collections/registry'
+import { getCollectionDefinition } from '@byline/byline/collections/registry'
 import * as zodTypes from '@byline/byline/outputs/zod-types/index'
+import { getCollectionSchemasForPath } from '@byline/byline/schemas/schema-cache'
 import cors from '@fastify/cors'
-import { desc, eq, name } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
 import { Pool } from 'pg'
@@ -49,8 +50,8 @@ const db = drizzle(pool, { schema })
 
 // Generic collection routes
 server.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
-  const { collection: collectionName } = request.params
-  const collection = getCollection(collectionName)
+  const { collection: path } = request.params
+  const collection = getCollectionDefinition(path)
   if (!collection) {
     reply.code(404).send({ error: 'Collection not found' })
     return
@@ -87,10 +88,10 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
 })
 
 server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:collection', async (request, reply) => {
-  const { collection: collectionName } = request.params
+  const { collection: path } = request.params
   const body = request.body
 
-  const collection = getCollection(collectionName)
+  const collection = getCollectionDefinition(path)
   if (!collection) {
     reply.code(404).send({ error: 'Collection not found' })
     return
@@ -103,7 +104,6 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
   }
 
   try {
-    // Get the create schema for zodTypes
     const createSchema = getCreateSchema(collection.path)
     const validatedData = createSchema.parse(body)
     console.log(`Validated create data: ${JSON.stringify(validatedData)}`)
@@ -128,9 +128,9 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
 })
 
 server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
-  const { collection: collectionName, id } = request.params
+  const { collection: path, id } = request.params
 
-  const collection = getCollection(collectionName)
+  const collection = getCollectionDefinition(path)
   if (!collection) {
     reply.code(404).send({ error: 'Collection not found' })
     return
@@ -158,10 +158,10 @@ server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id
 })
 
 server.put<{ Params: { collection: string; id: string }; Body: Record<string, any> }>('/api/:collection/:id', async (request, reply) => {
-  const { collection: collectionName, id } = request.params
+  const { collection: path, id } = request.params
   const body = request.body
 
-  const collection = getCollection(collectionName)
+  const collection = getCollectionDefinition(path)
   if (!collection) {
     reply.code(404).send({ error: 'Collection not found' })
     return
@@ -174,7 +174,6 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
   }
 
   try {
-    // Get the update schema for zodTypes
     const updateSchema = getUpdateSchema(collection.path)
     const validatedData = updateSchema.parse(body)
 
@@ -198,9 +197,9 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
 })
 
 server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
-  const { collection: collectionName, id } = request.params
+  const { collection: path, id } = request.params
 
-  const collection = getCollection(collectionName)
+  const collection = getCollectionDefinition(path)
   if (!collection) {
     reply.code(404).send({ error: 'Collection not found' })
     return
@@ -223,20 +222,28 @@ server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/
 
 // Helper function to get create schema
 function getCreateSchema(collectionPath: string) {
-  const schema = zodTypes.createSchemas[collectionPath]
-  if (!schema) {
-    throw new Error(`No create schema found for collection: ${collectionPath}`)
+  try {
+    const { create } = getCollectionSchemasForPath(collectionPath)
+    if (!create) {
+      throw new Error(`No create schema found for collection: ${collectionPath}`)
+    }
+    return create
+  } catch (error: any) {
+    throw new Error(`Failed to get create schema for collection ${collectionPath}: ${error.message}`)
   }
-  return schema
 }
 
 // Helper function to get update schema
 function getUpdateSchema(collectionPath: string) {
-  const schema = zodTypes.updateSchemas[collectionPath]
-  if (!schema) {
-    throw new Error(`No update schema found for collection: ${collectionPath}`)
+  try {
+    const { update } = getCollectionSchemasForPath(collectionPath)
+    if (!update) {
+      throw new Error(`No update schema found for collection: ${collectionPath}`)
+    }
+    return update
+  } catch (error: any) {
+    throw new Error(`Failed to get update schema for collection ${collectionPath}: ${error.message}`)
   }
-  return schema
 }
 
 const port = Number(process.env.PORT) || 3001

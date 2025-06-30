@@ -19,10 +19,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { spawn } from 'node:child_process'
 import chokidar from 'chokidar'
 import { generate } from './generate.js'
 

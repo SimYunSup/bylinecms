@@ -19,14 +19,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { BaseSchema, CollectionDefinition, ColumnDefinition } from '../@types'
+import type { CollectionDefinition, ColumnDefinition } from '../@types'
+
 // import { formatDateTime } from '../utils/formatDateTime'
 
-// Hard coded for now. Will generate from collection definition soon.
-export interface News extends BaseSchema {
-  title: string;
-  content: unknown;
-}
 
 const newsColumns: ColumnDefinition[] = [
   {

@@ -7,7 +7,7 @@ export const collections: Record<string, CollectionDefinition> = {
   news: News
 }
 
-export const getCollection = (name: string): CollectionDefinition | undefined => {
+export const getCollectionDefinition = (name: string): CollectionDefinition | undefined => {
   return collections[name]
 }
 
@@ -15,6 +15,6 @@ export const getCollectionNames = (): string[] => {
   return Object.keys(collections)
 }
 
-export const getAllCollections = (): CollectionDefinition[] => {
+export const getAllCollectionDefinitions = (): CollectionDefinition[] => {
   return Object.values(collections)
 }

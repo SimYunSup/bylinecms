@@ -20,7 +20,7 @@
  */
 
 import type { CollectionDefinition } from '@byline/byline/@types/index'
-import { getCollection } from '@byline/byline/collections/registry'
+import { getCollectionDefinition } from '@byline/byline/collections/registry'
 import type { UpdateTypes } from '@byline/byline/outputs/zod-types/index'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
@@ -28,7 +28,7 @@ import { EditView } from '@/modules/collections/edit'
 
 export const Route = createFileRoute('/collections/$collection/$id')({
   loader: async ({ params }): Promise<UpdateTypes[keyof UpdateTypes]> => {
-    const collectionDef = getCollection(params.collection)
+    const collectionDef = getCollectionDefinition(params.collection)
     if (!collectionDef) {
       throw notFound()
     }
@@ -51,7 +51,7 @@ export const Route = createFileRoute('/collections/$collection/$id')({
 function RouteComponent() {
   const data = Route.useLoaderData()
   const { collection, id } = Route.useParams()
-  const collectionDef = getCollection(collection) as CollectionDefinition
+  const collectionDef = getCollectionDefinition(collection) as CollectionDefinition
 
   return (
     <>

@@ -21,7 +21,7 @@
 
 
 import { base64Schema, urlSchema } from '@byline/shared/schemas'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 const schema = z.object({
   appVersion: z.string(),

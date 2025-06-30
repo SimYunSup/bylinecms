@@ -14,7 +14,7 @@ export const pages = pgTable('pages', {
   title: text('title').notNull(),
   category: text('category'),
   content: json('content').notNull(),
-  publishedOn: timestamp('publishedOn', { withTimezone: true }),
+  publishedOn: timestamp('publishedOn', { withTimezone: true }).notNull(),
   featured: boolean('featured'),
 })
 

@@ -19,15 +19,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { BaseSchema, CollectionDefinition, ColumnDefinition } from '../@types'
-// import { formatDateTime } from '../utils/formatDateTime'
+import type { CollectionDefinition, ColumnDefinition } from '../@types'
 
-// Hard coded for now. Will generate from collection definition soon.
-export interface Page extends BaseSchema {
-  title: string;
-  category: string | null;
-  content: unknown;
-}
+// import { formatDateTime } from '../utils/formatDateTime'
 
 const pagesColumns: ColumnDefinition[] = [
   {

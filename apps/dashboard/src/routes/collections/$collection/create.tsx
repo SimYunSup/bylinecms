@@ -20,14 +20,14 @@
  */
 
 import type { CollectionDefinition } from '@byline/byline/@types/index'
-import { getCollection } from '@byline/byline/collections/registry'
+import { getCollectionDefinition } from '@byline/byline/collections/registry'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { CreateView } from '@/modules/collections/create'
 
 export const Route = createFileRoute('/collections/$collection/create')({
   loader: async ({ params }): Promise<CollectionDefinition> => {
-    const collectionDef = getCollection(params.collection)
+    const collectionDef = getCollectionDefinition(params.collection)
     if (!collectionDef) {
       throw notFound()
     }
