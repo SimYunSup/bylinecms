@@ -178,8 +178,6 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
     const updateSchema = getUpdateSchema(collection.path)
     const validatedData = updateSchema.parse(body)
 
-    console.log(`Validated update data: ${JSON.stringify(validatedData)}`)
-
     await db.update(table).set({
       ...validatedData,
       updated_at: new Date()

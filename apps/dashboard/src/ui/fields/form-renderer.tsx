@@ -77,7 +77,7 @@ const FormContent = ({
       case 'checkbox':
         return value === true
       case 'datetime':
-        return value ? value : undefined
+        return value ? value : null
       default:
         return value ?? ''
     }

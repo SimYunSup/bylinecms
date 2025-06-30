@@ -35,7 +35,6 @@ export const EditView = <T extends Record<string, any>>({
   const { name, path, fields } = collectionDefinition
 
   const handleSubmit = async (data: any) => {
-    console.log('Submitting data:', data)
     try {
       const putRes = await fetch(`http://localhost:3001/api/${path}/${initialData.id}`, {
         method: 'PUT',

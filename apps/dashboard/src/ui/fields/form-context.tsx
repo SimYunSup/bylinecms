@@ -72,10 +72,11 @@ export const FormProvider = ({
   const getFieldValues = useCallback(() => fieldValues.current, [])
 
   const getFieldValue = useCallback((name: string) => {
-    // return fieldValues.current[name]
     return fieldValues.current[name] !== undefined
       ? fieldValues.current[name]
-      : initialValues.current[name]
+      : dirtyFields.current.has(name) === false
+        ? initialValues.current[name]
+        : null
   }, [])
 
   const hasChanges = useCallback(() => {
