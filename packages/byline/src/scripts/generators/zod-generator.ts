@@ -5,6 +5,7 @@ export function generateZodSchema(collection: CollectionDefinition): string {
 
   lines.push('// NOTE: This file has been auto-generated - do not edit.')
   lines.push('')
+  lines.push('import { dateTimeSchema } from \'@byline/shared/schemas\'')
   lines.push('import { z } from \'zod\'')
   lines.push('')
 
@@ -90,7 +91,11 @@ function generateFieldSchema(field: Field): string {
       }
       break
     case 'datetime':
-      schema = 'z.coerce.date()'
+      if (field.required) {
+        schema = 'dateTimeSchema'
+      } else {
+        schema = 'dateTimeSchema.nullable()'
+      }
       break
     case 'richtext':
       schema = 'z.any()'

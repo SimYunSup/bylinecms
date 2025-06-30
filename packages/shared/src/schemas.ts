@@ -154,3 +154,8 @@ export const safeNumber = z.preprocess((val) => {
   }
   return val;
 }, z.number())
+
+export const dateTimeSchema = z.preprocess(
+  (val) => (val === '' || val == null) ? null : val,
+  z.coerce.date()
+)

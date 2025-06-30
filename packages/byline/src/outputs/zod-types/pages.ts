@@ -1,5 +1,6 @@
 // NOTE: This file has been auto-generated - do not edit.
 
+import { dateTimeSchema } from '@byline/shared/schemas'
 import { z } from 'zod'
 
 const baseSchema = z.object({
@@ -14,10 +15,7 @@ const pagesFieldsSchema = z.object({
   title: z.string(),
   category: z.enum(['foo', 'bar', 'baz']).optional(),
   content: z.any(),
-  publishedOn: z.preprocess(
-    (val) => (val === '' || val === null || val === undefined) ? null : val,
-    z.coerce.date().nullable().optional()
-  ),
+  publishedOn: dateTimeSchema.nullable().optional(),
   featured: z.boolean().optional(),
 })
 

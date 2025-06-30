@@ -1,5 +1,6 @@
 // NOTE: This file has been auto-generated - do not edit.
 
+import { dateTimeSchema } from '@byline/shared/schemas'
 import { z } from 'zod'
 
 const baseSchema = z.object({
@@ -13,7 +14,7 @@ const baseSchema = z.object({
 const newsFieldsSchema = z.object({
   title: z.string(),
   content: z.any(),
-  publishedOn: z.coerce.date().optional(),
+  publishedOn: dateTimeSchema.nullable().optional(),
 })
 
 export const newsSchema = baseSchema.merge(newsFieldsSchema)
