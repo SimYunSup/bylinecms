@@ -1,3 +1,24 @@
+/**
+ * Byline CMS
+ *
+ * Copyright © 2025 Anthony Bouch and contributors.
+ *
+ * This file is part of Byline CMS.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // NOTE: Before you dunk on this, this is a totally naïve and "weekend hack"
 // implementation of a schema generator used only for prototype development.
 // If we're using Drizzle, then there's almost certainly a better way to do this.
@@ -8,14 +29,14 @@ import fs from 'node:fs'
 import path from 'node:path'
 //@ts-ignore
 import { fileURLToPath } from 'node:url'
-import { getAllCollections } from '../collections/registry.js'
+import { getAllCollections } from '../src/collections/registry.js'
 import { generateDrizzleSchema } from './generators/drizzle-generator.js'
 import { generateZodSchema } from './generators/zod-generator.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-async function generateSchemas() {
+export async function generate() {
   const collections = getAllCollections()
 
   // Ensure directories exist
@@ -55,7 +76,7 @@ async function generateSchemas() {
   console.log('Drizzled schema and zod types generation complete!')
 }
 
-function generateIndexFiles(collections: any[], drizzleSchemasDir: string, zodTypesDir: string) {
+function generateIndexFiles(collections, drizzleSchemasDir, zodTypesDir) {
   // Database schema index
   const schemaIndexLines = [
     '// NOTE: This file has been auto-generated - do not edit.',
@@ -126,8 +147,8 @@ function generateIndexFiles(collections: any[], drizzleSchemasDir: string, zodTy
   )
 }
 
-generateSchemas().catch(console.error)
+generate().catch(console.error)
 
-function capitalize(str: string) {
+function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }

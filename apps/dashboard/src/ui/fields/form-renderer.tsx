@@ -72,17 +72,6 @@ const FormContent = ({
     }
   }
 
-  const serializeValueForFormData = (field: Field, value: any) => {
-    switch (field.type) {
-      case 'checkbox':
-        return value === true
-      case 'datetime':
-        return value ? value : null
-      default:
-        return value ?? ''
-    }
-  }
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
@@ -96,8 +85,7 @@ const FormContent = ({
     const data: any = {}
 
     fields.forEach((field) => {
-      const currentValue = getFieldValue(field.name)
-      data[field.name] = serializeValueForFormData(field, currentValue)
+      data[field.name] = getFieldValue(field.name)
     })
 
     if (onSubmit && typeof onSubmit === 'function') {
@@ -106,13 +94,15 @@ const FormContent = ({
   }
 
   // Split fields by admin.position
-  const defaultFields = fields.filter((f) => !f.admin?.position || f.admin.position === 'default')
+  const defaultFields = fields.filter(
+    (f) => f.admin?.position == null || f.admin.position === 'default'
+  )
   const sidebarFields = fields.filter((f) => f.admin?.position === 'sidebar')
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col">
       {errors.length > 0 && (
-        <div className="mb-4 p-3 bg-canvas-800 border border-red-200 rounded">
+        <div className="mb-4 p-3 bg-canvas-800 border border-red-700 rounded">
           <h4 className="text-red-800 font-medium">Please fix the following errors:</h4>
           <ul className="mt-2 text-sm text-red-700">
             {errors.map((error, index) => (
@@ -134,7 +124,12 @@ const FormContent = ({
           >
             Cancel
           </Button>
-          <Button size="sm" type="submit" className="min-w-[70px]" disabled={!hasChanges()}>
+          <Button
+            size="sm"
+            type="submit"
+            className="min-w-[70px]"
+            disabled={hasChanges() === false}
+          >
             Save
           </Button>
           <Button size="sm" type="submit" intent="success" className="min-w-[80px]">

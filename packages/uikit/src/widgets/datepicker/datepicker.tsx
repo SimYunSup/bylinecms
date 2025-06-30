@@ -26,7 +26,7 @@ export interface DatePickerProps extends React.InputHTMLAttributes<HTMLInputElem
   name: string
   label?: string
   required?: boolean
-  initialValue?: Date
+  initialValue?: Date | null
   mode?: 'date' | 'datetime'
   yearsInFuture?: number
   yearsInPast?: number
@@ -41,7 +41,7 @@ export interface DatePickerProps extends React.InputHTMLAttributes<HTMLInputElem
   ariaLabelForSearch?: string
   ariaLabelForClear?: string
   onClear?: () => void
-  onDateChange?: (value: Date | undefined) => void
+  onDateChange?: (value: Date | null) => void
   validatorFn?: (value: Date) => {
     valid: boolean
     value: Date
@@ -76,16 +76,16 @@ export function DatePicker({
 }: DatePickerProps): React.JSX.Element {
   const [isOpen, setIsOpen] = useState(false)
   const [time, setTime] = useState<string>('08:00')
-  const [date, setDate] = useState<Date | undefined>(() => {
+  const [date, setDate] = useState<Date | null>(() => {
     if (initialValue) {
       return initialValue
     }
     if (initialValue == null && required === true) {
       return new Date()
     }
-    return undefined
+    return null
   })
-  const [month, setMonth] = useState<Date | undefined>(date)
+  const [month, setMonth] = useState<Date | null>(date)
   const calendarRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const hasInitialized = useRef(false)
@@ -94,12 +94,12 @@ export function DatePicker({
     if (inputRef?.current != null) {
       inputRef.current.value = ''
     }
-    setDate(undefined)
-    onDateChange(undefined)
+    setDate(null)
+    onDateChange(null)
     onClear()
   }
 
-  const handleOnDateChange = (value: Date | undefined): void => {
+  const handleOnDateChange = (value: Date | null): void => {
     if (onDateChange != null && typeof onDateChange === 'function') {
       onDateChange(value)
     }
@@ -112,6 +112,10 @@ export function DatePicker({
     }
   }
 
+  // This is to handle cases where the date picker is used in a form and the initial
+  // value is not set, but the field is required. In such cases, we want
+  // to trigger the onDateChange callback with the current date to ensure that
+  // the form is valid and the date picker is initialized with a value.
   // Runs only once on mount
   useEffect(() => {
     if (
@@ -197,8 +201,8 @@ export function DatePicker({
                   mode="single"
                   required
                   captionLayout="dropdown"
-                  selected={date}
-                  month={month}
+                  selected={date ?? undefined}
+                  month={month ?? undefined}
                   onMonthChange={setMonth}
                   onSelect={(selectedDate: Date) => {
                     if (selectedDate) {

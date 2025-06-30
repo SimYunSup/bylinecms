@@ -43,7 +43,7 @@ export const TextField = ({
         label={field.label}
         required={field.required}
         helpText={field.helpText}
-        defaultValue={initialValue || ''}
+        defaultValue={initialValue || undefined}
         onChange={(e) => onChange?.(e.target.value)}
         error={fieldError?.message != null}
         errorText={fieldError?.message}

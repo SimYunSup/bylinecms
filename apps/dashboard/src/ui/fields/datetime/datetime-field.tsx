@@ -28,8 +28,8 @@ export const DateTimeField = ({
   onChange,
 }: {
   field: FieldType
-  initialValue?: Date
-  onChange?: (value: Date | undefined) => void
+  initialValue?: Date | null
+  onChange?: (value: Date | null) => void
 }) => (
   <div>
     <DatePicker

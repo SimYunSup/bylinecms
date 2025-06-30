@@ -43,7 +43,7 @@ const FormContext = createContext<FormContextType | null>(null)
 
 export const useFormContext = () => {
   const context = useContext(FormContext)
-  if (!context) {
+  if (context == null) {
     throw new Error('useFormContext must be used within a FormProvider')
   }
   return context
@@ -72,7 +72,7 @@ export const FormProvider = ({
   const getFieldValues = useCallback(() => fieldValues.current, [])
 
   const getFieldValue = useCallback((name: string) => {
-    return fieldValues.current[name] !== undefined
+    return fieldValues.current[name] != null && fieldValues.current[name] !== ''
       ? fieldValues.current[name]
       : dirtyFields.current.has(name) === false
         ? initialValues.current[name]
@@ -95,7 +95,7 @@ export const FormProvider = ({
         const value = getFieldValue(field.name)
 
         // Required field validation
-        if (field.required && (value === undefined || value === null || value === '')) {
+        if (field.required && (value == null || value === '')) {
           formErrors.push({
             field: field.name,
             message: `${field.label} is required`,
@@ -103,7 +103,7 @@ export const FormProvider = ({
         }
 
         // Type-specific validation
-        if (value !== undefined && value !== null && value !== '') {
+        if (value != null && value !== '') {
           switch (field.type) {
             case 'text':
               if (typeof value !== 'string') {
@@ -133,7 +133,7 @@ export const FormProvider = ({
               }
               break
             case 'datetime':
-              if (!(value instanceof Date) && typeof value !== 'string') {
+              if (value instanceof Date === false && typeof value !== 'string') {
                 formErrors.push({
                   field: field.name,
                   message: `${field.label} must be a valid date`,

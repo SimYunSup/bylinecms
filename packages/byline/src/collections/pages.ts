@@ -85,7 +85,7 @@ export const Pages: CollectionDefinition = {
       helpText: 'Enter the main content for this page.',
       required: true,
     },
-    { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', admin: { position: 'sidebar' } },
+    { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', required: true, admin: { position: 'sidebar' } },
     { name: 'featured', label: 'Featured', type: 'checkbox', helpText: 'Is this page featured on the home page?', admin: { position: 'sidebar' } },
   ],
   columns: pagesColumns,

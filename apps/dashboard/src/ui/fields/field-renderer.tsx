@@ -44,13 +44,11 @@ export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
 
   switch (field.type) {
     case 'text':
-      return <TextField field={field} initialValue={initialValue || ''} onChange={handleChange} />
+      return <TextField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'checkbox':
-      return (
-        <CheckboxField field={field} initialValue={initialValue || false} onChange={handleChange} />
-      )
+      return <CheckboxField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'select':
-      return <SelectField field={field} initialValue={initialValue || ''} onChange={handleChange} />
+      return <SelectField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'richtext':
       return <RichTextField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'datetime':
