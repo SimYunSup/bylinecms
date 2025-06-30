@@ -1,4 +1,7 @@
+[![CLA assistant](https://cla-assistant.io/readme/badge/Byline-CMS/bylinecms.app)](https://cla-assistant.io/Byline-CMS/bylinecms.app)
+
 # Byline CMS
+
 
 Welcome to Byline CMS. We're new!
 
