@@ -133,7 +133,10 @@ The prototype currently requires PostgreSQL. There is a docker-compose.yml in th
 # From the root of the project
 cd postgres
 mkdir data
-./postgres.sh
+./postgres.sh up
+
+# And then 'down' if you want to remove the Docker container and network configuration when you're done.
+./postgres.sh down 
 ```
 
 2.2. Initialize the database
