@@ -34,7 +34,7 @@ export const Route = createFileRoute('/collections/$collection/')({
     }
 
     // Get typed schemas for better type inference
-    const schemas = getCollectionSchemasForPath(params.collection)
+    const { list } = getCollectionSchemasForPath(params.collection)
 
     const response = await fetch(`http://localhost:3001/api/${params.collection}`)
     if (!response.ok) {
@@ -43,7 +43,7 @@ export const Route = createFileRoute('/collections/$collection/')({
 
     const rawData = await response.json()
     // Validate with schema for runtime type safety
-    const data = schemas.list.parse(rawData)
+    const data = list.parse(rawData)
 
     return data
   },

@@ -12,7 +12,13 @@ export const getTableSchema = (collectionPath: string) => {
       throw new Error(`Collection not found: ${collectionPath}`)
     }
 
-    schemaCache.set(collectionPath, createTableSchema(collection))
+    try {
+      const schema = createTableSchema(collection)
+      schemaCache.set(collectionPath, schema)
+    } catch (error) {
+      console.error(`Error creating schema for ${collectionPath}:`, error)
+      throw new Error(`Failed to create schema for collection: ${collectionPath}`)
+    }
   }
 
   return schemaCache.get(collectionPath)
@@ -23,8 +29,17 @@ export const getAllTableSchemas = () => {
   const schemas: Record<string, any> = {}
 
   for (const collection of collections) {
-    schemas[collection.path] = getTableSchema(collection.path)
+    try {
+      schemas[collection.path] = getTableSchema(collection.path)
+    } catch (error) {
+      console.error(`Error getting schema for ${collection.path}:`, error)
+      throw error
+    }
   }
 
   return schemas
+}
+
+export const clearSchemaCache = () => {
+  schemaCache.clear()
 }

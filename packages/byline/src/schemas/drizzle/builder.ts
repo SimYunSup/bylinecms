@@ -1,10 +1,12 @@
-import { boolean, integer, json, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { boolean, integer, json, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import type { CollectionDefinition, Field } from '../../@types/index.js'
+
+export const statusEnum = pgEnum('status', ['draft', 'published', 'archived']);
 
 const createBaseColumns = () => ({
   id: uuid('id').primaryKey(),
   vid: integer('vid').notNull().default(1),
-  published: boolean('published').default(false),
+  status: statusEnum().default('draft'),
   created_at: timestamp('created_at', { precision: 6, withTimezone: true }).defaultNow(),
   updated_at: timestamp('updated_at', { precision: 6, withTimezone: true }).defaultNow(),
 })
@@ -41,4 +43,12 @@ export const createTableSchema = (collection: CollectionDefinition) => {
     ...baseColumns,
     ...fieldColumns,
   })
+}
+
+export const createAllTableSchemas = (collections: CollectionDefinition[]) => {
+  const schemas: Record<string, any> = {}
+  for (const collection of collections) {
+    schemas[collection.path] = createTableSchema(collection)
+  }
+  return schemas
 }

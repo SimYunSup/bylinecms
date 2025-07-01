@@ -7,8 +7,8 @@ export const collections: Record<string, CollectionDefinition> = {
   news: News
 }
 
-export const getCollectionDefinition = (name: string): CollectionDefinition | undefined => {
-  return collections[name]
+export const getCollectionDefinition = (path: string): CollectionDefinition | undefined => {
+  return collections[path]
 }
 
 export const getCollectionNames = (): string[] => {
