@@ -24,8 +24,8 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
 import * as schema from '../database/schema/index.js'
-import { createCommandBuilders } from './schema-commands.js'
-import { createQueryBuilders } from './schema-queries.js'
+import { createCommandBuilders } from './storage-commands.js'
+import { createQueryBuilders } from './storage-queries.js'
 
 // Test database setup
 let pool: Pool
