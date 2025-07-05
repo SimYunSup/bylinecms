@@ -49,7 +49,7 @@ export const documentVersions = pgTable('document_versions', {
 const baseFieldValueColumns = {
   id: uuid('id').primaryKey().defaultRandom(),
   documentVersionId: uuid('document_version_id').references(() => documentVersions.id, { onDelete: 'cascade' }).notNull(),
-  collectionId: uuid('collection_id').references(() => collections.id).notNull(), // For cross-collection queries
+  collectionId: uuid('collection_id').references(() => collections.id, { onDelete: 'cascade' }).notNull(), // For cross-collection queries
   fieldPath: varchar('field_path', { length: 500 }).notNull(),
   fieldName: varchar('field_name', { length: 255 }).notNull(),
   locale: varchar('locale', { length: 10 }).default('default'),
