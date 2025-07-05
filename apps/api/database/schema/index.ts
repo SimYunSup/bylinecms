@@ -67,7 +67,6 @@ export const fieldValuesText = pgTable('field_values_text', {
   ...baseFieldValueColumns,
 
   value: text('value').notNull(),
-  isRichText: boolean('is_rich_text').default(false),
   wordCount: integer('word_count'), // Pre-computed for analytics
 
 }, (table) => ([
