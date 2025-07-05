@@ -24,15 +24,14 @@
 // We'll extract a 'proper' API server into a separate app folder soon.
 
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
-import { getCollectionSchemasForPath } from '@byline/byline/schemas/zod/cache'
 import cors from '@fastify/cors'
-import { desc, eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
 import * as schema from '../database/schema/index.js'
+import { createQueryBuilders } from './query-builder.js'
 
 const server = Fastify({
   logger: true,
@@ -46,6 +45,70 @@ await server.register(cors, {
 
 const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
 const db = drizzle(pool, { schema })
+const queryBuilders = createQueryBuilders(db)
+
+// Helper function to reconstruct document from field values
+async function reconstructDocument(documentVersionId: string) {
+  const fieldValues = await queryBuilders.typedFieldValues.getAllFieldValues(documentVersionId)
+
+  const document = {}
+  for (const field of fieldValues) {
+    document[field.fieldName] = field.value
+  }
+
+  return document
+}
+
+// Helper function to store document fields
+async function storeDocumentFields(
+  documentVersionId: string,
+  collectionId: string,
+  collectionDefinition: any,
+  data: Record<string, any>
+) {
+  const results: any[] = []
+
+  for (const field of collectionDefinition.fields) {
+    const fieldValue = data[field.name]
+    if (fieldValue !== undefined) {
+      const result = await queryBuilders.fieldValues.insertFieldValue(
+        documentVersionId,
+        collectionId,
+        field.name, // fieldPath same as fieldName for top-level fields
+        field.name,
+        field.type === 'richtext' ? 'richText' : field.type,
+        fieldValue
+      )
+      results.push(result)
+    }
+  }
+
+  return results
+}
+
+// Helper function to update document fields
+async function updateDocumentFields(
+  documentVersionId: string,
+  collectionDefinition: any,
+  data: Record<string, any>
+) {
+  const results: any[] = []
+
+  for (const field of collectionDefinition.fields) {
+    const fieldValue = data[field.name]
+    if (fieldValue !== undefined) {
+      const result = await queryBuilders.fieldValues.updateFieldValue(
+        documentVersionId,
+        field.name,
+        field.type === 'richtext' ? 'richText' : field.type,
+        fieldValue
+      )
+      results.push(result)
+    }
+  }
+
+  return results
+}
 
 // Generic collection routes
 server.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
@@ -56,21 +119,41 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
     return
   }
 
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
-    return
-  }
-
   try {
-    const records = await db.select().from(table).orderBy(desc(table.updated_at))
-    console.log(`Records fetched: ${records.length}`)
+    // Find the collection in our database
+    const collectionRecords = await queryBuilders.collections.findByPath(path)
+    if (collectionRecords.length === 0) {
+      // Collection doesn't exist in database yet, create it
+      await queryBuilders.collections.create(collection.name, collection)
+    }
+    const collectionRecord = collectionRecords[0]
+
+    // Get all documents for this collection
+    const documents = await queryBuilders.documents.findByCollection(collectionRecord.id)
+
+    // Reconstruct each document from field values
+    const reconstructedDocuments: any[] = []
+    for (const doc of documents) {
+      const currentVersion = await queryBuilders.documentVersions.findCurrentVersion(doc.id)
+      if (currentVersion.length > 0) {
+        const documentData = await reconstructDocument(currentVersion[0].id)
+        reconstructedDocuments.push({
+          id: doc.id,
+          path: doc.path,
+          status: doc.status,
+          createdAt: doc.createdAt,
+          updatedAt: doc.updatedAt,
+          ...documentData
+        })
+      }
+    }
+
     return {
-      records,
+      records: reconstructedDocuments,
       meta: {
         page: 1,
         page_size: 10,
-        total: records.length,
+        total: reconstructedDocuments.length,
         total_pages: 1,
       },
       included: {
@@ -96,27 +179,50 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
     return
   }
 
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
-    return
-  }
-
   try {
-    const createSchema = getCreateSchema(collection.path)
-    const validatedData = createSchema.parse(body)
-    console.log(`Validated create data: ${JSON.stringify(validatedData)}`)
+    // Find or create collection in database
+    let collectionRecords = await queryBuilders.collections.findByPath(path)
+    if (collectionRecords.length === 0) {
+      collectionRecords = await queryBuilders.collections.create(collection.name, collection)
+    }
+    const collectionRecord = collectionRecords[0]
 
-    await db.insert(table).values({
-      id: uuidv7(),
-      ...validatedData
+    // Create document
+    const documentResults = await queryBuilders.documents.create(
+      collectionRecord.id,
+      body.path,
+      body.status || 'draft'
+    )
+    const document = documentResults[0]
+
+    // Create initial version
+    const versionResults = await queryBuilders.documentVersions.create(
+      document.id,
+      1,
+      true
+    )
+    const version = versionResults[0]
+
+    // Store field values
+    await storeDocumentFields(
+      version.id,
+      collectionRecord.id,
+      collection,
+      body
+    )
+
+    reply.code(201).send({
+      status: 'ok',
+      document: {
+        id: document.id,
+        path: document.path,
+        status: document.status
+      }
     })
-
-    reply.code(201).send({ status: 'ok' })
   } catch (error) {
     if (error instanceof z.ZodError) {
       reply.code(400).send({
-        error: 'zodTypes failed',
+        error: 'Validation failed',
         details: error.errors
       })
     } else {
@@ -135,21 +241,35 @@ server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id
     return
   }
 
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
-    return
-  }
-
   try {
-    const records = await db.select().from(table).where(eq(table.id, id)).limit(1)
-
-    if (records.length === 0) {
-      reply.code(404).send({ error: 'Record not found' })
+    // Get the document
+    const documentRecords = await queryBuilders.documents.findById(id)
+    if (documentRecords.length === 0) {
+      reply.code(404).send({ error: 'Document not found' })
       return
     }
+    const document = documentRecords[0]
 
-    return records[0]
+    // Get current version
+    const currentVersions = await queryBuilders.documentVersions.findCurrentVersion(document.id)
+    if (currentVersions.length === 0) {
+      reply.code(404).send({ error: 'Document version not found' })
+      return
+    }
+    const currentVersion = currentVersions[0]
+
+    // Reconstruct document from field values
+    const documentData = await reconstructDocument(currentVersion.id)
+
+    return {
+      id: document.id,
+      path: document.path,
+      status: document.status,
+      createdAt: document.createdAt,
+      updatedAt: document.updatedAt,
+      version: currentVersion.versionNumber,
+      ...documentData
+    }
   } catch (error) {
     server.log.error(error)
     reply.code(500).send({ error: 'Internal server error' })
@@ -166,26 +286,36 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
     return
   }
 
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
-    return
-  }
-
   try {
-    const updateSchema = getUpdateSchema(collection.path)
-    const validatedData = updateSchema.parse(body)
+    // Get the document
+    const documentRecords = await queryBuilders.documents.findById(id)
+    if (documentRecords.length === 0) {
+      reply.code(404).send({ error: 'Document not found' })
+      return
+    }
+    const document = documentRecords[0]
 
-    await db.update(table).set({
-      ...validatedData,
-      updated_at: new Date()
-    }).where(eq(table.id, id))
+    // Get current version
+    const currentVersions = await queryBuilders.documentVersions.findCurrentVersion(document.id)
+    if (currentVersions.length === 0) {
+      reply.code(404).send({ error: 'Document version not found' })
+      return
+    }
+    const currentVersion = currentVersions[0]
+
+    // Update field values in the current version
+    await updateDocumentFields(currentVersion.id, collection, body)
+
+    // Update document metadata if status changed
+    if (body.status && body.status !== document.status) {
+      await queryBuilders.documents.updateStatus(document.id, body.status)
+    }
 
     reply.code(200).send({ status: 'ok' })
   } catch (error) {
     if (error instanceof z.ZodError) {
       reply.code(400).send({
-        error: 'zodTypes failed',
+        error: 'Validation failed',
         details: error.errors
       })
     } else {
@@ -204,46 +334,23 @@ server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/
     return
   }
 
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
-    return
-  }
-
   try {
-    await db.delete(table).where(eq(table.id, id))
+    // Get the document to ensure it exists
+    const documentRecords = await queryBuilders.documents.findById(id)
+    if (documentRecords.length === 0) {
+      reply.code(404).send({ error: 'Document not found' })
+      return
+    }
+
+    // Delete the document (cascading deletes will handle versions and field values)
+    await queryBuilders.documents.delete(id)
+
     reply.code(200).send({ status: 'ok' })
   } catch (error) {
     server.log.error(error)
     reply.code(500).send({ error: 'Internal server error' })
   }
 })
-
-// Helper function to get create schema
-function getCreateSchema(collectionPath: string) {
-  try {
-    const { create } = getCollectionSchemasForPath(collectionPath)
-    if (!create) {
-      throw new Error(`No create schema found for collection: ${collectionPath}`)
-    }
-    return create
-  } catch (error: any) {
-    throw new Error(`Failed to get create schema for collection ${collectionPath}: ${error.message}`)
-  }
-}
-
-// Helper function to get update schema
-function getUpdateSchema(collectionPath: string) {
-  try {
-    const { update } = getCollectionSchemasForPath(collectionPath)
-    if (!update) {
-      throw new Error(`No update schema found for collection: ${collectionPath}`)
-    }
-    return update
-  } catch (error: any) {
-    throw new Error(`Failed to get update schema for collection ${collectionPath}: ${error.message}`)
-  }
-}
 
 const port = Number(process.env.PORT) || 3001
 server.listen({ port })
