@@ -24,12 +24,14 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
 import * as schema from '../database/schema/index.js'
-import { createQueryBuilders } from './query-builder.js'
+import { createCommandBuilders } from './schema-commands.js'
+import { createQueryBuilders } from './schema-queries.js'
 
 // Test database setup
 let pool: Pool
 let db: ReturnType<typeof drizzle>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
+let commandBuilders: ReturnType<typeof createCommandBuilders>
 
 // Global test collections to avoid name conflicts
 let testCollections: {
@@ -45,11 +47,12 @@ describe('Storage Model Tests', () => {
     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
     db = drizzle(pool, { schema })
     queryBuilders = createQueryBuilders(db)
+    commandBuilders = createCommandBuilders(db)
 
     // Create all test collections once to avoid unique constraint violations
     const timestamp = Date.now()
 
-    const documentTestCollection = await queryBuilders.collections.create(
+    const documentTestCollection = await commandBuilders.collections.create(
       `document_test_collection_${timestamp}`,
       {
         name: `Document Test Collection ${timestamp}`,
@@ -62,7 +65,7 @@ describe('Storage Model Tests', () => {
       }
     )
 
-    const versionTestCollection = await queryBuilders.collections.create(
+    const versionTestCollection = await commandBuilders.collections.create(
       `version_test_collection_${timestamp}`,
       {
         name: `Version Test Collection ${timestamp}`,
@@ -73,7 +76,7 @@ describe('Storage Model Tests', () => {
       }
     )
 
-    const fieldTestCollection = await queryBuilders.collections.create(
+    const fieldTestCollection = await commandBuilders.collections.create(
       `field_test_collection_${timestamp}`,
       {
         name: `Field Test Collection ${timestamp}`,
@@ -88,7 +91,7 @@ describe('Storage Model Tests', () => {
       }
     )
 
-    const completeTestCollection = await queryBuilders.collections.create(
+    const completeTestCollection = await commandBuilders.collections.create(
       `complete_test_collection_${timestamp}`,
       {
         name: `Complete Test Collection ${timestamp}`,
@@ -120,7 +123,7 @@ describe('Storage Model Tests', () => {
       for (const collectionId of collectionIds) {
         // Note: In a real implementation, you'd want to properly cascade delete
         // For now, we'll assume cascade deletes are handled by foreign key constraints
-        await queryBuilders.collections.delete(collectionId)
+        await commandBuilders.collections.delete(collectionId)
       }
       console.log('Test collections cleaned up')
     } catch (error) {
@@ -149,7 +152,7 @@ describe('Storage Model Tests', () => {
         ]
       }
 
-      const result = await queryBuilders.collections.create(collectionName, collectionConfig)
+      const result = await commandBuilders.collections.create(collectionName, collectionConfig)
       console.log('Created collection:', result)
     })
 
@@ -158,7 +161,7 @@ describe('Storage Model Tests', () => {
       const collectionName = `findable_collection${timestamp}`
       const collectionConfig = { name: collectionName, path: 'findable' }
 
-      await queryBuilders.collections.create(collectionName, collectionConfig)
+      await commandBuilders.collections.create(collectionName, collectionConfig)
       const found = await queryBuilders.collections.findByName(collectionName)
 
       console.log('Found collection:', found)
@@ -179,7 +182,7 @@ describe('Storage Model Tests', () => {
     })
 
     it('should create a new document', async () => {
-      const document = await queryBuilders.documents.create(
+      const document = await commandBuilders.documents.create(
         testCollectionId,
         'test-document',
         'draft'
@@ -189,30 +192,30 @@ describe('Storage Model Tests', () => {
     })
 
     it('should find document by id', async () => {
-      const document = await queryBuilders.documents.create(testCollectionId, 'findable-doc')
+      const document = await commandBuilders.documents.create(testCollectionId, 'findable-doc')
       const found = await queryBuilders.documents.findById(document[0].id)
 
       console.log('Found document:', found)
     })
 
     it('should find documents by collection', async () => {
-      await queryBuilders.documents.create(testCollectionId, 'doc1')
-      await queryBuilders.documents.create(testCollectionId, 'doc2')
+      await commandBuilders.documents.create(testCollectionId, 'doc1')
+      await commandBuilders.documents.create(testCollectionId, 'doc2')
 
       const documents = await queryBuilders.documents.findByCollection(testCollectionId)
       console.log('Documents in collection:', documents)
     })
 
     it('should update document status', async () => {
-      const document = await queryBuilders.documents.create(testCollectionId, 'status-test')
-      const updated = await queryBuilders.documents.updateStatus(document[0].id, 'published')
+      const document = await commandBuilders.documents.create(testCollectionId, 'status-test')
+      const updated = await commandBuilders.documents.updateStatus(document[0].id, 'published')
 
       console.log('Updated document status:', updated)
     })
 
     it('should delete document', async () => {
-      const document = await queryBuilders.documents.create(testCollectionId, 'delete-test')
-      await queryBuilders.documents.delete(document[0].id)
+      const document = await commandBuilders.documents.create(testCollectionId, 'delete-test')
+      await commandBuilders.documents.delete(document[0].id)
 
       const found = await queryBuilders.documents.findById(document[0].id)
       console.log('Document after deletion (should be empty):', found)
@@ -224,7 +227,7 @@ describe('Storage Model Tests', () => {
 
     beforeEach(async () => {
       // Create test document using global collection
-      const document = await queryBuilders.documents.create(
+      const document = await commandBuilders.documents.create(
         testCollections.versionTest.id,
         `/version-test-${Date.now()}`
       )
@@ -232,7 +235,7 @@ describe('Storage Model Tests', () => {
     })
 
     it('should create document version', async () => {
-      const version = await queryBuilders.documentVersions.create(
+      const version = await commandBuilders.documentVersions.create(
         testDocumentId,
         1,
         true,
@@ -243,16 +246,16 @@ describe('Storage Model Tests', () => {
     })
 
     it('should find current version', async () => {
-      await queryBuilders.documentVersions.create(testDocumentId, 1, true)
+      await commandBuilders.documentVersions.create(testDocumentId, 1, true)
       const currentVersion = await queryBuilders.documentVersions.findCurrentVersion(testDocumentId)
 
       console.log('Current version:', currentVersion)
     })
 
     it('should create multiple versions and mark one as current', async () => {
-      await queryBuilders.documentVersions.create(testDocumentId, 1, false)
-      await queryBuilders.documentVersions.create(testDocumentId, 2, false)
-      await queryBuilders.documentVersions.create(testDocumentId, 3, true)
+      await commandBuilders.documentVersions.create(testDocumentId, 1, false)
+      await commandBuilders.documentVersions.create(testDocumentId, 2, false)
+      await commandBuilders.documentVersions.create(testDocumentId, 3, true)
 
       const allVersions = await queryBuilders.documentVersions.findByDocument(testDocumentId)
       const currentVersion = await queryBuilders.documentVersions.findCurrentVersion(testDocumentId)
@@ -262,10 +265,10 @@ describe('Storage Model Tests', () => {
     })
 
     it('should mark specific version as current', async () => {
-      await queryBuilders.documentVersions.create(testDocumentId, 1, true)
-      await queryBuilders.documentVersions.create(testDocumentId, 2, false)
+      await commandBuilders.documentVersions.create(testDocumentId, 1, true)
+      await commandBuilders.documentVersions.create(testDocumentId, 2, false)
 
-      await queryBuilders.documentVersions.markAsCurrent(testDocumentId, 2)
+      await commandBuilders.documentVersions.markAsCurrent(testDocumentId, 2)
       const currentVersion = await queryBuilders.documentVersions.findCurrentVersion(testDocumentId)
 
       console.log('New current version:', currentVersion)
@@ -281,18 +284,18 @@ describe('Storage Model Tests', () => {
       // Use global test collection and create document and version
       testCollectionId = testCollections.fieldTest.id
 
-      const document = await queryBuilders.documents.create(
+      const document = await commandBuilders.documents.create(
         testCollectionId,
         `/field-test-${Date.now()}`
       )
       testDocumentId = document[0].id
 
-      const version = await queryBuilders.documentVersions.create(testDocumentId, 1, true)
+      const version = await commandBuilders.documentVersions.create(testDocumentId, 1, true)
       testVersionId = version[0].id
     })
 
     it('should insert text field value', async () => {
-      const result = await queryBuilders.fieldValues.insertFieldValue(
+      const result = await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'title',
@@ -315,7 +318,7 @@ describe('Storage Model Tests', () => {
         ]
       }
 
-      const result = await queryBuilders.fieldValues.insertFieldValue(
+      const result = await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'content',
@@ -328,7 +331,7 @@ describe('Storage Model Tests', () => {
     })
 
     it('should insert boolean field value', async () => {
-      const result = await queryBuilders.fieldValues.insertFieldValue(
+      const result = await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'published',
@@ -342,7 +345,7 @@ describe('Storage Model Tests', () => {
 
     it('should insert datetime field value', async () => {
       const now = new Date()
-      const result = await queryBuilders.fieldValues.insertFieldValue(
+      const result = await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'publishedOn',
@@ -355,7 +358,7 @@ describe('Storage Model Tests', () => {
     })
 
     it('should insert integer field value', async () => {
-      const result = await queryBuilders.fieldValues.insertFieldValue(
+      const result = await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'rating',
@@ -370,7 +373,7 @@ describe('Storage Model Tests', () => {
     it('should get all field values for a document version', async () => {
       // Insert multiple field values
       console.log('Inserting multiple field values for  testVersionID :', testVersionId)
-      await queryBuilders.fieldValues.insertFieldValue(
+      await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'title',
@@ -379,7 +382,7 @@ describe('Storage Model Tests', () => {
         'Complete Document'
       )
 
-      await queryBuilders.fieldValues.insertFieldValue(
+      await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'published',
@@ -388,7 +391,7 @@ describe('Storage Model Tests', () => {
         true
       )
 
-      await queryBuilders.fieldValues.insertFieldValue(
+      await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'rating',
@@ -403,7 +406,7 @@ describe('Storage Model Tests', () => {
 
     it('should update field values', async () => {
       // Insert initial value
-      await queryBuilders.fieldValues.insertFieldValue(
+      await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'title',
@@ -413,7 +416,7 @@ describe('Storage Model Tests', () => {
       )
 
       // Update the value
-      const updated = await queryBuilders.fieldValues.updateFieldValue(
+      const updated = await commandBuilders.fieldValues.updateFieldValue(
         testVersionId,
         'title',
         'text',
@@ -425,7 +428,7 @@ describe('Storage Model Tests', () => {
 
     it('should delete field values', async () => {
       // Insert some values
-      await queryBuilders.fieldValues.insertFieldValue(
+      await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'title',
@@ -434,7 +437,7 @@ describe('Storage Model Tests', () => {
         'To Be Deleted'
       )
 
-      await queryBuilders.fieldValues.insertFieldValue(
+      await commandBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,
         'published',
@@ -444,13 +447,13 @@ describe('Storage Model Tests', () => {
       )
 
       // Delete specific field
-      await queryBuilders.fieldValues.deleteFieldValues(testVersionId, 'title')
+      await commandBuilders.fieldValues.deleteFieldValues(testVersionId, 'title')
 
       const remainingFields = await queryBuilders.typedFieldValues.getAllFieldValues(testVersionId)
       console.log('Remaining fields after deletion:', remainingFields)
 
       // Delete all fields for the version
-      await queryBuilders.fieldValues.deleteFieldValues(testVersionId)
+      await commandBuilders.fieldValues.deleteFieldValues(testVersionId)
 
       const allFieldsAfterDeletion = await queryBuilders.typedFieldValues.getAllFieldValues(testVersionId)
       console.log('All fields after complete deletion:', allFieldsAfterDeletion)
@@ -463,17 +466,17 @@ describe('Storage Model Tests', () => {
       const collectionId = testCollections.completeTest.id
 
       // Create document
-      const document = await queryBuilders.documents.create(
+      const document = await commandBuilders.documents.create(
         collectionId,
         `complete-test-${Date.now()}`
       )
 
       // Create version
-      const version = await queryBuilders.documentVersions.create(document[0].id, 1, true)
+      const version = await commandBuilders.documentVersions.create(document[0].id, 1, true)
 
       // Insert all types of field values
       const fieldOperations = [
-        queryBuilders.fieldValues.insertFieldValue(
+        commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
           collectionId,
           'title',
@@ -481,7 +484,7 @@ describe('Storage Model Tests', () => {
           'text',
           'Complete Test Document'
         ),
-        queryBuilders.fieldValues.insertFieldValue(
+        commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
           collectionId,
           'content',
@@ -489,7 +492,7 @@ describe('Storage Model Tests', () => {
           'richText',
           { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Rich content here' }] }] }
         ),
-        queryBuilders.fieldValues.insertFieldValue(
+        commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
           collectionId,
           'published',
@@ -497,7 +500,7 @@ describe('Storage Model Tests', () => {
           'boolean',
           true
         ),
-        queryBuilders.fieldValues.insertFieldValue(
+        commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
           collectionId,
           'publishedOn',
@@ -505,7 +508,7 @@ describe('Storage Model Tests', () => {
           'datetime',
           new Date()
         ),
-        queryBuilders.fieldValues.insertFieldValue(
+        commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
           collectionId,
           'rating',
