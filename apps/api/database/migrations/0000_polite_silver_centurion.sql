@@ -1,5 +1,5 @@
 CREATE TABLE "collections" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"config" jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now(),
@@ -8,7 +8,7 @@ CREATE TABLE "collections" (
 );
 --> statement-breakpoint
 CREATE TABLE "document_versions" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"document_id" uuid NOT NULL,
 	"version_number" integer NOT NULL,
 	"is_current" boolean DEFAULT false,
@@ -18,7 +18,7 @@ CREATE TABLE "document_versions" (
 );
 --> statement-breakpoint
 CREATE TABLE "documents" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"collection_id" uuid NOT NULL,
 	"path" varchar(255),
 	"status" varchar(50) DEFAULT 'draft',
@@ -28,7 +28,7 @@ CREATE TABLE "documents" (
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_boolean" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"document_version_id" uuid NOT NULL,
 	"collection_id" uuid NOT NULL,
 	"field_path" varchar(500) NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE "field_values_boolean" (
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_datetime" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"document_version_id" uuid NOT NULL,
 	"collection_id" uuid NOT NULL,
 	"field_path" varchar(500) NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE "field_values_datetime" (
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_file" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"document_version_id" uuid NOT NULL,
 	"collection_id" uuid NOT NULL,
 	"field_path" varchar(500) NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE "field_values_file" (
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_json" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"document_version_id" uuid NOT NULL,
 	"collection_id" uuid NOT NULL,
 	"field_path" varchar(500) NOT NULL,
@@ -107,7 +107,7 @@ CREATE TABLE "field_values_json" (
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_numeric" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"document_version_id" uuid NOT NULL,
 	"collection_id" uuid NOT NULL,
 	"field_path" varchar(500) NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE "field_values_numeric" (
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_relation" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"document_version_id" uuid NOT NULL,
 	"collection_id" uuid NOT NULL,
 	"field_path" varchar(500) NOT NULL,
@@ -144,7 +144,7 @@ CREATE TABLE "field_values_relation" (
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_text" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY NOT NULL,
 	"document_version_id" uuid NOT NULL,
 	"collection_id" uuid NOT NULL,
 	"field_path" varchar(500) NOT NULL,

@@ -1,5 +1,3 @@
-
-
 // import { getAllTableSchemas } from '@byline/byline/drizzle-schemas'
 
 
@@ -14,7 +12,7 @@ import { bigint, boolean, date, decimal, index, integer, jsonb, pgTable, real, t
 
 // Collections table - stores collection configurations
 export const collections = pgTable('collections', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid('id').primaryKey(),
   name: varchar('name', { length: 255 }).unique().notNull(),
   config: jsonb('config').notNull(), // Store CollectionConfig
   createdAt: timestamp('created_at').defaultNow(),
@@ -23,7 +21,7 @@ export const collections = pgTable('collections', {
 
 // Documents table - main entity records
 export const documents = pgTable('documents', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid('id').primaryKey(),
   collectionId: uuid('collection_id').references(() => collections.id, { onDelete: 'cascade' }).notNull(),
   path: varchar('path', { length: 255 }),
   status: varchar('status', { length: 50 }).default('draft'),
@@ -35,7 +33,7 @@ export const documents = pgTable('documents', {
 
 // Document versions for versioning support
 export const documentVersions = pgTable('document_versions', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid('id').primaryKey(),
   documentId: uuid('document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
   versionNumber: integer('version_number').notNull(),
   isCurrent: boolean('is_current').default(false),
@@ -47,7 +45,7 @@ export const documentVersions = pgTable('document_versions', {
 
 // Base field values structure (shared metadata)
 const baseFieldValueColumns = {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: uuid('id').primaryKey(),
   documentVersionId: uuid('document_version_id').references(() => documentVersions.id, { onDelete: 'cascade' }).notNull(),
   collectionId: uuid('collection_id').references(() => collections.id, { onDelete: 'cascade' }).notNull(), // For cross-collection queries
   fieldPath: varchar('field_path', { length: 500 }).notNull(),

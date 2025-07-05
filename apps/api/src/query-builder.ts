@@ -3,6 +3,7 @@
 
 import { and, eq, isNotNull, like, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { v7 as uuidv7 } from 'uuid'
 import {
   collections,
   documents,
@@ -346,6 +347,7 @@ export class CollectionQueries {
 
   async create(name: string, config: any) {
     return await this.db.insert(collections).values({
+      id: uuidv7(),
       name,
       config,
     }).returning();
@@ -378,6 +380,7 @@ export class DocumentQueries {
 
   async create(collectionId: string, path?: string, status = 'draft') {
     return await this.db.insert(documents).values({
+      id: uuidv7(),
       collectionId,
       path,
       status,
@@ -430,6 +433,7 @@ export class DocumentVersionQueries {
     }
 
     return await this.db.insert(documentVersions).values({
+      id: uuidv7(),
       documentId,
       versionNumber,
       isCurrent,
@@ -473,6 +477,7 @@ export class FieldValueCRUD {
     parentPath?: string
   ) {
     const baseData = {
+      id: uuidv7(),
       documentVersionId,
       collectionId,
       fieldPath,
