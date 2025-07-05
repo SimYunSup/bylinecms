@@ -179,7 +179,7 @@ describe('Storage Model Tests', () => {
     it('should create a new document', async () => {
       const document = await queryBuilders.documents.create(
         testCollectionId,
-        '/test-document',
+        'test-document',
         'draft'
       )
 
@@ -187,29 +187,29 @@ describe('Storage Model Tests', () => {
     })
 
     it('should find document by id', async () => {
-      const document = await queryBuilders.documents.create(testCollectionId, '/findable-doc')
+      const document = await queryBuilders.documents.create(testCollectionId, 'findable-doc')
       const found = await queryBuilders.documents.findById(document[0].id)
 
       console.log('Found document:', found)
     })
 
     it('should find documents by collection', async () => {
-      await queryBuilders.documents.create(testCollectionId, '/doc1')
-      await queryBuilders.documents.create(testCollectionId, '/doc2')
+      await queryBuilders.documents.create(testCollectionId, 'doc1')
+      await queryBuilders.documents.create(testCollectionId, 'doc2')
 
       const documents = await queryBuilders.documents.findByCollection(testCollectionId)
       console.log('Documents in collection:', documents)
     })
 
     it('should update document status', async () => {
-      const document = await queryBuilders.documents.create(testCollectionId, '/status-test')
+      const document = await queryBuilders.documents.create(testCollectionId, 'status-test')
       const updated = await queryBuilders.documents.updateStatus(document[0].id, 'published')
 
       console.log('Updated document status:', updated)
     })
 
     it('should delete document', async () => {
-      const document = await queryBuilders.documents.create(testCollectionId, '/delete-test')
+      const document = await queryBuilders.documents.create(testCollectionId, 'delete-test')
       await queryBuilders.documents.delete(document[0].id)
 
       const found = await queryBuilders.documents.findById(document[0].id)
@@ -462,7 +462,7 @@ describe('Storage Model Tests', () => {
       // Create document
       const document = await queryBuilders.documents.create(
         collectionId,
-        `/complete-test-${Date.now()}`
+        `complete-test-${Date.now()}`
       )
 
       // Create version

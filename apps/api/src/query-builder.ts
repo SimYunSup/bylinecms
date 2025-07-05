@@ -451,7 +451,6 @@ export class FieldValueCRUD {
         return await this.db.insert(fieldValuesText).values({
           ...baseData,
           value: value,
-          isRichText: false,
         }).returning();
 
       case 'richText':
