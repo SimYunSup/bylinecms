@@ -40,7 +40,7 @@ export const documentVersions = pgTable('document_versions', {
   versionNumber: integer('version_number').notNull(),
   isCurrent: boolean('is_current').default(false),
   createdAt: timestamp('created_at').defaultNow(),
-  createdBy: uuid('created_by'), // Reference to users table
+  createdBy: uuid('created_by'), // TODO: Reference to users table
 }, (table) => ([
   unique().on(table.documentId, table.versionNumber),
 ]));

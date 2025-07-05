@@ -138,7 +138,8 @@ describe('Storage Model Tests', () => {
 
   describe('Collection Operations', () => {
     it('should create a new collection', async () => {
-      const collectionName = 'test_collection'
+      const timestamp = Date.now()
+      const collectionName = `test_collection_${timestamp}`
       const collectionConfig = {
         name: collectionName,
         path: 'test',
@@ -153,7 +154,8 @@ describe('Storage Model Tests', () => {
     })
 
     it('should find collection by name', async () => {
-      const collectionName = 'findable_collection'
+      const timestamp = Date.now()
+      const collectionName = `findable_collection${timestamp}`
       const collectionConfig = { name: collectionName, path: 'findable' }
 
       await queryBuilders.collections.create(collectionName, collectionConfig)
@@ -234,7 +236,7 @@ describe('Storage Model Tests', () => {
         testDocumentId,
         1,
         true,
-        'test-user-id'
+        uuidv7() // Simulate createdBy with a UUID
       )
 
       console.log('Created document version:', version)
@@ -367,6 +369,7 @@ describe('Storage Model Tests', () => {
 
     it('should get all field values for a document version', async () => {
       // Insert multiple field values
+      console.log('Inserting multiple field values for  testVersionID :', testVersionId)
       await queryBuilders.fieldValues.insertFieldValue(
         testVersionId,
         testCollectionId,

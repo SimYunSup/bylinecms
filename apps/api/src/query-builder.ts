@@ -65,7 +65,14 @@ export class TypedFieldValuesQuery {
   async getAllFieldValues(documentVersionId: string, locale = 'default') {
     const queries = await Promise.all([
       this.db.select({
-        ...this.getBaseSelectFields(),
+        id: fieldValuesText.id,
+        documentVersionId: fieldValuesText.documentVersionId,
+        collectionId: fieldValuesText.collectionId,
+        fieldPath: fieldValuesText.fieldPath,
+        fieldName: fieldValuesText.fieldName,
+        locale: fieldValuesText.locale,
+        arrayIndex: fieldValuesText.arrayIndex,
+        parentPath: fieldValuesText.parentPath,
         value: fieldValuesText.value,
         fieldType: sql<string>`'text'`.as('fieldType'),
       }).from(fieldValuesText).where(
@@ -76,7 +83,14 @@ export class TypedFieldValuesQuery {
       ),
 
       this.db.select({
-        ...this.getBaseSelectFields(),
+        id: fieldValuesNumeric.id,
+        documentVersionId: fieldValuesNumeric.documentVersionId,
+        collectionId: fieldValuesNumeric.collectionId,
+        fieldPath: fieldValuesNumeric.fieldPath,
+        fieldName: fieldValuesNumeric.fieldName,
+        locale: fieldValuesNumeric.locale,
+        arrayIndex: fieldValuesNumeric.arrayIndex,
+        parentPath: fieldValuesNumeric.parentPath,
         value: fieldValuesNumeric.valueInteger, // Simplified - would need type-specific handling
         fieldType: sql<string>`'numeric'`.as('fieldType'),
       }).from(fieldValuesNumeric).where(
@@ -87,7 +101,14 @@ export class TypedFieldValuesQuery {
       ),
 
       this.db.select({
-        ...this.getBaseSelectFields(),
+        id: fieldValuesBoolean.id,
+        documentVersionId: fieldValuesBoolean.documentVersionId,
+        collectionId: fieldValuesBoolean.collectionId,
+        fieldPath: fieldValuesBoolean.fieldPath,
+        fieldName: fieldValuesBoolean.fieldName,
+        locale: fieldValuesBoolean.locale,
+        arrayIndex: fieldValuesBoolean.arrayIndex,
+        parentPath: fieldValuesBoolean.parentPath,
         value: fieldValuesBoolean.value,
         fieldType: sql<string>`'boolean'`.as('fieldType'),
       }).from(fieldValuesBoolean).where(
@@ -98,7 +119,14 @@ export class TypedFieldValuesQuery {
       ),
 
       this.db.select({
-        ...this.getBaseSelectFields(),
+        id: fieldValuesDateTime.id,
+        documentVersionId: fieldValuesDateTime.documentVersionId,
+        collectionId: fieldValuesDateTime.collectionId,
+        fieldPath: fieldValuesDateTime.fieldPath,
+        fieldName: fieldValuesDateTime.fieldName,
+        locale: fieldValuesDateTime.locale,
+        arrayIndex: fieldValuesDateTime.arrayIndex,
+        parentPath: fieldValuesDateTime.parentPath,
         value: fieldValuesDateTime.valueTimestamp,
         fieldType: sql<string>`'datetime'`.as('fieldType'),
       }).from(fieldValuesDateTime).where(
@@ -109,7 +137,14 @@ export class TypedFieldValuesQuery {
       ),
 
       this.db.select({
-        ...this.getBaseSelectFields(),
+        id: fieldValuesRelation.id,
+        documentVersionId: fieldValuesRelation.documentVersionId,
+        collectionId: fieldValuesRelation.collectionId,
+        fieldPath: fieldValuesRelation.fieldPath,
+        fieldName: fieldValuesRelation.fieldName,
+        locale: fieldValuesRelation.locale,
+        arrayIndex: fieldValuesRelation.arrayIndex,
+        parentPath: fieldValuesRelation.parentPath,
         value: fieldValuesRelation.targetDocumentId,
         fieldType: sql<string>`'relation'`.as('fieldType'),
       }).from(fieldValuesRelation).where(
@@ -120,7 +155,14 @@ export class TypedFieldValuesQuery {
       ),
 
       this.db.select({
-        ...this.getBaseSelectFields(),
+        id: fieldValuesFile.id,
+        documentVersionId: fieldValuesFile.documentVersionId,
+        collectionId: fieldValuesFile.collectionId,
+        fieldPath: fieldValuesFile.fieldPath,
+        fieldName: fieldValuesFile.fieldName,
+        locale: fieldValuesFile.locale,
+        arrayIndex: fieldValuesFile.arrayIndex,
+        parentPath: fieldValuesFile.parentPath,
         value: fieldValuesFile.fileId,
         fieldType: sql<string>`'file'`.as('fieldType'),
       }).from(fieldValuesFile).where(
@@ -131,7 +173,14 @@ export class TypedFieldValuesQuery {
       ),
 
       this.db.select({
-        ...this.getBaseSelectFields(),
+        id: fieldValuesJson.id,
+        documentVersionId: fieldValuesJson.documentVersionId,
+        collectionId: fieldValuesJson.collectionId,
+        fieldPath: fieldValuesJson.fieldPath,
+        fieldName: fieldValuesJson.fieldName,
+        locale: fieldValuesJson.locale,
+        arrayIndex: fieldValuesJson.arrayIndex,
+        parentPath: fieldValuesJson.parentPath,
         value: fieldValuesJson.value,
         fieldType: sql<string>`'json'`.as('fieldType'),
       }).from(fieldValuesJson).where(
@@ -143,19 +192,6 @@ export class TypedFieldValuesQuery {
     ]);
 
     return queries.flat().sort((a, b) => a.fieldPath.localeCompare(b.fieldPath));
-  }
-
-  private getBaseSelectFields() {
-    return {
-      id: fieldValuesText.id, // Any table works for base fields
-      documentVersionId: fieldValuesText.documentVersionId,
-      collectionId: fieldValuesText.collectionId,
-      fieldPath: fieldValuesText.fieldPath,
-      fieldName: fieldValuesText.fieldName,
-      locale: fieldValuesText.locale,
-      arrayIndex: fieldValuesText.arrayIndex,
-      parentPath: fieldValuesText.parentPath,
-    };
   }
 
   private getTableForType(fieldType: string) {
