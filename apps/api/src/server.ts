@@ -31,7 +31,12 @@ import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
 import * as schema from '../database/schema/index.js'
-import { createQueryBuilders } from './query-builder.js'
+
+import { createCommandBuilders } from './storage-commands.js'
+import { createQueryBuilders } from './storage-queries.js'
+
+let queryBuilders: ReturnType<typeof createQueryBuilders>
+let commandBuilders: ReturnType<typeof createCommandBuilders>
 
 const server = Fastify({
   logger: true,
@@ -45,7 +50,8 @@ await server.register(cors, {
 
 const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
 const db = drizzle(pool, { schema })
-const queryBuilders = createQueryBuilders(db)
+queryBuilders = createQueryBuilders(db)
+commandBuilders = createCommandBuilders(db)
 
 // Helper function to reconstruct document from field values
 async function reconstructDocument(documentVersionId: string) {
@@ -71,7 +77,7 @@ async function storeDocumentFields(
   for (const field of collectionDefinition.fields) {
     const fieldValue = data[field.name]
     if (fieldValue !== undefined) {
-      const result = await queryBuilders.fieldValues.insertFieldValue(
+      const result = await commandBuilders.fieldValues.insertFieldValue(
         documentVersionId,
         collectionId,
         field.name, // fieldPath same as fieldName for top-level fields
@@ -97,7 +103,7 @@ async function updateDocumentFields(
   for (const field of collectionDefinition.fields) {
     const fieldValue = data[field.name]
     if (fieldValue !== undefined) {
-      const result = await queryBuilders.fieldValues.updateFieldValue(
+      const result = await commandBuilders.fieldValues.updateFieldValue(
         documentVersionId,
         field.name,
         field.type === 'richtext' ? 'richText' : field.type,
@@ -124,7 +130,7 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
     const collectionRecords = await queryBuilders.collections.findByPath(path)
     if (collectionRecords.length === 0) {
       // Collection doesn't exist in database yet, create it
-      await queryBuilders.collections.create(collection.name, collection)
+      await commandBuilders.collections.create(collection.name, collection)
     }
     const collectionRecord = collectionRecords[0]
 
@@ -183,12 +189,12 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
     // Find or create collection in database
     let collectionRecords = await queryBuilders.collections.findByPath(path)
     if (collectionRecords.length === 0) {
-      collectionRecords = await queryBuilders.collections.create(collection.name, collection)
+      collectionRecords = await commandBuilders.collections.create(collection.name, collection)
     }
     const collectionRecord = collectionRecords[0]
 
     // Create document
-    const documentResults = await queryBuilders.documents.create(
+    const documentResults = await commandBuilders.documents.create(
       collectionRecord.id,
       body.path,
       body.status || 'draft'
@@ -196,7 +202,7 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
     const document = documentResults[0]
 
     // Create initial version
-    const versionResults = await queryBuilders.documentVersions.create(
+    const versionResults = await commandBuilders.documentVersions.create(
       document.id,
       1,
       true
@@ -308,7 +314,7 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
 
     // Update document metadata if status changed
     if (body.status && body.status !== document.status) {
-      await queryBuilders.documents.updateStatus(document.id, body.status)
+      await commandBuilders.documents.updateStatus(document.id, body.status)
     }
 
     reply.code(200).send({ status: 'ok' })
@@ -343,7 +349,7 @@ server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/
     }
 
     // Delete the document (cascading deletes will handle versions and field values)
-    await queryBuilders.documents.delete(id)
+    await commandBuilders.documents.delete(id)
 
     reply.code(200).send({ status: 'ok' })
   } catch (error) {

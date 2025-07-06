@@ -50,7 +50,7 @@ const baseFieldValueColumns = {
   collectionId: uuid('collection_id').references(() => collections.id, { onDelete: 'cascade' }).notNull(), // For cross-collection queries
   fieldPath: varchar('field_path', { length: 500 }).notNull(),
   fieldName: varchar('field_name', { length: 255 }).notNull(),
-  locale: varchar('locale', { length: 10 }).default('default'),
+  locale: varchar('locale', { length: 10 }).notNull().default('default'),
 
   // Array and nesting support
   arrayIndex: integer('array_index'),
