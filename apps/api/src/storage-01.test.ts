@@ -79,7 +79,6 @@ describe('Storage Model Tests', () => {
     const fieldTestCollection = await commandBuilders.collections.create(
       `field_test_collection_${timestamp}`,
       {
-        name: `Field Test Collection ${timestamp}`,
         path: `field_test_${timestamp}`,
         fields: [
           { name: 'title', type: 'text', required: true },
@@ -94,7 +93,6 @@ describe('Storage Model Tests', () => {
     const completeTestCollection = await commandBuilders.collections.create(
       `complete_test_collection_${timestamp}`,
       {
-        name: `Complete Test Collection ${timestamp}`,
         path: `complete_test_${timestamp}`,
         fields: [
           { name: 'title', type: 'text', required: true },
@@ -107,10 +105,10 @@ describe('Storage Model Tests', () => {
     )
 
     testCollections = {
-      documentTest: { id: documentTestCollection[0].id, name: documentTestCollection[0].name },
-      versionTest: { id: versionTestCollection[0].id, name: versionTestCollection[0].name },
-      fieldTest: { id: fieldTestCollection[0].id, name: fieldTestCollection[0].name },
-      completeTest: { id: completeTestCollection[0].id, name: completeTestCollection[0].name }
+      documentTest: { id: documentTestCollection[0].id, name: documentTestCollection[0].path },
+      versionTest: { id: versionTestCollection[0].id, name: versionTestCollection[0].path },
+      fieldTest: { id: fieldTestCollection[0].id, name: fieldTestCollection[0].path },
+      completeTest: { id: completeTestCollection[0].id, name: completeTestCollection[0].path }
     }
 
     console.log('Test collections created:', testCollections)
@@ -142,27 +140,26 @@ describe('Storage Model Tests', () => {
   describe('Collection Operations', () => {
     it('should create a new collection', async () => {
       const timestamp = Date.now()
-      const collectionName = `test_collection_${timestamp}`
+      const collectionPath = `test_collection_${timestamp}`
       const collectionConfig = {
-        name: collectionName,
-        path: 'test',
+        path: collectionPath,
         fields: [
           { name: 'title', type: 'text', required: true },
           { name: 'content', type: 'richText', required: false }
         ]
       }
 
-      const result = await commandBuilders.collections.create(collectionName, collectionConfig)
+      const result = await commandBuilders.collections.create(collectionPath, collectionConfig)
       console.log('Created collection:', result)
     })
 
     it('should find collection by name', async () => {
       const timestamp = Date.now()
-      const collectionName = `findable_collection${timestamp}`
-      const collectionConfig = { name: collectionName, path: 'findable' }
+      const collectionPath = `findable_collection${timestamp}`
+      const collectionConfig = { path: collectionPath }
 
-      await commandBuilders.collections.create(collectionName, collectionConfig)
-      const found = await queryBuilders.collections.findByName(collectionName)
+      await commandBuilders.collections.create(collectionPath, collectionConfig)
+      const found = await queryBuilders.collections.findByPath(collectionPath)
 
       console.log('Found collection:', found)
     })

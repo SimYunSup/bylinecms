@@ -13,7 +13,7 @@ import { bigint, boolean, date, decimal, index, integer, jsonb, pgTable, real, t
 // Collections table - stores collection configurations
 export const collections = pgTable('collections', {
   id: uuid('id').primaryKey(),
-  name: varchar('name', { length: 255 }).unique().notNull(),
+  path: varchar('path', { length: 255 }).unique().notNull(),
   config: jsonb('config').notNull(), // Store CollectionConfig
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),

@@ -1,10 +1,10 @@
 CREATE TABLE "collections" (
 	"id" uuid PRIMARY KEY NOT NULL,
-	"name" varchar(255) NOT NULL,
+	"path" varchar(255) NOT NULL,
 	"config" jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
-	CONSTRAINT "collections_name_unique" UNIQUE("name")
+	CONSTRAINT "collections_path_unique" UNIQUE("path")
 );
 --> statement-breakpoint
 CREATE TABLE "document_versions" (

@@ -28,15 +28,12 @@ import cors from '@fastify/cors'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
 import { Pool } from 'pg'
-import { v7 as uuidv7 } from 'uuid'
+// import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
 import * as schema from '../database/schema/index.js'
 
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
-
-let queryBuilders: ReturnType<typeof createQueryBuilders>
-let commandBuilders: ReturnType<typeof createCommandBuilders>
 
 const server = Fastify({
   logger: true,
@@ -50,8 +47,8 @@ await server.register(cors, {
 
 const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
 const db = drizzle(pool, { schema })
-queryBuilders = createQueryBuilders(db)
-commandBuilders = createCommandBuilders(db)
+const queryBuilders: ReturnType<typeof createQueryBuilders> = createQueryBuilders(db)
+const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandBuilders(db)
 
 // Helper function to reconstruct document from field values
 async function reconstructDocument(documentVersionId: string) {
@@ -130,7 +127,7 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
     const collectionRecords = await queryBuilders.collections.findByPath(path)
     if (collectionRecords.length === 0) {
       // Collection doesn't exist in database yet, create it
-      await commandBuilders.collections.create(collection.name, collection)
+      await commandBuilders.collections.create(collection.path, collection)
     }
     const collectionRecord = collectionRecords[0]
 
@@ -164,7 +161,6 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
       },
       included: {
         collection: {
-          name: collection.name,
           path: collection.path,
         }
       }

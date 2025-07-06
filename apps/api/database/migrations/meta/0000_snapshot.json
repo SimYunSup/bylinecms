@@ -1,5 +1,5 @@
 {
-  "id": "f6f4f9b9-4924-4dfa-8f8a-2caf57f89ac0",
+  "id": "b0edd311-935c-4de9-b5c6-4b0068517f70",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -14,8 +14,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "path": {
+          "name": "path",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
@@ -45,11 +45,11 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "collections_name_unique": {
-          "name": "collections_name_unique",
+        "collections_path_unique": {
+          "name": "collections_path_unique",
           "nullsNotDistinct": false,
           "columns": [
-            "name"
+            "path"
           ]
         }
       },

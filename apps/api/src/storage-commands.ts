@@ -44,10 +44,10 @@ type DatabaseConnection = NodePgDatabase<any>;
 export class CollectionCommands {
   constructor(private db: DatabaseConnection) { }
 
-  async create(name: string, config: any) {
+  async create(path: string, config: any) {
     return await this.db.insert(collections).values({
       id: uuidv7(),
-      name,
+      path,
       config,
     }).returning();
   }

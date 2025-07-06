@@ -351,12 +351,8 @@ export class FileFieldQueries {
 export class CollectionQueries {
   constructor(private db: DatabaseConnection) { }
 
-  async findByName(name: string) {
-    return await this.db.select().from(collections).where(eq(collections.name, name)).limit(1);
-  }
-
   async findByPath(path: string) {
-    return await this.db.select().from(collections).where(eq(collections.name, path)).limit(1);
+    return await this.db.select().from(collections).where(eq(collections.path, path)).limit(1);
   }
 
   async getAll() {

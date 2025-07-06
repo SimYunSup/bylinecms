@@ -116,7 +116,7 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       PagesCollectionConfig
     )
 
-    testCollection = { id: collection[0].id, name: collection[0].name }
+    testCollection = { id: collection[0].id, name: collection[0].path }
     console.log('Test collection created:', testCollection)
   })
 

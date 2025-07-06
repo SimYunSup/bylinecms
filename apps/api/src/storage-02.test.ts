@@ -25,9 +25,7 @@ import { Pool } from 'pg'
 import * as schema from '../database/schema/index.js'
 import type { CollectionConfig, ReconstructedFieldValue } from './@types.js'
 import { createCommandBuilders } from './storage-commands.js'
-import { createEnhancedCommandBuilders } from './storage-commands-enhanced.js'
 import { createQueryBuilders } from './storage-queries.js'
-import { createEnhancedQueryBuilders } from './storage-queries-enhanced.js'
 import {
   buildFieldPath,
   flattenDocumentToFieldValues,
@@ -40,9 +38,7 @@ import {
 let pool: Pool
 let db: ReturnType<typeof drizzle>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
-let queryBuildersEnhanced: ReturnType<typeof createEnhancedQueryBuilders>
 let commandBuilders: ReturnType<typeof createCommandBuilders>
-let commandBuildersEnhanced: ReturnType<typeof createEnhancedCommandBuilders>
 
 // Test collection configuration (your original example)
 const PagesCollectionConfig: CollectionConfig = {
@@ -112,9 +108,7 @@ describe('Enhanced Storage Model Tests - Document Flattening and Reconstruction'
     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
     db = drizzle(pool, { schema })
     queryBuilders = createQueryBuilders(db)
-    queryBuildersEnhanced = createEnhancedQueryBuilders(db)
     commandBuilders = createCommandBuilders(db)
-    commandBuildersEnhanced = createEnhancedCommandBuilders(db)
 
     // Create test collection
     const timestamp = Date.now()
@@ -123,7 +117,7 @@ describe('Enhanced Storage Model Tests - Document Flattening and Reconstruction'
       PagesCollectionConfig
     )
 
-    testCollection = { id: collection[0].id, name: collection[0].name }
+    testCollection = { id: collection[0].id, name: collection[0].path }
     console.log('Test collection created:', testCollection)
   })
 
