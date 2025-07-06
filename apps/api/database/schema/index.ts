@@ -145,7 +145,7 @@ export const fieldValuesRelation = pgTable('field_values_relation', {
   ...baseFieldValueColumns,
 
   // targetDocumentId: uuid('target_document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
-  targetDocumentId: uuid('target_document_id').references(() => documents.id).notNull(),
+  targetDocumentId: uuid('target_document_id').references(() => documents.id, { onDelete: 'restrict' }).notNull(),
   targetCollectionId: uuid('target_collection_id').references(() => collections.id).notNull(),
 
   // Relationship metadata

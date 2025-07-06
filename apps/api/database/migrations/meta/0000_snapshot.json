@@ -1,5 +1,5 @@
 {
-  "id": "b0edd311-935c-4de9-b5c6-4b0068517f70",
+  "id": "3efb719c-eb26-4b6a-aa56-69d29a25fe29",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1564,7 +1564,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "restrict",
           "onUpdate": "no action"
         },
         "field_values_relation_target_collection_id_collections_id_fk": {

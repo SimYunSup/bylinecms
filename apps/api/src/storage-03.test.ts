@@ -202,5 +202,43 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       )
       console.log('Retrieved document with relationship:', completeDocument)
     })
+
+    it('should fail to delete a document that is the relative of another document.', async () => {
+      const sourceDocument1 = structuredClone(examplePageDocument)
+      sourceDocument1.path = `test-page-${Date.now()}` // Ensure unique path for each test run
+      sourceDocument1.title = `Test Page Title ${Date.now()}` // Ensure unique title for
+      const result1 = await commandBuildersEnhanced.documents.createCompleteDocument(
+        testCollection.id,
+        PagesCollectionConfig,
+        sourceDocument1,
+        sourceDocument1.path,
+      )
+
+      const sourceDocument2 = structuredClone(examplePageDocument)
+      sourceDocument2.related = { targetCollectionId: testCollection.id, targetDocumentId: result1.document.id }
+      sourceDocument2.path = `test-page-${Date.now()}` // Ensure unique path for each test run
+      sourceDocument2.title = `Test Page Title ${Date.now()}` // Ensure unique title for
+      const result2 = await commandBuildersEnhanced.documents.createCompleteDocument(
+        testCollection.id,
+        PagesCollectionConfig,
+        sourceDocument2,
+        sourceDocument2.path,
+      )
+      console.log('Created document with relationship:', result2)
+      const completeDocument = await queryBuildersEnhanced.documents.getCompleteDocument(
+        result2.document.id,
+        PagesCollectionConfig,
+        'all' // Assuming all locale for simplicity
+      )
+      console.log('Retrieved document with relationship:', completeDocument)
+
+      // Try to delete the first document which is referenced by the second document
+      try {
+        await commandBuilders.documents.delete(result1.document.id)
+        console.error('Expected error when deleting document with relationships, but deletion succeeded.')
+      } catch (error) {
+        console.log('Expected error when deleting document with relationships:')
+      }
+    })
   })
 })
