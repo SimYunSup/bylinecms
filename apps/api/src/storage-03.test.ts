@@ -23,7 +23,7 @@ import { after, before, describe, it } from 'node:test'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '../database/schema/index.js'
-import type { CollectionConfig } from './@types.js'
+import type { CollectionConfig, SiteConfig } from './@types.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createEnhancedCommandBuilders } from './storage-commands-enhanced.js'
 import { createQueryBuilders } from './storage-queries.js'
@@ -37,6 +37,14 @@ let queryBuildersEnhanced: ReturnType<typeof createEnhancedQueryBuilders>
 let commandBuilders: ReturnType<typeof createCommandBuilders>
 let commandBuildersEnhanced: ReturnType<typeof createEnhancedCommandBuilders>
 
+
+const siteConfig: SiteConfig = {
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'es', 'fr'],
+  }
+}
+
 // Test collection configuration (your original example)
 const PagesCollectionConfig: CollectionConfig = {
   path: 'pages',
@@ -49,6 +57,7 @@ const PagesCollectionConfig: CollectionConfig = {
     { name: 'title', type: 'text', required: true },
     { name: 'content', type: 'richText', required: true },
     { name: 'gibberish', type: 'text', required: false, localized: true },
+    { name: 'related', type: 'relation', required: false },
     {
       name: 'cluster', type: 'array', fields: [
         { name: 'one', type: 'text', required: true, localized: true },
@@ -64,34 +73,29 @@ const examplePageDocument = {
   path: "example-page",
   title: "Example Page Title",
   content: {
-    type: "doc",
-    content: [
-      {
-        type: "paragraph",
-        content: [{ type: "text", text: "This is rich text content" }]
-      }
-    ]
+    type: "paragraph",
+    content: [{ type: "text", text: "This is rich text content" }]
   },
   gibberish: {
-    default: "Default gibberish text",
     en: "English gibberish text",
     es: "Spanish gibberish text"
   },
+  related: {},
   cluster: [
     {
-      one: { default: "First cluster - one", en: "First cluster - one EN" },
-      two: { default: "First cluster - two", en: "First cluster - two EN" },
-      three: { default: "First cluster - three", en: "First cluster - three EN" }
+      one: { es: "First cluster - one", en: "First cluster - one EN" },
+      two: { es: "First cluster - two", en: "First cluster - two EN" },
+      three: { es: "First cluster - three", en: "First cluster - three EN" }
     },
     {
-      one: { default: "Second cluster - one", en: "Second cluster - one EN" },
-      two: { default: "Second cluster - two", en: "Second cluster - two EN" },
-      three: { default: "Second cluster - three", en: "Second cluster - three EN" }
+      one: { es: "Second cluster - one", en: "Second cluster - one EN" },
+      two: { es: "Second cluster - two", en: "Second cluster - two EN" },
+      three: { es: "Second cluster - three", en: "Second cluster - three EN" }
     },
     {
-      one: { default: "Third cluster - one", en: "Third cluster - one EN" },
-      two: { default: "Third cluster - two", en: "Third cluster - two EN" },
-      three: { default: "Third cluster - three", en: "Third cluster - three EN" }
+      one: { es: "Third cluster - one", en: "Third cluster - one EN" },
+      two: { es: "Third cluster - two", en: "Third cluster - two EN" },
+      three: { es: "Third cluster - three", en: "Third cluster - three EN" }
     }
   ]
 };
@@ -104,10 +108,10 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
     // Connect to test database
     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
     db = drizzle(pool, { schema })
-    queryBuilders = createQueryBuilders(db)
-    queryBuildersEnhanced = createEnhancedQueryBuilders(db)
-    commandBuilders = createCommandBuilders(db)
-    commandBuildersEnhanced = createEnhancedCommandBuilders(db)
+    queryBuilders = createQueryBuilders(siteConfig, db)
+    queryBuildersEnhanced = createEnhancedQueryBuilders(siteConfig, db)
+    commandBuilders = createCommandBuilders(siteConfig, db)
+    commandBuildersEnhanced = createEnhancedCommandBuilders(siteConfig, db)
 
     // Create test collection
     const timestamp = Date.now()
@@ -161,9 +165,42 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       const completeDocument = await queryBuildersEnhanced.documents.getCompleteDocument(
         result.document.id,
         PagesCollectionConfig,
-        'default' // Assuming default locale for simplicity
+        'all' // Assuming 'all' locale for simplicity
       )
+      // console.log('Retrieved complete document:', JSON.stringify(completeDocument, null, 2))
       console.log('Retrieved complete document:', completeDocument)
+    })
+  })
+
+  describe('Document Relation Strategy', () => {
+    it('should create a complete document with a relationship to another document', async () => {
+      const sourceDocument1 = structuredClone(examplePageDocument)
+      sourceDocument1.path = `test-page-${Date.now()}` // Ensure unique path for each test run
+      sourceDocument1.title = `Test Page Title ${Date.now()}` // Ensure unique title for
+      const result1 = await commandBuildersEnhanced.documents.createCompleteDocument(
+        testCollection.id,
+        PagesCollectionConfig,
+        sourceDocument1,
+        sourceDocument1.path,
+      )
+
+      const sourceDocument2 = structuredClone(examplePageDocument)
+      sourceDocument2.related = { targetCollectionId: testCollection.id, targetDocumentId: result1.document.id }
+      sourceDocument2.path = `test-page-${Date.now()}` // Ensure unique path for each test run
+      sourceDocument2.title = `Test Page Title ${Date.now()}` // Ensure unique title for
+      const result2 = await commandBuildersEnhanced.documents.createCompleteDocument(
+        testCollection.id,
+        PagesCollectionConfig,
+        sourceDocument2,
+        sourceDocument2.path,
+      )
+      console.log('Created document with relationship:', result2)
+      const completeDocument = await queryBuildersEnhanced.documents.getCompleteDocument(
+        result2.document.id,
+        PagesCollectionConfig,
+        'all' // Assuming all locale for simplicity
+      )
+      console.log('Retrieved document with relationship:', completeDocument)
     })
   })
 })

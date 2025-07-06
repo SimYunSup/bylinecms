@@ -24,6 +24,7 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
 import * as schema from '../database/schema/index.js'
+import type { SiteConfig } from './@types.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
 
@@ -32,6 +33,13 @@ let pool: Pool
 let db: ReturnType<typeof drizzle>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
 let commandBuilders: ReturnType<typeof createCommandBuilders>
+
+const siteConfig: SiteConfig = {
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'es', 'fr'],
+  }
+}
 
 // Global test collections to avoid name conflicts
 let testCollections: {
@@ -46,8 +54,8 @@ describe('Storage Model Tests', () => {
     // Connect to test database
     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
     db = drizzle(pool, { schema })
-    queryBuilders = createQueryBuilders(db)
-    commandBuilders = createCommandBuilders(db)
+    queryBuilders = createQueryBuilders(siteConfig, db)
+    commandBuilders = createCommandBuilders(siteConfig, db)
 
     // Create all test collections once to avoid unique constraint violations
     const timestamp = Date.now()

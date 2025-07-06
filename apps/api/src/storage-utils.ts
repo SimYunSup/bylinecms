@@ -21,9 +21,11 @@
 
 import type {
   CollectionConfig,
+  DateTimeFieldValue,
   FieldConfig,
   FileFieldValue,
   FlattenedFieldValue,
+  JsonFieldValue,
   NonArrayFieldType,
   ParsedFieldPath,
   ReconstructedFieldValue,
@@ -162,7 +164,69 @@ export function flattenDocumentToFieldValues(
 
       if (value === undefined || value === null) continue;
 
-      // Handle field-specific properties based on type
+      // Handle localized fields first - check if field is localized and value is an object
+      if (fieldConfig.localized && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        // For localized fields, create separate field values for each locale
+        for (const [localeKey, localizedValue] of Object.entries(value)) {
+          if (localizedValue !== undefined && localizedValue !== null) {
+            switch (fieldConfig.type) {
+              case 'text':
+                flattenedFields.push({
+                  fieldType: 'text',
+                  fieldPath,
+                  fieldName: fieldConfig.name,
+                  locale: localeKey,
+                  arrayIndex,
+                  parentPath,
+                  value: localizedValue as string,
+                });
+                break;
+
+              case 'richText':
+                flattenedFields.push({
+                  fieldType: 'richText',
+                  fieldPath,
+                  fieldName: fieldConfig.name,
+                  locale: localeKey,
+                  arrayIndex,
+                  parentPath,
+                  value: localizedValue,
+                });
+                break;
+
+              case 'json':
+              case 'object':
+                flattenedFields.push({
+                  fieldType: fieldConfig.type,
+                  fieldPath,
+                  fieldName: fieldConfig.name,
+                  locale: localeKey,
+                  arrayIndex,
+                  parentPath,
+                  value: localizedValue,
+                  jsonSchema: fieldConfig.jsonSchema,
+                  objectKeys: typeof localizedValue === 'object' ? Object.keys(localizedValue) : undefined,
+                });
+                break;
+
+              default:
+                // For other field types that can be localized, create field-specific values
+                flattenedFields.push(createFieldSpecificValue(
+                  fieldPath,
+                  fieldConfig.name,
+                  fieldConfig.type as NonArrayFieldType,
+                  localizedValue,
+                  localeKey,
+                  arrayIndex,
+                  parentPath
+                ));
+            }
+          }
+        }
+        continue; // Skip the rest of the processing for this field since we handled localization
+      }
+
+      // Handle field-specific properties based on type (non-localized fields)
       switch (fieldConfig.type) {
         case 'file':
         case 'image':
@@ -405,7 +469,11 @@ function createFieldSpecificValue(
       return {
         ...baseValue,
         fieldType: 'datetime',
-        value: value,
+        dateType: value.dateType || 'timestamp',
+        valueDate: value.valueDate,
+        valueTime: value.valueTime,
+        valueTimestamp: value.valueTimestamp,
+        valueTimestampTz: value.valueTimestampTz,
       };
 
     case 'file':
@@ -415,7 +483,6 @@ function createFieldSpecificValue(
         return {
           ...baseValue,
           fieldType: fieldType,
-          value: value.fileId,
           fileId: value.fileId,
           filename: value.filename,
           originalFilename: value.originalFilename,
@@ -436,7 +503,6 @@ function createFieldSpecificValue(
       return {
         ...baseValue,
         fieldType: fieldType,
-        value: value,
         fileId: value,
         filename: '',
         originalFilename: '',
@@ -452,7 +518,6 @@ function createFieldSpecificValue(
         return {
           ...baseValue,
           fieldType: 'relation',
-          value: value.targetDocumentId,
           targetDocumentId: value.targetDocumentId,
           targetCollectionId: value.targetCollectionId,
           relationshipType: value.relationshipType,
@@ -463,7 +528,6 @@ function createFieldSpecificValue(
       return {
         ...baseValue,
         fieldType: 'relation',
-        value: value,
         targetDocumentId: value,
         targetCollectionId: '',
       };
@@ -495,7 +559,7 @@ function createFieldSpecificValue(
  * @returns Reconstructed document object
  */
 export function reconstructDocument(
-  fieldValues: ReconstructedFieldValue[],
+  fieldValues: FlattenedFieldValue[],
   collectionConfig: CollectionConfig,
   locale = 'default'
 ): any {
@@ -526,12 +590,12 @@ export function reconstructDocument(
  * @returns Reconstructed array
  */
 export function reconstructArrayField(
-  fieldValues: ReconstructedFieldValue[],
+  fieldValues: FlattenedFieldValue[],
   fieldConfig: FieldConfig,
   locale = 'default'
 ): any[] {
   // Group by array index
-  const arrayItems: { [index: number]: ReconstructedFieldValue[] } = {};
+  const arrayItems: { [index: number]: FlattenedFieldValue[] } = {};
 
   for (const fieldValue of fieldValues) {
     if (fieldValue.arrayIndex !== null && fieldValue.arrayIndex !== undefined) {
@@ -567,20 +631,101 @@ export function reconstructArrayField(
  * @returns Reconstructed field value
  */
 export function reconstructField(
-  fieldValues: ReconstructedFieldValue[],
+  fieldValues: FlattenedFieldValue[],
   fieldConfig: FieldConfig,
   locale: string
 ): any {
   if (fieldConfig.type === 'array') {
     return reconstructArrayField(fieldValues, fieldConfig, locale);
-  } if (fieldConfig.localized) {
+  }
+
+  if (fieldConfig.localized) {
     return reconstructLocalizedField(fieldValues, locale);
   }
-  // Regular field - return the value for the specified locale or default
+
+  // Regular field - get the value for the specified locale or default
   const fieldValue = fieldValues.find(fv =>
     fv.locale === locale || (fv.locale === 'default' && !fieldValues.some(f => f.locale === locale))
   );
-  return fieldValue?.value;
+
+  if (!fieldValue) {
+    return undefined;
+  }
+
+  // Handle field-specific reconstruction based on type
+  return reconstructFieldValue(fieldValue, fieldConfig);
+}
+
+/**
+ * Reconstructs a field value based on its type
+ * @param fieldValue - The flattened field value
+ * @param fieldConfig - Field configuration
+ * @returns Reconstructed value in the expected shape
+ */
+function reconstructFieldValue(fieldValue: FlattenedFieldValue, fieldConfig: FieldConfig): any {
+  switch (fieldValue.fieldType) {
+    case 'relation': {
+      // Reconstruct relation field as an object with relation properties
+      const relationValue = fieldValue as RelationFieldValue;
+      return {
+        targetDocumentId: relationValue.targetDocumentId,
+        targetCollectionId: relationValue.targetCollectionId,
+        relationshipType: relationValue.relationshipType,
+        cascadeDelete: relationValue.cascadeDelete,
+      };
+    }
+
+    case 'file':
+    case 'image': {
+      // Reconstruct file field as an object with file properties
+      const fileValue = fieldValue as FileFieldValue;
+      return {
+        fileId: fileValue.fileId,
+        filename: fileValue.filename,
+        originalFilename: fileValue.originalFilename,
+        mimeType: fileValue.mimeType,
+        fileSize: fileValue.fileSize,
+        storageProvider: fileValue.storageProvider,
+        storagePath: fileValue.storagePath,
+        storageUrl: fileValue.storageUrl,
+        fileHash: fileValue.fileHash,
+        imageWidth: fileValue.imageWidth,
+        imageHeight: fileValue.imageHeight,
+        imageFormat: fileValue.imageFormat,
+        processingStatus: fileValue.processingStatus,
+        thumbnailGenerated: fileValue.thumbnailGenerated,
+      };
+    }
+
+    case 'datetime': {
+      // Reconstruct datetime field as an object with datetime properties
+      const datetimeValue = fieldValue as DateTimeFieldValue;
+      return {
+        dateType: datetimeValue.dateType,
+        valueDate: datetimeValue.valueDate,
+        valueTime: datetimeValue.valueTime,
+        valueTimestamp: datetimeValue.valueTimestamp,
+        valueTimestampTz: datetimeValue.valueTimestampTz,
+      };
+    }
+
+    case 'json':
+    case 'object': {
+      // JSON/object fields store the value directly
+      const jsonValue = fieldValue as JsonFieldValue;
+      return jsonValue.value;
+    }
+
+    case 'text':
+    case 'richText':
+    case 'number':
+    case 'integer':
+    case 'decimal':
+    case 'boolean':
+    default:
+      // Simple field types - return the value directly
+      return (fieldValue as any).value;
+  }
 }
 
 /**
@@ -590,22 +735,29 @@ export function reconstructField(
  * @returns Localized field value (object or single value)
  */
 export function reconstructLocalizedField(
-  fieldValues: ReconstructedFieldValue[],
+  fieldValues: FlattenedFieldValue[],
   preferredLocale: string
 ): any {
   const localizedValues: { [locale: string]: any } = {};
 
   for (const fieldValue of fieldValues) {
-    localizedValues[fieldValue.locale] = fieldValue.value;
+    // Reconstruct the value based on field type instead of returning raw field value
+    localizedValues[fieldValue.locale] = reconstructFieldValue(fieldValue, { type: fieldValue.fieldType } as FieldConfig);
   }
 
   // If requesting a specific locale and it exists, return just that value
-  // If requesting all locales or the field has multiple locales, return the object
-  if (Object.keys(localizedValues).length === 1 && localizedValues[preferredLocale]) {
+  if (localizedValues[preferredLocale] !== undefined) {
     return localizedValues[preferredLocale];
   }
 
-  return localizedValues;
+  // If multiple locales exist, return the object with all locales
+  if (Object.keys(localizedValues).length > 1) {
+    return localizedValues;
+  }
+
+  // If only one locale exists, return that value directly
+  const singleLocale = Object.keys(localizedValues)[0];
+  return localizedValues[singleLocale];
 }
 
 /**
@@ -616,7 +768,7 @@ export function reconstructLocalizedField(
  * @returns Reconstructed array item object
  */
 export function reconstructArrayItem(
-  fieldValues: ReconstructedFieldValue[],
+  fieldValues: FlattenedFieldValue[],
   subFieldConfigs: FieldConfig[],
   locale: string
 ): any {
@@ -645,9 +797,9 @@ export function reconstructArrayItem(
  * @returns Grouped field values by top-level field
  */
 export function groupFieldsByTopLevel(
-  fieldValues: ReconstructedFieldValue[]
-): { [fieldName: string]: ReconstructedFieldValue[] } {
-  const groups: { [fieldName: string]: ReconstructedFieldValue[] } = {};
+  fieldValues: FlattenedFieldValue[]
+): { [fieldName: string]: FlattenedFieldValue[] } {
+  const groups: { [fieldName: string]: FlattenedFieldValue[] } = {};
 
   for (const fieldValue of fieldValues) {
     const topLevelField = fieldValue.fieldPath.split('.')[0];
@@ -714,7 +866,7 @@ export function validateFlattenedFieldValue(fieldValue: FlattenedFieldValue): bo
     fieldValue.fieldName &&
     fieldValue.fieldType &&
     fieldValue.locale &&
-    fieldValue.value !== undefined
+    fieldValue !== undefined
   );
 }
 

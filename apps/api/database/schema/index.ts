@@ -144,7 +144,8 @@ export const fieldValuesDateTime = pgTable('field_values_datetime', {
 export const fieldValuesRelation = pgTable('field_values_relation', {
   ...baseFieldValueColumns,
 
-  targetDocumentId: uuid('target_document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
+  // targetDocumentId: uuid('target_document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
+  targetDocumentId: uuid('target_document_id').references(() => documents.id).notNull(),
   targetCollectionId: uuid('target_collection_id').references(() => collections.id).notNull(),
 
   // Relationship metadata
@@ -216,7 +217,6 @@ export const fieldValuesJson = pgTable('field_values_json', {
   ...baseFieldValueColumns,
 
   value: jsonb('value').notNull(),
-
   // JSON metadata for optimization
   jsonSchema: varchar('json_schema', { length: 100 }), // Schema identifier for validation
   objectKeys: text('object_keys').array(), // Array of top-level keys for indexing

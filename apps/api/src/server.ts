@@ -31,7 +31,7 @@ import { Pool } from 'pg'
 // import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
 import * as schema from '../database/schema/index.js'
-
+import type { SiteConfig } from './@types.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
 
@@ -45,10 +45,17 @@ await server.register(cors, {
   allowedHeaders: ['Content-Type', 'Authorization']
 })
 
+const siteConfig: SiteConfig = {
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'es', 'fr'],
+  }
+}
+
 const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
 const db = drizzle(pool, { schema })
-const queryBuilders: ReturnType<typeof createQueryBuilders> = createQueryBuilders(db)
-const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandBuilders(db)
+const queryBuilders: ReturnType<typeof createQueryBuilders> = createQueryBuilders(siteConfig, db)
+const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
 
 // Helper function to reconstruct document from field values
 async function reconstructDocument(documentVersionId: string) {

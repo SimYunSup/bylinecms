@@ -34,11 +34,12 @@ import {
   fieldValuesRelation,
   fieldValuesText
 } from '../database/schema/index.js';
+import type { SiteConfig } from "./@types.js";
 
 type DatabaseConnection = NodePgDatabase<any>;
 
 export class TypedFieldValuesQuery {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   // Route queries to appropriate table based on field type
   async getFieldValue(
@@ -247,7 +248,7 @@ export class TypedFieldValuesQuery {
 
 // Text field queries
 export class TextFieldQueries {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async fullTextSearch(searchTerm: string, collectionId?: string) {
     const conditions = [
@@ -285,7 +286,7 @@ export class TextFieldQueries {
 
 // Numeric field queries
 export class NumericFieldQueries {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async findInRange(fieldPath: string, min: number, max: number) {
     return await this.db
@@ -314,7 +315,7 @@ export class NumericFieldQueries {
 
 // File field queries
 export class FileFieldQueries {
-  constructor(private db: DatabaseConnection) { }
+  constructor(siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async findByMimeType(mimeType: string) {
     return await this.db
@@ -349,7 +350,7 @@ export class FileFieldQueries {
 // ========================================================
 
 export class CollectionQueries {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async findByPath(path: string) {
     return await this.db.select().from(collections).where(eq(collections.path, path)).limit(1);
@@ -361,7 +362,7 @@ export class CollectionQueries {
 }
 
 export class DocumentQueries {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async findByCollection(collectionId: string) {
     return await this.db.select().from(documents).where(eq(documents.collectionId, collectionId));
@@ -382,7 +383,7 @@ export class DocumentQueries {
 }
 
 export class DocumentVersionQueries {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async findByDocument(documentId: string) {
     return await this.db.select().from(documentVersions).where(eq(documentVersions.documentId, documentId));
@@ -412,15 +413,15 @@ export class DocumentVersionQueries {
 // FACTORY FUNCTION FOR CONVENIENCE
 // ================================
 
-export function createQueryBuilders(db: DatabaseConnection) {
+export function createQueryBuilders(siteConfig: SiteConfig, db: DatabaseConnection) {
   return {
-    typedFieldValues: new TypedFieldValuesQuery(db),
-    textFields: new TextFieldQueries(db),
-    numericFields: new NumericFieldQueries(db),
-    fileFields: new FileFieldQueries(db),
-    collections: new CollectionQueries(db),
-    documents: new DocumentQueries(db),
-    documentVersions: new DocumentVersionQueries(db),
+    typedFieldValues: new TypedFieldValuesQuery(siteConfig, db),
+    textFields: new TextFieldQueries(siteConfig, db),
+    numericFields: new NumericFieldQueries(siteConfig, db),
+    fileFields: new FileFieldQueries(siteConfig, db),
+    collections: new CollectionQueries(siteConfig, db),
+    documents: new DocumentQueries(siteConfig, db),
+    documentVersions: new DocumentVersionQueries(siteConfig, db),
   };
 }
 

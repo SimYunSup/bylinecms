@@ -37,6 +37,8 @@ import {
   fieldValuesText
 } from '../database/schema/index.js';
 
+import type { BaseFieldValue, SiteConfig } from './@types.js';
+
 type DatabaseConnection = NodePgDatabase<any>;
 
 import type { CollectionConfig, FlattenedFieldValue } from './@types.js'
@@ -45,7 +47,7 @@ import { isFileFieldValue, isJsonFieldValue, isNumericFieldValue, isRelationFiel
 import { flattenDocumentToFieldValues } from './storage-utils.js';
 
 export class EnhancedDocumentCommands {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   /**
    * Creates a complete document with all field values from a document object
@@ -55,7 +57,7 @@ export class EnhancedDocumentCommands {
     collectionConfig: CollectionConfig,
     documentData: any,
     path: string,
-    locale = 'default',
+    locale = 'all',
     createdBy?: string
   ) {
     return await this.db.transaction(async (tx) => {
@@ -110,7 +112,7 @@ export class EnhancedDocumentCommands {
     collectionConfig: CollectionConfig,
     documentData: any,
     versionNumber: number,
-    locale = 'default',
+    locale = 'all',
     createdBy?: string
   ) {
     return await this.db.transaction(async (tx) => {
@@ -153,11 +155,11 @@ export class EnhancedDocumentCommands {
   }
 
   private async insertFieldValueByType(
-    tx: any,
+    tx: DatabaseConnection,
     documentVersionId: string,
     collectionId: string,
-    fieldValue: FlattenedFieldValue
-  ) {
+    fieldValue: any
+  ): Promise<any> {
     const baseData = {
       id: uuidv7(),
       documentVersionId,
@@ -171,15 +173,25 @@ export class EnhancedDocumentCommands {
 
     switch (fieldValue.fieldType) {
       case 'text':
+        // Handle both simple string values and localized object values
+        if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
+          const values: any[] = [];
+          const entries = Object.entries<string>(fieldValue.value);
+          for (const [locale, localizedValue] of entries) {
+            values.push({
+              ...baseData,
+              id: uuidv7(), // we need a unique ID for each localized value
+              locale: locale,
+              value: localizedValue as string,
+            })
+          }
+          return await tx.insert(fieldValuesText).values(values);
+        }
+
+        // Simple string value
         return await tx.insert(fieldValuesText).values({
           ...baseData,
-          value: fieldValue.value,
-        });
-
-      case 'richText':
-        return await tx.insert(fieldValuesJson).values({
-          ...baseData,
-          value: fieldValue.value,
+          value: fieldValue.value as string,
         });
 
       case 'number':
@@ -191,17 +203,19 @@ export class EnhancedDocumentCommands {
             numberType: 'integer',
           });
         }
-        throw new Error(`Invalid file field value for ${baseData.fieldPath}`);
+        throw new Error(`Invalid numeric field value for ${baseData.fieldPath}`);
 
       case 'decimal':
         if (isNumericFieldValue(fieldValue)) {
           return await tx.insert(fieldValuesNumeric).values({
             ...baseData,
+            // TODO: Fix
+            // @ts-ignore
             valueDecimal: fieldValue.value,
             numberType: 'decimal',
           });
         }
-        throw new Error(`Invalid file field value for ${baseData.fieldPath}`);
+        throw new Error(`Invalid numeric field value for ${baseData.fieldPath}`);
 
       case 'boolean':
         return await tx.insert(fieldValuesBoolean).values({
@@ -212,8 +226,11 @@ export class EnhancedDocumentCommands {
       case 'datetime':
         return await tx.insert(fieldValuesDateTime).values({
           ...baseData,
-          valueTimestamp: fieldValue.value,
-          dateType: 'timestamp',
+          dateType: fieldValue.dateType || 'timestamp',
+          valueTime: fieldValue.valueTime,
+          valueDate: fieldValue.valueDate,
+          valueTimestamp: fieldValue.valueTimestamp,
+          valueTimestampTz: fieldValue.valueTimestampTz,
         });
 
       case 'file':
@@ -251,9 +268,47 @@ export class EnhancedDocumentCommands {
         }
         throw new Error(`Invalid relation field value for ${baseData.fieldPath}`);
 
+      case 'richText':
+        // TODO: What does a localized version of rich text look like?
+
+        // // Handle both simple values and localized object values for rich text
+        // if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
+        //   const values: any[] = [];
+        //   const entries = Object.entries<string>(fieldValue.value);
+        //   for (const [locale, localizedValue] of entries) {
+        //     values.push({
+        //       ...baseData,
+        //       id: uuidv7(), // we need a unique ID for each localized value
+        //       locale: locale,
+        //       value: localizedValue as string,
+        //     })
+        //   }
+        //   return await tx.insert(fieldValuesJson).values(values);
+        // }
+        // If not a localized object, treat as regular rich text content
+        return await tx.insert(fieldValuesJson).values({
+          ...baseData,
+          value: fieldValue.value,
+        });
+
       case 'json':
       case 'object':
         if (isJsonFieldValue(fieldValue)) {
+          // Handle localized JSON/object fields
+          if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
+            const values: any[] = [];
+            const entries = Object.entries<string>(fieldValue.value);
+            for (const [locale, localizedValue] of entries) {
+              values.push({
+                ...baseData,
+                id: uuidv7(), // we need a unique ID for each localized value
+                locale: locale,
+                value: localizedValue as string,
+              })
+            }
+            return await tx.insert(fieldValuesJson).values(values);
+          }
+          // If not a localized object, treat as regular JSON content
           return await tx.insert(fieldValuesJson).values({
             ...baseData,
             value: fieldValue.value,
@@ -272,8 +327,8 @@ export class EnhancedDocumentCommands {
 // FACTORY FUNCTION FOR CONVENIENCE
 // ================================
 
-export function createEnhancedCommandBuilders(db: DatabaseConnection) {
+export function createEnhancedCommandBuilders(siteConfig: SiteConfig, db: DatabaseConnection) {
   return {
-    documents: new EnhancedDocumentCommands(db),
+    documents: new EnhancedDocumentCommands(siteConfig, db),
   };
 }

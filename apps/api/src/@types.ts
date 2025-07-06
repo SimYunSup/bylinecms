@@ -9,6 +9,13 @@ export interface ParsedFieldPath {
   }[]
 }
 
+export interface SiteConfig {
+  i18n: {
+    defaultLocale: string;
+    locales: string[];
+  }
+}
+
 export interface CollectionConfig {
   path: string;
   labels: {
@@ -40,12 +47,7 @@ export interface BaseFieldValue {
 
 export interface TextFieldValue extends BaseFieldValue {
   fieldType: 'text';
-  value: string;
-}
-
-export interface RichTextFieldValue extends BaseFieldValue {
-  fieldType: 'richText';
-  value: any; // JSON content
+  value: string; // Should only be string after flattening
 }
 
 export interface NumericFieldValue extends BaseFieldValue {
@@ -60,12 +62,15 @@ export interface BooleanFieldValue extends BaseFieldValue {
 
 export interface DateTimeFieldValue extends BaseFieldValue {
   fieldType: 'datetime';
-  value: Date;
+  dateType: 'timestamp' | 'timestampTz' | 'date' | 'time';
+  valueTime: string;
+  valueDate: Date;
+  valueTimestamp: Date,
+  valueTimestampTz: Date,
 }
 
 export interface FileFieldValue extends BaseFieldValue {
   fieldType: 'file' | 'image';
-  value?: string; // For backward compatibility
   fileId: string;
   filename: string;
   originalFilename: string;
@@ -84,11 +89,15 @@ export interface FileFieldValue extends BaseFieldValue {
 
 export interface RelationFieldValue extends BaseFieldValue {
   fieldType: 'relation';
-  value: string; // targetDocumentId
   targetDocumentId: string;
   targetCollectionId: string;
   relationshipType?: string;
   cascadeDelete?: boolean;
+}
+
+export interface RichTextFieldValue extends BaseFieldValue {
+  fieldType: 'richText';
+  value: any; // JSON content
 }
 
 export interface JsonFieldValue extends BaseFieldValue {

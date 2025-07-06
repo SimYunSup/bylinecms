@@ -35,6 +35,8 @@ import {
   fieldValuesText
 } from '../database/schema/index.js';
 
+import type { SiteConfig } from './@types.js';
+
 type DatabaseConnection = NodePgDatabase<any>;
 
 
@@ -42,7 +44,7 @@ type DatabaseConnection = NodePgDatabase<any>;
 // ========================================================
 
 export class CollectionCommands {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async create(path: string, config: any) {
     return await this.db.insert(collections).values({
@@ -58,7 +60,7 @@ export class CollectionCommands {
 }
 
 export class DocumentCommands {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async create(collectionId: string, path?: string, status = 'draft') {
     return await this.db.insert(documents).values({
@@ -82,7 +84,7 @@ export class DocumentCommands {
 }
 
 export class DocumentVersionCommands {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async create(documentId: string, versionNumber: number, isCurrent = true, createdBy?: string) {
     // If this is the current version, mark all others as not current
@@ -123,7 +125,7 @@ export class DocumentVersionCommands {
 // ============================
 
 export class FieldValueCRUD {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async insertFieldValue(
     documentVersionId: string,
@@ -186,6 +188,15 @@ export class FieldValueCRUD {
           ...baseData,
           valueTimestamp: value,
           dateType: 'timestamp',
+        }).returning();
+
+      case 'relation':
+        return await this.db.insert(fieldValuesRelation).values({
+          ...baseData,
+          targetDocumentId: value.targetDocumentId,
+          targetCollectionId: value.targetCollectionId,
+          relationshipType: value.relationshipType || 'reference',
+          cascadeDelete: value.cascadeDelete || false,
         }).returning();
 
       case 'file':
@@ -342,12 +353,12 @@ export class FieldValueCRUD {
 // FACTORY FUNCTION FOR CONVENIENCE
 // ================================
 
-export function createCommandBuilders(db: DatabaseConnection) {
+export function createCommandBuilders(siteConfig: SiteConfig, db: DatabaseConnection) {
   return {
-    collections: new CollectionCommands(db),
-    documents: new DocumentCommands(db),
-    documentVersions: new DocumentVersionCommands(db),
-    fieldValues: new FieldValueCRUD(db),
+    collections: new CollectionCommands(siteConfig, db),
+    documents: new DocumentCommands(siteConfig, db),
+    documentVersions: new DocumentVersionCommands(siteConfig, db),
+    fieldValues: new FieldValueCRUD(siteConfig, db),
   };
 }
 
