@@ -23,11 +23,11 @@ import { after, before, describe, it } from 'node:test'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '../database/schema/index.js'
+import type { CollectionConfig, ReconstructedFieldValue } from './@types.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createEnhancedCommandBuilders } from './storage-commands-enhanced.js'
 import { createQueryBuilders } from './storage-queries.js'
 import { createEnhancedQueryBuilders } from './storage-queries-enhanced.js'
-import type { CollectionConfig, ReconstructedFieldValue } from './storage-utils.js'
 import {
   buildFieldPath,
   flattenDocumentToFieldValues,

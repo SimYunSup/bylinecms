@@ -35,7 +35,7 @@ import {
 
 type DatabaseConnection = NodePgDatabase<any>;
 
-import type { CollectionConfig, ReconstructedFieldValue } from './storage-utils.js'
+import type { CollectionConfig, ReconstructedFieldValue } from './@types.js'
 
 import { reconstructArrayField, reconstructDocument } from './storage-utils.js';
 

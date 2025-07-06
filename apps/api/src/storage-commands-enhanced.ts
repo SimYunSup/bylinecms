@@ -18,7 +18,8 @@ import {
 
 type DatabaseConnection = NodePgDatabase<any>;
 
-import type { CollectionConfig, FlattenedFieldValue } from './storage-utils.js'
+import type { CollectionConfig, FlattenedFieldValue } from './@types.js'
+import { isFileFieldValue, isJsonFieldValue, isNumericFieldValue, isRelationFieldValue } from './@types.js'
 
 import { flattenDocumentToFieldValues } from './storage-utils.js';
 
@@ -162,55 +163,87 @@ export class EnhancedDocumentCommands {
 
       case 'number':
       case 'integer':
-        return await tx.insert(fieldValuesNumeric).values({
-          ...baseData,
-          numberType: 'integer',
-          value: fieldValue.value,
-        })
+        if (isNumericFieldValue(fieldValue)) {
+          return await tx.insert(fieldValuesNumeric).values({
+            ...baseData,
+            valueInteger: fieldValue.value,
+            numberType: 'integer',
+          });
+        }
+        throw new Error(`Invalid file field value for ${baseData.fieldPath}`);
 
       case 'decimal':
-        return await tx.insert(fieldValuesNumeric).values({
-          ...baseData,
-          numberType: 'decimal',
-          value: fieldValue.value,
-        });
+        if (isNumericFieldValue(fieldValue)) {
+          return await tx.insert(fieldValuesNumeric).values({
+            ...baseData,
+            valueDecimal: fieldValue.value,
+            numberType: 'decimal',
+          });
+        }
+        throw new Error(`Invalid file field value for ${baseData.fieldPath}`);
 
       case 'boolean':
         return await tx.insert(fieldValuesBoolean).values({
           ...baseData,
           value: fieldValue.value,
-        })
+        });
 
       case 'datetime':
         return await tx.insert(fieldValuesDateTime).values({
           ...baseData,
-          value: fieldValue.value,
+          valueTimestamp: fieldValue.value,
           dateType: 'timestamp',
-        }).returning();
+        });
 
-      // case 'file':
-      // case 'image':
-      //   return await tx.insert(fieldValuesFile).values({
-      //     ...baseData,
-      //     fileId: fieldValue.fileId,
-      //     filename: fieldValue.filename,
-      //     originalFilename: fieldValue.originalFilename,
-      //     mimeType: fieldValue.mimeType,
-      //     fileSize: fieldValue.fileSize,
-      //     storageProvider: fieldValue.storageProvider,
-      //     storagePath: fieldValue.storagePath,
-      //   })
+      case 'file':
+      case 'image':
+        if (isFileFieldValue(fieldValue)) {
+          return await tx.insert(fieldValuesFile).values({
+            ...baseData,
+            fileId: fieldValue.fileId,
+            filename: fieldValue.filename,
+            originalFilename: fieldValue.originalFilename,
+            mimeType: fieldValue.mimeType,
+            fileSize: fieldValue.fileSize,
+            storageProvider: fieldValue.storageProvider,
+            storagePath: fieldValue.storagePath,
+            storageUrl: fieldValue.storageUrl,
+            fileHash: fieldValue.fileHash,
+            imageWidth: fieldValue.imageWidth,
+            imageHeight: fieldValue.imageHeight,
+            imageFormat: fieldValue.imageFormat,
+            processingStatus: fieldValue.processingStatus || 'pending',
+            thumbnailGenerated: fieldValue.thumbnailGenerated || false,
+          });
+        }
+        throw new Error(`Invalid file field value for ${baseData.fieldPath}`);
+
+      case 'relation':
+        if (isRelationFieldValue(fieldValue)) {
+          return await tx.insert(fieldValuesRelation).values({
+            ...baseData,
+            targetDocumentId: fieldValue.targetDocumentId,
+            targetCollectionId: fieldValue.targetCollectionId,
+            relationshipType: fieldValue.relationshipType || 'reference',
+            cascadeDelete: fieldValue.cascadeDelete || false,
+          });
+        }
+        throw new Error(`Invalid relation field value for ${baseData.fieldPath}`);
 
       case 'json':
       case 'object':
-        return await this.db.insert(fieldValuesJson).values({
-          ...baseData,
-          value: fieldValue.value,
-        }).returning();
+        if (isJsonFieldValue(fieldValue)) {
+          return await tx.insert(fieldValuesJson).values({
+            ...baseData,
+            value: fieldValue.value,
+            jsonSchema: fieldValue.jsonSchema,
+            objectKeys: fieldValue.objectKeys,
+          });
+        }
+        throw new Error(`Invalid JSON field value for ${baseData.fieldPath}`);
 
-      // Add other field types as needed...
       default:
-        throw new Error(`Unsupported field type: ${fieldValue.fieldType}`);
+        throw new Error('Unsupported field type');
     }
   }
 }
