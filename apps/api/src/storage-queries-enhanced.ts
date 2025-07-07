@@ -123,6 +123,18 @@ export class EnhancedDocumentQueries {
     locale = 'all'
   ): Promise<FlattenedFieldValue[]> {
 
+    /**
+     * Consider using a single query with UNION ALL
+     * This should be more efficient than multiple separate queries, 
+     * especially for large datasets.
+     * Example:
+          return await this.db.execute(sql`
+              SELECT 'text' as type, field_path, value, locale FROM field_values_text WHERE document_version_id = ${versionId}
+              UNION ALL
+              SELECT 'numeric' as type, field_path, value_integer::text, locale FROM field_values_numeric WHERE document_version_id = ${versionId}
+          -- ... etc
+        `);
+     */
     const queries = await Promise.all([
       // 1. Text field values
       this.db.select({
