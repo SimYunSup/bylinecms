@@ -29,7 +29,7 @@ import {
   documents,
   documentVersions,
   fieldValuesBoolean,
-  fieldValuesDateTime,
+  fieldValuesDatetime,
   fieldValuesFile,
   fieldValuesJson,
   fieldValuesNumeric,
@@ -53,18 +53,18 @@ export class EnhancedDocumentCommands {
    * Creates a complete document with all field values from a document object
    */
   async createCompleteDocument(
-    collectionId: string,
+    collection_id: string,
     collectionConfig: CollectionConfig,
     documentData: any,
     path: string,
     locale = 'all',
-    createdBy?: string
+    created_by?: string
   ) {
     return await this.db.transaction(async (tx) => {
       // 1. Create the document
       const document = await tx.insert(documents).values({
         id: uuidv7(),
-        collectionId,
+        collection_id,
         path: path,
         status: 'draft',
       }).returning();
@@ -72,10 +72,10 @@ export class EnhancedDocumentCommands {
       // 2. Create the first version
       const version = await tx.insert(documentVersions).values({
         id: uuidv7(),
-        documentId: document[0].id,
-        versionNumber: 1,
-        isCurrent: true,
-        createdBy,
+        document_id: document[0].id,
+        version_number: 1,
+        is_current: true,
+        created_by,
       }).returning();
 
       // 3. Flatten the document data to field values
@@ -90,7 +90,7 @@ export class EnhancedDocumentCommands {
         await this.insertFieldValueByType(
           tx,
           version[0].id,
-          collectionId,
+          collection_id,
           fieldValue
         );
       }
@@ -107,27 +107,27 @@ export class EnhancedDocumentCommands {
    * Creates a new version of a document with updated field values
    */
   async createDocumentVersion(
-    documentId: string,
-    collectionId: string,
+    document_id: string,
+    collection_id: string,
     collectionConfig: CollectionConfig,
     documentData: any,
-    versionNumber: number,
+    version_number: number,
     locale = 'all',
-    createdBy?: string
+    created_by?: string
   ) {
     return await this.db.transaction(async (tx) => {
       // 1. Mark existing versions as not current
       await tx.update(documentVersions).set({
-        isCurrent: false,
-      }).where(eq(documentVersions.documentId, documentId));
+        is_current: false,
+      }).where(eq(documentVersions.document_id, document_id));
 
       // 2. Create new version
       const version = await tx.insert(documentVersions).values({
         id: uuidv7(),
-        documentId,
-        versionNumber,
-        isCurrent: true,
-        createdBy,
+        document_id,
+        version_number,
+        is_current: true,
+        created_by,
       }).returning();
 
       // 3. Flatten the document data to field values
@@ -142,7 +142,7 @@ export class EnhancedDocumentCommands {
         await this.insertFieldValueByType(
           tx,
           version[0].id,
-          collectionId,
+          collection_id,
           fieldValue
         );
       }
@@ -156,22 +156,22 @@ export class EnhancedDocumentCommands {
 
   private async insertFieldValueByType(
     tx: DatabaseConnection,
-    documentVersionId: string,
-    collectionId: string,
+    document_version_id: string,
+    collection_id: string,
     fieldValue: any
   ): Promise<any> {
     const baseData = {
       id: uuidv7(),
-      documentVersionId,
-      collectionId,
-      fieldPath: fieldValue.fieldPath,
-      fieldName: fieldValue.fieldName,
+      document_version_id,
+      collection_id,
+      field_path: fieldValue.field_path,
+      field_name: fieldValue.field_name,
       locale: fieldValue.locale,
-      arrayIndex: fieldValue.arrayIndex,
-      parentPath: fieldValue.parentPath,
+      array_index: fieldValue.array_index,
+      parent_path: fieldValue.parent_path,
     };
 
-    switch (fieldValue.fieldType) {
+    switch (fieldValue.field_type) {
       case 'text':
         // Handle both simple string values and localized object values
         if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
@@ -199,11 +199,11 @@ export class EnhancedDocumentCommands {
         if (isNumericFieldValue(fieldValue)) {
           return await tx.insert(fieldValuesNumeric).values({
             ...baseData,
-            valueInteger: fieldValue.value,
-            numberType: 'integer',
+            value_integer: fieldValue.value,
+            number_type: 'integer',
           });
         }
-        throw new Error(`Invalid numeric field value for ${baseData.fieldPath}`);
+        throw new Error(`Invalid numeric field value for ${baseData.field_path}`);
 
       case 'decimal':
         if (isNumericFieldValue(fieldValue)) {
@@ -211,11 +211,11 @@ export class EnhancedDocumentCommands {
             ...baseData,
             // TODO: Fix
             // @ts-ignore
-            valueDecimal: fieldValue.value,
-            numberType: 'decimal',
+            value_decimal: fieldValue.value,
+            number_type: 'decimal',
           });
         }
-        throw new Error(`Invalid numeric field value for ${baseData.fieldPath}`);
+        throw new Error(`Invalid numeric field value for ${baseData.field_path}`);
 
       case 'boolean':
         return await tx.insert(fieldValuesBoolean).values({
@@ -224,13 +224,13 @@ export class EnhancedDocumentCommands {
         });
 
       case 'datetime':
-        return await tx.insert(fieldValuesDateTime).values({
+        return await tx.insert(fieldValuesDatetime).values({
           ...baseData,
-          dateType: fieldValue.dateType || 'timestamp',
-          valueTime: fieldValue.valueTime,
-          valueDate: fieldValue.valueDate,
-          valueTimestamp: fieldValue.valueTimestamp,
-          valueTimestampTz: fieldValue.valueTimestampTz,
+          date_type: fieldValue.date_type || 'timestamp',
+          value_time: fieldValue.value_time,
+          value_date: fieldValue.value_date,
+          value_timestamp: fieldValue.value_timestamp,
+          value_timestamp_tz: fieldValue.value_timestamp_tz,
         });
 
       case 'file':
@@ -238,35 +238,35 @@ export class EnhancedDocumentCommands {
         if (isFileFieldValue(fieldValue)) {
           return await tx.insert(fieldValuesFile).values({
             ...baseData,
-            fileId: fieldValue.fileId,
+            file_id: fieldValue.file_id,
             filename: fieldValue.filename,
-            originalFilename: fieldValue.originalFilename,
-            mimeType: fieldValue.mimeType,
-            fileSize: fieldValue.fileSize,
-            storageProvider: fieldValue.storageProvider,
-            storagePath: fieldValue.storagePath,
-            storageUrl: fieldValue.storageUrl,
-            fileHash: fieldValue.fileHash,
-            imageWidth: fieldValue.imageWidth,
-            imageHeight: fieldValue.imageHeight,
-            imageFormat: fieldValue.imageFormat,
-            processingStatus: fieldValue.processingStatus || 'pending',
-            thumbnailGenerated: fieldValue.thumbnailGenerated || false,
+            original_filename: fieldValue.original_filename,
+            mime_type: fieldValue.mime_type,
+            file_size: fieldValue.file_size,
+            storage_provider: fieldValue.storage_provider,
+            storage_path: fieldValue.storage_path,
+            storage_url: fieldValue.storage_url,
+            file_hash: fieldValue.file_hash,
+            image_width: fieldValue.image_width,
+            image_height: fieldValue.image_height,
+            image_format: fieldValue.image_format,
+            processing_status: fieldValue.processing_status || 'pending',
+            thumbnail_generated: fieldValue.thumbnail_generated || false,
           });
         }
-        throw new Error(`Invalid file field value for ${baseData.fieldPath}`);
+        throw new Error(`Invalid file field value for ${baseData.field_path}`);
 
       case 'relation':
         if (isRelationFieldValue(fieldValue)) {
           return await tx.insert(fieldValuesRelation).values({
             ...baseData,
-            targetDocumentId: fieldValue.targetDocumentId,
-            targetCollectionId: fieldValue.targetCollectionId,
-            relationshipType: fieldValue.relationshipType || 'reference',
-            cascadeDelete: fieldValue.cascadeDelete || false,
+            target_document_id: fieldValue.target_document_id,
+            target_collection_id: fieldValue.target_collection_id,
+            relationship_type: fieldValue.relationship_type || 'reference',
+            cascade_delete: fieldValue.cascade_delete || false,
           });
         }
-        throw new Error(`Invalid relation field value for ${baseData.fieldPath}`);
+        throw new Error(`Invalid relation field value for ${baseData.field_path}`);
 
       case 'richText':
         // TODO: What does a localized version of rich text look like?
@@ -312,11 +312,11 @@ export class EnhancedDocumentCommands {
           return await tx.insert(fieldValuesJson).values({
             ...baseData,
             value: fieldValue.value,
-            jsonSchema: fieldValue.jsonSchema,
-            objectKeys: fieldValue.objectKeys,
+            json_schema: fieldValue.json_schema,
+            object_keys: fieldValue.object_keys,
           });
         }
-        throw new Error(`Invalid JSON field value for ${baseData.fieldPath}`);
+        throw new Error(`Invalid JSON field value for ${baseData.field_path}`);
 
       default:
         throw new Error('Unsupported field type');

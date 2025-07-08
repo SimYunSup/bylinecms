@@ -58,12 +58,12 @@ const queryBuilders: ReturnType<typeof createQueryBuilders> = createQueryBuilder
 const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
 
 // Helper function to reconstruct document from field values
-async function reconstructDocument(documentVersionId: string) {
-  const fieldValues = await queryBuilders.typedFieldValues.getAllFieldValues(documentVersionId)
+async function reconstructDocument(document_version_id: string) {
+  const fieldValues = await queryBuilders.typedFieldValues.getAllFieldValues(document_version_id)
 
   const document = {}
   for (const field of fieldValues) {
-    document[field.fieldName] = field.value
+    document[field.field_name] = field.value
   }
 
   return document
@@ -71,8 +71,8 @@ async function reconstructDocument(documentVersionId: string) {
 
 // Helper function to store document fields
 async function storeDocumentFields(
-  documentVersionId: string,
-  collectionId: string,
+  document_version_id: string,
+  collection_id: string,
   collectionDefinition: any,
   data: Record<string, any>
 ) {
@@ -82,9 +82,9 @@ async function storeDocumentFields(
     const fieldValue = data[field.name]
     if (fieldValue !== undefined) {
       const result = await commandBuilders.fieldValues.insertFieldValue(
-        documentVersionId,
-        collectionId,
-        field.name, // fieldPath same as fieldName for top-level fields
+        document_version_id,
+        collection_id,
+        field.name, // field_path same as field_name for top-level fields
         field.name,
         field.type === 'richtext' ? 'richText' : field.type,
         fieldValue
@@ -98,7 +98,7 @@ async function storeDocumentFields(
 
 // Helper function to update document fields
 async function updateDocumentFields(
-  documentVersionId: string,
+  document_version_id: string,
   collectionDefinition: any,
   data: Record<string, any>
 ) {
@@ -108,7 +108,7 @@ async function updateDocumentFields(
     const fieldValue = data[field.name]
     if (fieldValue !== undefined) {
       const result = await commandBuilders.fieldValues.updateFieldValue(
-        documentVersionId,
+        document_version_id,
         field.name,
         field.type === 'richtext' ? 'richText' : field.type,
         fieldValue
@@ -151,8 +151,8 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
           id: doc.id,
           path: doc.path,
           status: doc.status,
-          createdAt: doc.createdAt,
-          updatedAt: doc.updatedAt,
+          created_at: doc.created_at,
+          updated_at: doc.updated_at,
           ...documentData
         })
       }
@@ -274,9 +274,9 @@ server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id
       id: document.id,
       path: document.path,
       status: document.status,
-      createdAt: document.createdAt,
-      updatedAt: document.updatedAt,
-      version: currentVersion.versionNumber,
+      created_at: document.created_at,
+      updated_at: document.updated_at,
+      version: currentVersion.version_number,
       ...documentData
     }
   } catch (error) {

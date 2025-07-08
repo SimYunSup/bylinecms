@@ -185,7 +185,7 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       )
 
       const sourceDocument2 = structuredClone(examplePageDocument)
-      sourceDocument2.related = { targetCollectionId: testCollection.id, targetDocumentId: result1.document.id }
+      sourceDocument2.related = { target_collection_id: testCollection.id, target_document_id: result1.document.id }
       sourceDocument2.path = `test-page-${Date.now()}` // Ensure unique path for each test run
       sourceDocument2.title = `Test Page Title ${Date.now()}` // Ensure unique title for
       const result2 = await commandBuildersEnhanced.documents.createCompleteDocument(
@@ -215,7 +215,7 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       )
 
       const sourceDocument2 = structuredClone(examplePageDocument)
-      sourceDocument2.related = { targetCollectionId: testCollection.id, targetDocumentId: result1.document.id }
+      sourceDocument2.related = { target_collection_id: testCollection.id, target_document_id: result1.document.id }
       sourceDocument2.path = `test-page-${Date.now()}` // Ensure unique path for each test run
       sourceDocument2.title = `Test Page Title ${Date.now()}` // Ensure unique title for
       const result2 = await commandBuildersEnhanced.documents.createCompleteDocument(

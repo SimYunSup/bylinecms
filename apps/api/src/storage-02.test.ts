@@ -247,7 +247,7 @@
 //       console.log(`Expected 8 array field values, got ${flattened.length}`)
 
 //       // Check field paths
-//       const fieldPaths = flattened.map(f => f.fieldPath).sort()
+//       const fieldPaths = flattened.map(f => f.field_path).sort()
 //       console.log('Generated field paths:', fieldPaths)
 //     })
 
@@ -263,7 +263,7 @@
 
 //       // Group by field type for analysis
 //       const byType = flattened.reduce((acc, field) => {
-//         acc[field.fieldType] = (acc[field.fieldType] || 0) + 1
+//         acc[field.field_type] = (acc[field.field_type] || 0) + 1
 //         return acc
 //       }, {} as Record<string, number>)
 
@@ -298,13 +298,13 @@
 //         await commandBuilders.fieldValues.insertFieldValue(
 //           version[0].id,
 //           testCollection.id,
-//           fieldValue.fieldPath,
-//           fieldValue.fieldName,
-//           fieldValue.fieldType,
+//           fieldValue.field_path,
+//           fieldValue.field_name,
+//           fieldValue.field_type,
 //           fieldValue.value,
 //           fieldValue.locale,
-//           fieldValue.arrayIndex,
-//           fieldValue.parentPath
+//           fieldValue.array_index,
+//           fieldValue.parent_path
 //         )
 //       }
 
@@ -314,15 +314,15 @@
 //       // Convert to ReconstructedFieldValue format
 //       const reconstructedFieldValues: FlattenedFieldValue[] = storedFieldValues.map(fv => ({
 //         id: fv.id,
-//         documentVersionId: fv.documentVersionId,
-//         collectionId: fv.collectionId,
-//         fieldPath: fv.fieldPath,
-//         fieldName: fv.fieldName,
+//         document_version_id: fv.document_version_id,
+//         collection_id: fv.collection_id,
+//         field_path: fv.field_path,
+//         field_name: fv.field_name,
 //         locale: fv.locale,
-//         arrayIndex: fv.arrayIndex,
-//         parentPath: fv.parentPath,
+//         array_index: fv.array_index,
+//         parent_path: fv.parent_path,
 //         value: fv.value,
-//         fieldType: fv.fieldType
+//         field_type: fv.field_type
 //       }))
 
 //       const reconstructed = reconstructDocument(
@@ -355,13 +355,13 @@
 //         await commandBuilders.fieldValues.insertFieldValue(
 //           version[0].id,
 //           testCollection.id,
-//           fieldValue.fieldPath,
-//           fieldValue.fieldName,
-//           fieldValue.fieldType,
+//           fieldValue.field_path,
+//           fieldValue.field_name,
+//           fieldValue.field_type,
 //           fieldValue.value,
 //           fieldValue.locale,
-//           fieldValue.arrayIndex,
-//           fieldValue.parentPath
+//           fieldValue.array_index,
+//           fieldValue.parent_path
 //         )
 //       }
 
@@ -370,15 +370,15 @@
 
 //       const reconstructedFieldValues: FlattenedFieldValue[] = storedFieldValues.map(fv => ({
 //         id: fv.id,
-//         documentVersionId: fv.documentVersionId,
-//         collectionId: fv.collectionId,
-//         fieldPath: fv.fieldPath,
-//         fieldName: fv.fieldName,
+//         document_version_id: fv.document_version_id,
+//         collection_id: fv.collection_id,
+//         field_path: fv.field_path,
+//         field_name: fv.field_name,
 //         locale: fv.locale,
-//         arrayIndex: fv.arrayIndex,
-//         parentPath: fv.parentPath,
+//         array_index: fv.array_index,
+//         parent_path: fv.parent_path,
 //         value: fv.value,
-//         fieldType: fv.fieldType
+//         field_type: fv.field_type
 //       }))
 
 //       const reconstructedDefault = reconstructDocument(reconstructedFieldValues, PagesCollectionConfig, 'default')
@@ -419,13 +419,13 @@
 //         await commandBuilders.fieldValues.insertFieldValue(
 //           version[0].id,
 //           testCollection.id,
-//           fieldValue.fieldPath,
-//           fieldValue.fieldName,
-//           fieldValue.fieldType,
+//           fieldValue.field_path,
+//           fieldValue.field_name,
+//           fieldValue.field_type,
 //           fieldValue.value,
 //           fieldValue.locale,
-//           fieldValue.arrayIndex,
-//           fieldValue.parentPath
+//           fieldValue.array_index,
+//           fieldValue.parent_path
 //         )
 //       }
 
@@ -434,15 +434,15 @@
 
 //       const reconstructedFieldValues: ReconstructedFieldValue[] = storedFieldValues.map(fv => ({
 //         id: fv.id,
-//         documentVersionId: fv.documentVersionId,
-//         collectionId: fv.collectionId,
-//         fieldPath: fv.fieldPath,
-//         fieldName: fv.fieldName,
+//         document_version_id: fv.document_version_id,
+//         collection_id: fv.collection_id,
+//         field_path: fv.field_path,
+//         field_name: fv.field_name,
 //         locale: fv.locale,
-//         arrayIndex: fv.arrayIndex,
-//         parentPath: fv.parentPath,
+//         array_index: fv.array_index,
+//         parent_path: fv.parent_path,
 //         value: fv.value,
-//         fieldType: fv.fieldType
+//         field_type: fv.field_type
 //       }))
 
 //       const reconstructed = reconstructDocument(reconstructedFieldValues, PagesCollectionConfig, 'default')
@@ -453,7 +453,7 @@
 //       // Test array field reconstruction specifically
 //       const clusterFieldConfig = PagesCollectionConfig.fields.find(f => f.name === 'cluster')!
 //       const clusterFieldValues = reconstructedFieldValues.filter(fv =>
-//         fv.fieldPath.startsWith('cluster')
+//         fv.field_path.startsWith('cluster')
 //       )
 
 //       const reconstructedCluster = reconstructArrayField(
@@ -485,13 +485,13 @@
 //         await commandBuilders.fieldValues.insertFieldValue(
 //           version[0].id,
 //           testCollection.id,
-//           fieldValue.fieldPath,
-//           fieldValue.fieldName,
-//           fieldValue.fieldType,
+//           fieldValue.field_path,
+//           fieldValue.field_name,
+//           fieldValue.field_type,
 //           fieldValue.value,
 //           fieldValue.locale,
-//           fieldValue.arrayIndex,
-//           fieldValue.parentPath
+//           fieldValue.array_index,
+//           fieldValue.parent_path
 //         )
 //       }
 
@@ -501,15 +501,15 @@
 
 //       const reconstructedFieldValues: ReconstructedFieldValue[] = storedFieldValues.map(fv => ({
 //         id: fv.id,
-//         documentVersionId: fv.documentVersionId,
-//         collectionId: fv.collectionId,
-//         fieldPath: fv.fieldPath,
-//         fieldName: fv.fieldName,
+//         document_version_id: fv.document_version_id,
+//         collection_id: fv.collection_id,
+//         field_path: fv.field_path,
+//         field_name: fv.field_name,
 //         locale: fv.locale,
-//         arrayIndex: fv.arrayIndex,
-//         parentPath: fv.parentPath,
+//         array_index: fv.array_index,
+//         parent_path: fv.parent_path,
 //         value: fv.value,
-//         fieldType: fv.fieldType
+//         field_type: fv.field_type
 //       }))
 
 //       const reconstructed = reconstructDocument(reconstructedFieldValues, PagesCollectionConfig, 'default')
@@ -586,13 +586,13 @@
 //         await commandBuilders.fieldValues.insertFieldValue(
 //           version[0].id,
 //           testCollection.id,
-//           fieldValue.fieldPath,
-//           fieldValue.fieldName,
-//           fieldValue.fieldType,
+//           fieldValue.field_path,
+//           fieldValue.field_name,
+//           fieldValue.field_type,
 //           fieldValue.value,
 //           fieldValue.locale,
-//           fieldValue.arrayIndex,
-//           fieldValue.parentPath
+//           fieldValue.array_index,
+//           fieldValue.parent_path
 //         )
 //       }
 
@@ -606,15 +606,15 @@
 
 //       const reconstructedFieldValues: ReconstructedFieldValue[] = storedFieldValues.map(fv => ({
 //         id: fv.id,
-//         documentVersionId: fv.documentVersionId,
-//         collectionId: fv.collectionId,
-//         fieldPath: fv.fieldPath,
-//         fieldName: fv.fieldName,
+//         document_version_id: fv.document_version_id,
+//         collection_id: fv.collection_id,
+//         field_path: fv.field_path,
+//         field_name: fv.field_name,
 //         locale: fv.locale,
-//         arrayIndex: fv.arrayIndex,
-//         parentPath: fv.parentPath,
+//         array_index: fv.array_index,
+//         parent_path: fv.parent_path,
 //         value: fv.value,
-//         fieldType: fv.fieldType
+//         field_type: fv.field_type
 //       }))
 
 //       const reconstructedDefault = reconstructDocument(reconstructedFieldValues, PagesCollectionConfig, 'default')
@@ -674,7 +674,7 @@
 //       console.log('Flattened document with empty array:', flattened)
 
 //       // Should only have path and title, no cluster fields
-//       const clusterFields = flattened.filter(f => f.fieldPath.startsWith('cluster'))
+//       const clusterFields = flattened.filter(f => f.field_path.startsWith('cluster'))
 //       console.log('Cluster fields for empty array:', clusterFields.length)
 //     })
 
@@ -690,7 +690,7 @@
 //       console.log('Flattened minimal document:', flattened)
 
 //       // Should only have required fields
-//       const fieldNames = flattened.map(f => f.fieldName)
+//       const fieldNames = flattened.map(f => f.field_name)
 //       console.log('Field names in minimal document:', fieldNames)
 //     })
 
@@ -778,7 +778,7 @@
 //       // Total: 27 field values
 //       console.log(`Expected 27 field values, got ${flattened.length}`)
 //       // Check field paths
-//       const fieldPaths = flattened.map(f => f.fieldPath).sort()
+//       const fieldPaths = flattened.map(f => f.field_path).sort()
 //       console.log('Generated field paths:', fieldPaths)
 //       // Should have paths like:
 //       // cluster.0.one.default, cluster.0.one.en, cluster.0.one.es

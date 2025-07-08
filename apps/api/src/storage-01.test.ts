@@ -126,10 +126,10 @@ describe('Storage Model Tests', () => {
     // Clean up test collections
     try {
       const collectionIds = Object.values(testCollections).map(c => c.id)
-      for (const collectionId of collectionIds) {
+      for (const collection_id of collectionIds) {
         // Note: In a real implementation, you'd want to properly cascade delete
         // For now, we'll assume cascade deletes are handled by foreign key constraints
-        await commandBuilders.collections.delete(collectionId)
+        await commandBuilders.collections.delete(collection_id)
       }
       console.log('Test collections cleaned up')
     } catch (error) {
@@ -244,7 +244,7 @@ describe('Storage Model Tests', () => {
         testDocumentId,
         1,
         true,
-        uuidv7() // Simulate createdBy with a UUID
+        uuidv7() // Simulate created_by with a UUID
       )
 
       console.log('Created document version:', version)
@@ -468,11 +468,11 @@ describe('Storage Model Tests', () => {
   describe('Complex Document Operations', () => {
     it('should create a complete document with all field types', async () => {
       // Use global test collection
-      const collectionId = testCollections.completeTest.id
+      const collection_id = testCollections.completeTest.id
 
       // Create document
       const document = await commandBuilders.documents.create(
-        collectionId,
+        collection_id,
         `complete-test-${Date.now()}`
       )
 
@@ -483,7 +483,7 @@ describe('Storage Model Tests', () => {
       const fieldOperations = [
         commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
-          collectionId,
+          collection_id,
           'title',
           'title',
           'text',
@@ -491,7 +491,7 @@ describe('Storage Model Tests', () => {
         ),
         commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
-          collectionId,
+          collection_id,
           'content',
           'content',
           'richText',
@@ -499,7 +499,7 @@ describe('Storage Model Tests', () => {
         ),
         commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
-          collectionId,
+          collection_id,
           'published',
           'published',
           'boolean',
@@ -507,7 +507,7 @@ describe('Storage Model Tests', () => {
         ),
         commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
-          collectionId,
+          collection_id,
           'publishedOn',
           'publishedOn',
           'datetime',
@@ -515,7 +515,7 @@ describe('Storage Model Tests', () => {
         ),
         commandBuilders.fieldValues.insertFieldValue(
           version[0].id,
-          collectionId,
+          collection_id,
           'rating',
           'rating',
           'integer',

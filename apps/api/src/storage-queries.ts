@@ -27,7 +27,7 @@ import {
   documents,
   documentVersions,
   fieldValuesBoolean,
-  fieldValuesDateTime,
+  fieldValuesDatetime,
   fieldValuesFile,
   fieldValuesJson,
   fieldValuesNumeric,
@@ -43,18 +43,18 @@ export class TypedFieldValuesQuery {
 
   // Route queries to appropriate table based on field type
   async getFieldValue(
-    documentVersionId: string,
-    fieldPath: string,
-    fieldType: string,
+    document_version_id: string,
+    field_path: string,
+    field_type: string,
     locale = 'default'
   ) {
     const baseWhere = and(
-      eq(this.getTableForType(fieldType).documentVersionId, documentVersionId),
-      eq(this.getTableForType(fieldType).fieldPath, fieldPath),
-      eq(this.getTableForType(fieldType).locale, locale)
+      eq(this.getTableForType(field_type).document_version_id, document_version_id),
+      eq(this.getTableForType(field_type).field_path, field_path),
+      eq(this.getTableForType(field_type).locale, locale)
     );
 
-    switch (fieldType) {
+    switch (field_type) {
       case 'text':
         return await this.db.select().from(fieldValuesText).where(baseWhere);
       case 'number':
@@ -66,7 +66,7 @@ export class TypedFieldValuesQuery {
       case 'date':
       case 'time':
       case 'timestamp':
-        return await this.db.select().from(fieldValuesDateTime).where(baseWhere);
+        return await this.db.select().from(fieldValuesDatetime).where(baseWhere);
       case 'relation':
         return await this.db.select().from(fieldValuesRelation).where(baseWhere);
       case 'file':
@@ -77,145 +77,145 @@ export class TypedFieldValuesQuery {
       case 'object':
         return await this.db.select().from(fieldValuesJson).where(baseWhere);
       default:
-        throw new Error(`Unknown field type: ${fieldType}`);
+        throw new Error(`Unknown field type: ${field_type}`);
     }
   }
 
   // Get all field values for a document (across all type tables)
-  async getAllFieldValues(documentVersionId: string, locale = 'default') {
+  async getAllFieldValues(document_version_id: string, locale = 'default') {
     const queries = await Promise.all([
       this.db.select({
         id: fieldValuesText.id,
-        documentVersionId: fieldValuesText.documentVersionId,
-        collectionId: fieldValuesText.collectionId,
-        fieldPath: fieldValuesText.fieldPath,
-        fieldName: fieldValuesText.fieldName,
+        document_version_id: fieldValuesText.document_version_id,
+        collection_id: fieldValuesText.collection_id,
+        field_path: fieldValuesText.field_path,
+        field_name: fieldValuesText.field_name,
         locale: fieldValuesText.locale,
-        arrayIndex: fieldValuesText.arrayIndex,
-        parentPath: fieldValuesText.parentPath,
+        array_index: fieldValuesText.array_index,
+        parent_path: fieldValuesText.parent_path,
         value: fieldValuesText.value,
-        fieldType: sql<string>`'text'`.as('fieldType'),
+        field_type: sql<string>`'text'`.as('field_type'),
       }).from(fieldValuesText).where(
         and(
-          eq(fieldValuesText.documentVersionId, documentVersionId),
+          eq(fieldValuesText.document_version_id, document_version_id),
           eq(fieldValuesText.locale, locale)
         )
       ),
 
       this.db.select({
         id: fieldValuesNumeric.id,
-        documentVersionId: fieldValuesNumeric.documentVersionId,
-        collectionId: fieldValuesNumeric.collectionId,
-        fieldPath: fieldValuesNumeric.fieldPath,
-        fieldName: fieldValuesNumeric.fieldName,
+        document_version_id: fieldValuesNumeric.document_version_id,
+        collection_id: fieldValuesNumeric.collection_id,
+        field_path: fieldValuesNumeric.field_path,
+        field_name: fieldValuesNumeric.field_name,
         locale: fieldValuesNumeric.locale,
-        arrayIndex: fieldValuesNumeric.arrayIndex,
-        parentPath: fieldValuesNumeric.parentPath,
-        value: fieldValuesNumeric.valueInteger, // Simplified - would need type-specific handling
-        fieldType: sql<string>`'numeric'`.as('fieldType'),
+        array_index: fieldValuesNumeric.array_index,
+        parent_path: fieldValuesNumeric.parent_path,
+        value: fieldValuesNumeric.value_integer, // Simplified - would need type-specific handling
+        field_type: sql<string>`'numeric'`.as('field_type'),
       }).from(fieldValuesNumeric).where(
         and(
-          eq(fieldValuesNumeric.documentVersionId, documentVersionId),
+          eq(fieldValuesNumeric.document_version_id, document_version_id),
           eq(fieldValuesNumeric.locale, locale)
         )
       ),
 
       this.db.select({
         id: fieldValuesBoolean.id,
-        documentVersionId: fieldValuesBoolean.documentVersionId,
-        collectionId: fieldValuesBoolean.collectionId,
-        fieldPath: fieldValuesBoolean.fieldPath,
-        fieldName: fieldValuesBoolean.fieldName,
+        document_version_id: fieldValuesBoolean.document_version_id,
+        collection_id: fieldValuesBoolean.collection_id,
+        field_path: fieldValuesBoolean.field_path,
+        field_name: fieldValuesBoolean.field_name,
         locale: fieldValuesBoolean.locale,
-        arrayIndex: fieldValuesBoolean.arrayIndex,
-        parentPath: fieldValuesBoolean.parentPath,
+        array_index: fieldValuesBoolean.array_index,
+        parent_path: fieldValuesBoolean.parent_path,
         value: fieldValuesBoolean.value,
-        fieldType: sql<string>`'boolean'`.as('fieldType'),
+        field_type: sql<string>`'boolean'`.as('field_type'),
       }).from(fieldValuesBoolean).where(
         and(
-          eq(fieldValuesBoolean.documentVersionId, documentVersionId),
+          eq(fieldValuesBoolean.document_version_id, document_version_id),
           eq(fieldValuesBoolean.locale, locale)
         )
       ),
 
       this.db.select({
-        id: fieldValuesDateTime.id,
-        documentVersionId: fieldValuesDateTime.documentVersionId,
-        collectionId: fieldValuesDateTime.collectionId,
-        fieldPath: fieldValuesDateTime.fieldPath,
-        fieldName: fieldValuesDateTime.fieldName,
-        locale: fieldValuesDateTime.locale,
-        arrayIndex: fieldValuesDateTime.arrayIndex,
-        parentPath: fieldValuesDateTime.parentPath,
-        value: fieldValuesDateTime.valueTimestamp,
-        fieldType: sql<string>`'datetime'`.as('fieldType'),
-      }).from(fieldValuesDateTime).where(
+        id: fieldValuesDatetime.id,
+        document_version_id: fieldValuesDatetime.document_version_id,
+        collection_id: fieldValuesDatetime.collection_id,
+        field_path: fieldValuesDatetime.field_path,
+        field_name: fieldValuesDatetime.field_name,
+        locale: fieldValuesDatetime.locale,
+        array_index: fieldValuesDatetime.array_index,
+        parent_path: fieldValuesDatetime.parent_path,
+        value: fieldValuesDatetime.value_timestamp,
+        field_type: sql<string>`'datetime'`.as('field_type'),
+      }).from(fieldValuesDatetime).where(
         and(
-          eq(fieldValuesDateTime.documentVersionId, documentVersionId),
-          eq(fieldValuesDateTime.locale, locale)
+          eq(fieldValuesDatetime.document_version_id, document_version_id),
+          eq(fieldValuesDatetime.locale, locale)
         )
       ),
 
       this.db.select({
         id: fieldValuesRelation.id,
-        documentVersionId: fieldValuesRelation.documentVersionId,
-        collectionId: fieldValuesRelation.collectionId,
-        fieldPath: fieldValuesRelation.fieldPath,
-        fieldName: fieldValuesRelation.fieldName,
+        document_version_id: fieldValuesRelation.document_version_id,
+        collection_id: fieldValuesRelation.collection_id,
+        field_path: fieldValuesRelation.field_path,
+        field_name: fieldValuesRelation.field_name,
         locale: fieldValuesRelation.locale,
-        arrayIndex: fieldValuesRelation.arrayIndex,
-        parentPath: fieldValuesRelation.parentPath,
-        value: fieldValuesRelation.targetDocumentId,
-        fieldType: sql<string>`'relation'`.as('fieldType'),
+        array_index: fieldValuesRelation.array_index,
+        parent_path: fieldValuesRelation.parent_path,
+        value: fieldValuesRelation.target_document_id,
+        field_type: sql<string>`'relation'`.as('field_type'),
       }).from(fieldValuesRelation).where(
         and(
-          eq(fieldValuesRelation.documentVersionId, documentVersionId),
+          eq(fieldValuesRelation.document_version_id, document_version_id),
           eq(fieldValuesRelation.locale, locale)
         )
       ),
 
       this.db.select({
         id: fieldValuesFile.id,
-        documentVersionId: fieldValuesFile.documentVersionId,
-        collectionId: fieldValuesFile.collectionId,
-        fieldPath: fieldValuesFile.fieldPath,
-        fieldName: fieldValuesFile.fieldName,
+        document_version_id: fieldValuesFile.document_version_id,
+        collection_id: fieldValuesFile.collection_id,
+        field_path: fieldValuesFile.field_path,
+        field_name: fieldValuesFile.field_name,
         locale: fieldValuesFile.locale,
-        arrayIndex: fieldValuesFile.arrayIndex,
-        parentPath: fieldValuesFile.parentPath,
-        value: fieldValuesFile.fileId,
-        fieldType: sql<string>`'file'`.as('fieldType'),
+        array_index: fieldValuesFile.array_index,
+        parent_path: fieldValuesFile.parent_path,
+        value: fieldValuesFile.file_id,
+        field_type: sql<string>`'file'`.as('field_type'),
       }).from(fieldValuesFile).where(
         and(
-          eq(fieldValuesFile.documentVersionId, documentVersionId),
+          eq(fieldValuesFile.document_version_id, document_version_id),
           eq(fieldValuesFile.locale, locale)
         )
       ),
 
       this.db.select({
         id: fieldValuesJson.id,
-        documentVersionId: fieldValuesJson.documentVersionId,
-        collectionId: fieldValuesJson.collectionId,
-        fieldPath: fieldValuesJson.fieldPath,
-        fieldName: fieldValuesJson.fieldName,
+        document_version_id: fieldValuesJson.document_version_id,
+        collection_id: fieldValuesJson.collection_id,
+        field_path: fieldValuesJson.field_path,
+        field_name: fieldValuesJson.field_name,
         locale: fieldValuesJson.locale,
-        arrayIndex: fieldValuesJson.arrayIndex,
-        parentPath: fieldValuesJson.parentPath,
+        array_index: fieldValuesJson.array_index,
+        parent_path: fieldValuesJson.parent_path,
         value: fieldValuesJson.value,
-        fieldType: sql<string>`'json'`.as('fieldType'),
+        field_type: sql<string>`'json'`.as('field_type'),
       }).from(fieldValuesJson).where(
         and(
-          eq(fieldValuesJson.documentVersionId, documentVersionId),
+          eq(fieldValuesJson.document_version_id, document_version_id),
           eq(fieldValuesJson.locale, locale)
         )
       ),
     ]);
 
-    return queries.flat().sort((a, b) => a.fieldPath.localeCompare(b.fieldPath));
+    return queries.flat().sort((a, b) => a.field_path.localeCompare(b.field_path));
   }
 
-  private getTableForType(fieldType: string) {
-    switch (fieldType) {
+  private getTableForType(field_type: string) {
+    switch (field_type) {
       case 'text':
       case 'richText':
         return fieldValuesText;
@@ -228,7 +228,7 @@ export class TypedFieldValuesQuery {
       case 'date':
       case 'time':
       case 'timestamp':
-        return fieldValuesDateTime;
+        return fieldValuesDatetime;
       case 'relation':
         return fieldValuesRelation;
       case 'file':
@@ -238,7 +238,7 @@ export class TypedFieldValuesQuery {
       case 'object':
         return fieldValuesJson;
       default:
-        throw new Error(`Unknown field type: ${fieldType}`);
+        throw new Error(`Unknown field type: ${field_type}`);
     }
   }
 }
@@ -250,19 +250,19 @@ export class TypedFieldValuesQuery {
 export class TextFieldQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async fullTextSearch(searchTerm: string, collectionId?: string) {
+  async fullTextSearch(searchTerm: string, collection_id?: string) {
     const conditions = [
       sql`to_tsvector('english', ${fieldValuesText.value}) @@ plainto_tsquery('english', ${searchTerm})`
     ];
 
-    if (collectionId) {
-      conditions.push(eq(fieldValuesText.collectionId, collectionId));
+    if (collection_id) {
+      conditions.push(eq(fieldValuesText.collection_id, collection_id));
     }
 
     const query = this.db
       .select({
-        documentVersionId: fieldValuesText.documentVersionId,
-        fieldPath: fieldValuesText.fieldPath,
+        document_version_id: fieldValuesText.document_version_id,
+        field_path: fieldValuesText.field_path,
         value: fieldValuesText.value,
         rank: sql<number>`ts_rank(to_tsvector('english', ${fieldValuesText.value}), plainto_tsquery('english', ${searchTerm}))`.as('rank'),
       })
@@ -288,28 +288,28 @@ export class TextFieldQueries {
 export class NumericFieldQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async findInRange(fieldPath: string, min: number, max: number) {
+  async findInRange(field_path: string, min: number, max: number) {
     return await this.db
       .select()
       .from(fieldValuesNumeric)
       .where(
         and(
-          eq(fieldValuesNumeric.fieldPath, fieldPath),
-          sql`COALESCE(${fieldValuesNumeric.valueInteger}, ${fieldValuesNumeric.valueDecimal}, ${fieldValuesNumeric.valueFloat}) BETWEEN ${min} AND ${max}`
+          eq(fieldValuesNumeric.field_path, field_path),
+          sql`COALESCE(${fieldValuesNumeric.value_integer}, ${fieldValuesNumeric.value_decimal}, ${fieldValuesNumeric.value_float}) BETWEEN ${min} AND ${max}`
         )
       );
   }
 
-  async getStatistics(fieldPath: string) {
+  async getStatistics(field_path: string) {
     return await this.db
       .select({
         count: sql<number>`COUNT(*)`.as('count'),
-        avg: sql<number>`AVG(COALESCE(${fieldValuesNumeric.valueInteger}, ${fieldValuesNumeric.valueDecimal}, ${fieldValuesNumeric.valueFloat}))`.as('avg'),
-        min: sql<number>`MIN(COALESCE(${fieldValuesNumeric.valueInteger}, ${fieldValuesNumeric.valueDecimal}, ${fieldValuesNumeric.valueFloat}))`.as('min'),
-        max: sql<number>`MAX(COALESCE(${fieldValuesNumeric.valueInteger}, ${fieldValuesNumeric.valueDecimal}, ${fieldValuesNumeric.valueFloat}))`.as('max'),
+        avg: sql<number>`AVG(COALESCE(${fieldValuesNumeric.value_integer}, ${fieldValuesNumeric.value_decimal}, ${fieldValuesNumeric.value_float}))`.as('avg'),
+        min: sql<number>`MIN(COALESCE(${fieldValuesNumeric.value_integer}, ${fieldValuesNumeric.value_decimal}, ${fieldValuesNumeric.value_float}))`.as('min'),
+        max: sql<number>`MAX(COALESCE(${fieldValuesNumeric.value_integer}, ${fieldValuesNumeric.value_decimal}, ${fieldValuesNumeric.value_float}))`.as('max'),
       })
       .from(fieldValuesNumeric)
-      .where(eq(fieldValuesNumeric.fieldPath, fieldPath));
+      .where(eq(fieldValuesNumeric.field_path, field_path));
   }
 }
 
@@ -317,11 +317,11 @@ export class NumericFieldQueries {
 export class FileFieldQueries {
   constructor(siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async findByMimeType(mimeType: string) {
+  async findByMimeType(mime_type: string) {
     return await this.db
       .select()
       .from(fieldValuesFile)
-      .where(eq(fieldValuesFile.mimeType, mimeType));
+      .where(eq(fieldValuesFile.mime_type, mime_type));
   }
 
   async findLargeFiles(sizeThresholdMB: number) {
@@ -329,19 +329,19 @@ export class FileFieldQueries {
     return await this.db
       .select()
       .from(fieldValuesFile)
-      .where(sql`${fieldValuesFile.fileSize} > ${sizeThresholdBytes}`);
+      .where(sql`${fieldValuesFile.file_size} > ${sizeThresholdBytes}`);
   }
 
   async findDuplicateFiles() {
     return await this.db
       .select({
-        fileHash: fieldValuesFile.fileHash,
+        file_hash: fieldValuesFile.file_hash,
         count: sql<number>`COUNT(*)`.as('count'),
-        fileIds: sql<string[]>`array_agg(${fieldValuesFile.fileId})`.as('fileIds'),
+        fileIds: sql<string[]>`array_agg(${fieldValuesFile.file_id})`.as('fileIds'),
       })
       .from(fieldValuesFile)
-      .where(isNotNull(fieldValuesFile.fileHash))
-      .groupBy(fieldValuesFile.fileHash)
+      .where(isNotNull(fieldValuesFile.file_hash))
+      .groupBy(fieldValuesFile.file_hash)
       .having(sql`COUNT(*) > 1`);
   }
 }
@@ -364,18 +364,18 @@ export class CollectionQueries {
 export class DocumentQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async findByCollection(collectionId: string) {
-    return await this.db.select().from(documents).where(eq(documents.collectionId, collectionId));
+  async findByCollection(collection_id: string) {
+    return await this.db.select().from(documents).where(eq(documents.collection_id, collection_id));
   }
 
   async findById(id: string) {
     return await this.db.select().from(documents).where(eq(documents.id, id)).limit(1);
   }
 
-  async findByPath(collectionId: string, path: string) {
+  async findByPath(collection_id: string, path: string) {
     return await this.db.select().from(documents).where(
       and(
-        eq(documents.collectionId, collectionId),
+        eq(documents.collection_id, collection_id),
         eq(documents.path, path)
       )
     ).limit(1);
@@ -385,24 +385,24 @@ export class DocumentQueries {
 export class DocumentVersionQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async findByDocument(documentId: string) {
-    return await this.db.select().from(documentVersions).where(eq(documentVersions.documentId, documentId));
+  async findByDocument(document_id: string) {
+    return await this.db.select().from(documentVersions).where(eq(documentVersions.document_id, document_id));
   }
 
-  async findCurrentVersion(documentId: string) {
+  async findCurrentVersion(document_id: string) {
     return await this.db.select().from(documentVersions).where(
       and(
-        eq(documentVersions.documentId, documentId),
-        eq(documentVersions.isCurrent, true)
+        eq(documentVersions.document_id, document_id),
+        eq(documentVersions.is_current, true)
       )
     ).limit(1);
   }
 
-  async findByVersion(documentId: string, versionNumber: number) {
+  async findByVersion(document_id: string, version_number: number) {
     return await this.db.select().from(documentVersions).where(
       and(
-        eq(documentVersions.documentId, documentId),
-        eq(documentVersions.versionNumber, versionNumber)
+        eq(documentVersions.document_id, document_id),
+        eq(documentVersions.version_number, version_number)
       )
     ).limit(1);
   }

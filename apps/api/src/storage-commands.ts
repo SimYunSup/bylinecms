@@ -27,7 +27,7 @@ import {
   documents,
   documentVersions,
   fieldValuesBoolean,
-  fieldValuesDateTime,
+  fieldValuesDatetime,
   fieldValuesFile,
   fieldValuesJson,
   fieldValuesNumeric,
@@ -62,10 +62,10 @@ export class CollectionCommands {
 export class DocumentCommands {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async create(collectionId: string, path?: string, status = 'draft') {
+  async create(collection_id: string, path?: string, status = 'draft') {
     return await this.db.insert(documents).values({
       id: uuidv7(),
-      collectionId,
+      collection_id,
       path,
       status,
     }).returning();
@@ -74,7 +74,7 @@ export class DocumentCommands {
   async updateStatus(id: string, status: string) {
     return await this.db.update(documents).set({
       status,
-      updatedAt: new Date(),
+      updated_at: new Date(),
     }).where(eq(documents.id, id)).returning();
   }
 
@@ -86,36 +86,36 @@ export class DocumentCommands {
 export class DocumentVersionCommands {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async create(documentId: string, versionNumber: number, isCurrent = true, createdBy?: string) {
+  async create(document_id: string, version_number: number, is_current = true, created_by?: string) {
     // If this is the current version, mark all others as not current
-    if (isCurrent) {
+    if (is_current) {
       await this.db.update(documentVersions).set({
-        isCurrent: false,
-      }).where(eq(documentVersions.documentId, documentId));
+        is_current: false,
+      }).where(eq(documentVersions.document_id, document_id));
     }
 
     return await this.db.insert(documentVersions).values({
       id: uuidv7(),
-      documentId,
-      versionNumber,
-      isCurrent,
-      createdBy,
+      document_id,
+      version_number,
+      is_current,
+      created_by,
     }).returning();
   }
 
-  async markAsCurrent(documentId: string, versionNumber: number) {
+  async markAsCurrent(document_id: string, version_number: number) {
     // Mark all versions as not current
     await this.db.update(documentVersions).set({
-      isCurrent: false,
-    }).where(eq(documentVersions.documentId, documentId));
+      is_current: false,
+    }).where(eq(documentVersions.document_id, document_id));
 
     // Mark the specified version as current
     return await this.db.update(documentVersions).set({
-      isCurrent: true,
+      is_current: true,
     }).where(
       and(
-        eq(documentVersions.documentId, documentId),
-        eq(documentVersions.versionNumber, versionNumber)
+        eq(documentVersions.document_id, document_id),
+        eq(documentVersions.version_number, version_number)
       )
     ).returning();
   }
@@ -128,28 +128,28 @@ export class FieldValueCRUD {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async insertFieldValue(
-    documentVersionId: string,
-    collectionId: string,
-    fieldPath: string,
-    fieldName: string,
-    fieldType: string,
+    document_version_id: string,
+    collection_id: string,
+    field_path: string,
+    field_name: string,
+    field_type: string,
     value: any,
     locale = 'default',
-    arrayIndex?: number,
-    parentPath?: string
+    array_index?: number,
+    parent_path?: string
   ) {
     const baseData = {
       id: uuidv7(),
-      documentVersionId,
-      collectionId,
-      fieldPath,
-      fieldName,
+      document_version_id,
+      collection_id,
+      field_path,
+      field_name,
       locale,
-      arrayIndex,
-      parentPath,
+      array_index,
+      parent_path,
     };
 
-    switch (fieldType) {
+    switch (field_type) {
       case 'text':
         return await this.db.insert(fieldValuesText).values({
           ...baseData,
@@ -166,15 +166,15 @@ export class FieldValueCRUD {
       case 'integer':
         return await this.db.insert(fieldValuesNumeric).values({
           ...baseData,
-          valueInteger: value,
-          numberType: 'integer',
+          value_integer: value,
+          number_type: 'integer',
         }).returning();
 
       case 'decimal':
         return await this.db.insert(fieldValuesNumeric).values({
           ...baseData,
-          valueDecimal: value,
-          numberType: 'decimal',
+          value_decimal: value,
+          number_type: 'decimal',
         }).returning();
 
       case 'boolean':
@@ -184,32 +184,32 @@ export class FieldValueCRUD {
         }).returning();
 
       case 'datetime':
-        return await this.db.insert(fieldValuesDateTime).values({
+        return await this.db.insert(fieldValuesDatetime).values({
           ...baseData,
-          valueTimestamp: value,
-          dateType: 'timestamp',
+          value_timestamp: value,
+          date_type: 'timestamp',
         }).returning();
 
       case 'relation':
         return await this.db.insert(fieldValuesRelation).values({
           ...baseData,
-          targetDocumentId: value.targetDocumentId,
-          targetCollectionId: value.targetCollectionId,
-          relationshipType: value.relationshipType || 'reference',
-          cascadeDelete: value.cascadeDelete || false,
+          target_document_id: value.target_document_id,
+          target_collection_id: value.target_collection_id,
+          relationship_type: value.relationship_type || 'reference',
+          cascade_delete: value.cascade_delete || false,
         }).returning();
 
       case 'file':
       case 'image':
         return await this.db.insert(fieldValuesFile).values({
           ...baseData,
-          fileId: value.fileId,
+          file_id: value.file_id,
           filename: value.filename,
-          originalFilename: value.originalFilename,
-          mimeType: value.mimeType,
-          fileSize: value.fileSize,
-          storageProvider: value.storageProvider,
-          storagePath: value.storagePath,
+          original_filename: value.original_filename,
+          mime_type: value.mime_type,
+          file_size: value.file_size,
+          storage_provider: value.storage_provider,
+          storage_path: value.storage_path,
         }).returning();
 
       case 'json':
@@ -220,33 +220,33 @@ export class FieldValueCRUD {
         }).returning();
 
       default:
-        throw new Error(`Unsupported field type: ${fieldType}`);
+        throw new Error(`Unsupported field type: ${field_type}`);
     }
   }
 
   async updateFieldValue(
-    documentVersionId: string,
-    fieldPath: string,
-    fieldType: string,
+    document_version_id: string,
+    field_path: string,
+    field_type: string,
     value: any,
     locale = 'default',
-    arrayIndex?: number
+    array_index?: number
   ) {
     const conditions = [
-      eq(this.getTableForType(fieldType).documentVersionId, documentVersionId),
-      eq(this.getTableForType(fieldType).fieldPath, fieldPath),
-      eq(this.getTableForType(fieldType).locale, locale)
+      eq(this.getTableForType(field_type).document_version_id, document_version_id),
+      eq(this.getTableForType(field_type).field_path, field_path),
+      eq(this.getTableForType(field_type).locale, locale)
     ];
 
-    if (arrayIndex !== undefined) {
-      conditions.push(eq(this.getTableForType(fieldType).arrayIndex, arrayIndex));
+    if (array_index !== undefined) {
+      conditions.push(eq(this.getTableForType(field_type).array_index, array_index));
     }
 
     const baseWhere = and(...conditions);
 
-    const updateData = { updatedAt: new Date() };
+    const updateData = { updated_at: new Date() };
 
-    switch (fieldType) {
+    switch (field_type) {
       case 'text':
         return await this.db.update(fieldValuesText).set({
           ...updateData,
@@ -263,13 +263,13 @@ export class FieldValueCRUD {
       case 'integer':
         return await this.db.update(fieldValuesNumeric).set({
           ...updateData,
-          valueInteger: value,
+          value_integer: value,
         }).where(baseWhere).returning();
 
       case 'decimal':
         return await this.db.update(fieldValuesNumeric).set({
           ...updateData,
-          valueDecimal: value,
+          value_decimal: value,
         }).where(baseWhere).returning();
 
       case 'boolean':
@@ -279,9 +279,9 @@ export class FieldValueCRUD {
         }).where(baseWhere).returning();
 
       case 'datetime':
-        return await this.db.update(fieldValuesDateTime).set({
+        return await this.db.update(fieldValuesDatetime).set({
           ...updateData,
-          valueTimestamp: value,
+          value_timestamp: value,
         }).where(baseWhere).returning();
 
       case 'json':
@@ -292,16 +292,16 @@ export class FieldValueCRUD {
         }).where(baseWhere).returning();
 
       default:
-        throw new Error(`Unsupported field type: ${fieldType}`);
+        throw new Error(`Unsupported field type: ${field_type}`);
     }
   }
 
-  async deleteFieldValues(documentVersionId: string, fieldPath?: string) {
+  async deleteFieldValues(document_version_id: string, field_path?: string) {
     const tables = [
       fieldValuesText,
       fieldValuesNumeric,
       fieldValuesBoolean,
-      fieldValuesDateTime,
+      fieldValuesDatetime,
       fieldValuesRelation,
       fieldValuesFile,
       fieldValuesJson,
@@ -309,12 +309,12 @@ export class FieldValueCRUD {
 
     const results = await Promise.all(
       tables.map(table => {
-        const whereCondition = fieldPath
+        const whereCondition = field_path
           ? and(
-            eq(table.documentVersionId, documentVersionId),
-            eq(table.fieldPath, fieldPath)
+            eq(table.document_version_id, document_version_id),
+            eq(table.field_path, field_path)
           )
-          : eq(table.documentVersionId, documentVersionId);
+          : eq(table.document_version_id, document_version_id);
 
         return this.db.delete(table).where(whereCondition);
       })
@@ -323,8 +323,8 @@ export class FieldValueCRUD {
     return results;
   }
 
-  private getTableForType(fieldType: string) {
-    switch (fieldType) {
+  private getTableForType(field_type: string) {
+    switch (field_type) {
       case 'text':
         return fieldValuesText;
       case 'richText':
@@ -338,14 +338,14 @@ export class FieldValueCRUD {
       case 'boolean':
         return fieldValuesBoolean;
       case 'datetime':
-        return fieldValuesDateTime;
+        return fieldValuesDatetime;
       case 'relation':
         return fieldValuesRelation;
       case 'file':
       case 'image':
         return fieldValuesFile;
       default:
-        throw new Error(`Unknown field type: ${fieldType}`);
+        throw new Error(`Unknown field type: ${field_type}`);
     }
   }
 }

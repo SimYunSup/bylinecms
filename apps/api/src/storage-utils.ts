@@ -38,15 +38,15 @@ import type {
 /**
  * Builds field paths for nested array structures
  * @param basePath - The base field name
- * @param arrayIndex - Optional array index
+ * @param array_index - Optional array index
  * @param nestedField - Optional nested field name
  * @returns Constructed field path
  */
-export function buildFieldPath(basePath: string, arrayIndex?: number, nestedField?: string): string {
+export function buildFieldPath(basePath: string, array_index?: number, nestedField?: string): string {
   let path = basePath;
 
-  if (arrayIndex !== undefined) {
-    path += `.${arrayIndex}`;
+  if (array_index !== undefined) {
+    path += `.${array_index}`;
   }
 
   if (nestedField) {
@@ -58,12 +58,12 @@ export function buildFieldPath(basePath: string, arrayIndex?: number, nestedFiel
 
 /**
  * Parses a field path to extract components
- * @param fieldPath - The field path to parse (e.g., "cluster.1.two")
+ * @param field_path - The field path to parse (e.g., "cluster.1.two")
  * @returns Parsed field path components
  */
-export function parseFieldPath(fieldPath: string): ParsedFieldPath {
-  const segments = fieldPath.split('.');
-  const parsedSegments: Array<{ field: string; arrayIndex?: number }> = [];
+export function parseFieldPath(field_path: string): ParsedFieldPath {
+  const segments = field_path.split('.');
+  const parsedSegments: Array<{ field: string; array_index?: number }> = [];
 
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i];
@@ -73,7 +73,7 @@ export function parseFieldPath(fieldPath: string): ParsedFieldPath {
     if (nextSegment && !Number.isNaN(Number.parseInt(nextSegment))) {
       parsedSegments.push({
         field: segment,
-        arrayIndex: Number.parseInt(nextSegment)
+        array_index: Number.parseInt(nextSegment)
       });
       i++; // Skip the index segment
     } else {
@@ -89,21 +89,21 @@ export function parseFieldPath(fieldPath: string): ParsedFieldPath {
 
 /**
  * Checks if a field path represents an array field
- * @param fieldPath - The field path to check
+ * @param field_path - The field path to check
  * @returns True if the path contains array indices
  */
-export function isArrayFieldPath(fieldPath: string): boolean {
-  const segments = fieldPath.split('.');
+export function isArrayFieldPath(field_path: string): boolean {
+  const segments = field_path.split('.');
   return segments.some(segment => !Number.isNaN(Number.parseInt(segment)));
 }
 
 /**
  * Gets the parent path for an array field
- * @param fieldPath - The field path (e.g., "cluster.1.two")
+ * @param field_path - The field path (e.g., "cluster.1.two")
  * @returns Parent path (e.g., "cluster")
  */
-export function getParentPath(fieldPath: string): string | null {
-  const segments = fieldPath.split('.');
+export function getParentPath(field_path: string): string | null {
+  const segments = field_path.split('.');
   if (segments.length <= 1) return null;
 
   // Find the first array index and return everything before it
@@ -118,11 +118,11 @@ export function getParentPath(fieldPath: string): string | null {
 
 /**
  * Gets the array index from a field path
- * @param fieldPath - The field path (e.g., "cluster.1.two")
+ * @param field_path - The field path (e.g., "cluster.1.two")
  * @returns Array index or null if not an array field
  */
-export function getArrayIndex(fieldPath: string): number | null {
-  const segments = fieldPath.split('.');
+export function getArrayIndex(field_path: string): number | null {
+  const segments = field_path.split('.');
 
   for (let i = 1; i < segments.length; i++) {
     const parsed = Number.parseInt(segments[i]);
@@ -155,11 +155,11 @@ export function flattenDocumentToFieldValues(
     obj: any,
     fieldConfigs: any[],
     basePath = '',
-    parentPath?: string,
-    arrayIndex?: number
+    parent_path?: string,
+    array_index?: number
   ) {
     for (const fieldConfig of fieldConfigs) {
-      const fieldPath = basePath ? `${basePath}.${fieldConfig.name}` : fieldConfig.name;
+      const field_path = basePath ? `${basePath}.${fieldConfig.name}` : fieldConfig.name;
       const value = obj[fieldConfig.name];
 
       if (value === undefined || value === null) continue;
@@ -172,24 +172,24 @@ export function flattenDocumentToFieldValues(
             switch (fieldConfig.type) {
               case 'text':
                 flattenedFields.push({
-                  fieldType: 'text',
-                  fieldPath,
-                  fieldName: fieldConfig.name,
+                  field_type: 'text',
+                  field_path,
+                  field_name: fieldConfig.name,
                   locale: localeKey,
-                  arrayIndex,
-                  parentPath,
+                  array_index,
+                  parent_path,
                   value: localizedValue as string,
                 });
                 break;
 
               case 'richText':
                 flattenedFields.push({
-                  fieldType: 'richText',
-                  fieldPath,
-                  fieldName: fieldConfig.name,
+                  field_type: 'richText',
+                  field_path,
+                  field_name: fieldConfig.name,
                   locale: localeKey,
-                  arrayIndex,
-                  parentPath,
+                  array_index,
+                  parent_path,
                   value: localizedValue,
                 });
                 break;
@@ -197,28 +197,28 @@ export function flattenDocumentToFieldValues(
               case 'json':
               case 'object':
                 flattenedFields.push({
-                  fieldType: fieldConfig.type,
-                  fieldPath,
-                  fieldName: fieldConfig.name,
+                  field_type: fieldConfig.type,
+                  field_path,
+                  field_name: fieldConfig.name,
                   locale: localeKey,
-                  arrayIndex,
-                  parentPath,
+                  array_index,
+                  parent_path,
                   value: localizedValue,
-                  jsonSchema: fieldConfig.jsonSchema,
-                  objectKeys: typeof localizedValue === 'object' ? Object.keys(localizedValue) : undefined,
+                  json_schema: fieldConfig.json_schema,
+                  object_keys: typeof localizedValue === 'object' ? Object.keys(localizedValue) : undefined,
                 });
                 break;
 
               default:
                 // For other field types that can be localized, create field-specific values
                 flattenedFields.push(createFieldSpecificValue(
-                  fieldPath,
+                  field_path,
                   fieldConfig.name,
                   fieldConfig.type as NonArrayFieldType,
                   localizedValue,
                   localeKey,
-                  arrayIndex,
-                  parentPath
+                  array_index,
+                  parent_path
                 ));
             }
           }
@@ -230,60 +230,60 @@ export function flattenDocumentToFieldValues(
       switch (fieldConfig.type) {
         case 'file':
         case 'image':
-          if (typeof value === 'object' && value.fileId) {
+          if (typeof value === 'object' && value.file_id) {
             flattenedFields.push({
-              fieldType: fieldConfig.type,
-              fieldPath,
-              fieldName: fieldConfig.name,
+              field_type: fieldConfig.type,
+              field_path,
+              field_name: fieldConfig.name,
               locale,
-              arrayIndex,
-              parentPath,
-              value: value.fileId, // For backward compatibility
-              fileId: value.fileId,
+              array_index,
+              parent_path,
+              value: value.file_id, // For backward compatibility
+              file_id: value.file_id,
               filename: value.filename,
-              originalFilename: value.originalFilename,
-              mimeType: value.mimeType,
-              fileSize: value.fileSize,
-              storageProvider: value.storageProvider,
-              storagePath: value.storagePath,
-              storageUrl: value.storageUrl,
-              fileHash: value.fileHash,
-              imageWidth: value.imageWidth,
-              imageHeight: value.imageHeight,
-              imageFormat: value.imageFormat,
-              processingStatus: value.processingStatus,
-              thumbnailGenerated: value.thumbnailGenerated,
+              original_filename: value.original_filename,
+              mime_type: value.mime_type,
+              file_size: value.file_size,
+              storage_provider: value.storage_provider,
+              storage_path: value.storage_path,
+              storage_url: value.storage_url,
+              file_hash: value.file_hash,
+              image_width: value.image_width,
+              image_height: value.image_height,
+              image_format: value.image_format,
+              processing_status: value.processing_status,
+              thumbnail_generated: value.thumbnail_generated,
             } as FileFieldValue);
           }
           break;
 
         case 'relation':
-          if (typeof value === 'object' && value.targetDocumentId) {
+          if (typeof value === 'object' && value.target_document_id) {
             flattenedFields.push({
-              fieldType: 'relation',
-              fieldPath,
-              fieldName: fieldConfig.name,
+              field_type: 'relation',
+              field_path,
+              field_name: fieldConfig.name,
               locale,
-              arrayIndex,
-              parentPath,
-              value: value.targetDocumentId,
-              targetDocumentId: value.targetDocumentId,
-              targetCollectionId: value.targetCollectionId,
-              relationshipType: value.relationshipType,
-              cascadeDelete: value.cascadeDelete,
+              array_index,
+              parent_path,
+              value: value.target_document_id,
+              target_document_id: value.target_document_id,
+              target_collection_id: value.target_collection_id,
+              relationship_type: value.relationship_type,
+              cascade_delete: value.cascade_delete,
             } as RelationFieldValue);
           } else if (typeof value === 'string') {
             // Handle simple string reference
             flattenedFields.push({
-              fieldType: 'relation',
-              fieldPath,
-              fieldName: fieldConfig.name,
+              field_type: 'relation',
+              field_path,
+              field_name: fieldConfig.name,
               locale,
-              arrayIndex,
-              parentPath,
+              array_index,
+              parent_path,
               value: value,
-              targetDocumentId: value,
-              targetCollectionId: fieldConfig.targetCollection || '',
+              target_document_id: value,
+              target_collection_id: fieldConfig.targetCollection || '',
             } as RelationFieldValue);
           }
           break;
@@ -291,15 +291,15 @@ export function flattenDocumentToFieldValues(
         case 'json':
         case 'object':
           flattenedFields.push({
-            fieldType: fieldConfig.type,
-            fieldPath,
-            fieldName: fieldConfig.name,
+            field_type: fieldConfig.type,
+            field_path,
+            field_name: fieldConfig.name,
             locale,
-            arrayIndex,
-            parentPath,
+            array_index,
+            parent_path,
             value,
-            jsonSchema: fieldConfig.jsonSchema,
-            objectKeys: typeof value === 'object' ? Object.keys(value) : undefined,
+            json_schema: fieldConfig.json_schema,
+            object_keys: typeof value === 'object' ? Object.keys(value) : undefined,
           });
           break;
 
@@ -309,8 +309,8 @@ export function flattenDocumentToFieldValues(
               flattenObject(
                 item,
                 fieldConfig.fields,
-                fieldPath,
-                fieldPath,
+                field_path,
+                field_path,
                 index
               );
             });
@@ -320,12 +320,12 @@ export function flattenDocumentToFieldValues(
         default:
           // Handle simple field types
           flattenedFields.push({
-            fieldType: fieldConfig.type,
-            fieldPath,
-            fieldName: fieldConfig.name,
+            field_type: fieldConfig.type,
+            field_path,
+            field_name: fieldConfig.name,
             locale,
-            arrayIndex,
-            parentPath,
+            array_index,
+            parent_path,
             value,
           } as FlattenedFieldValue);
       }
@@ -340,28 +340,28 @@ export function flattenDocumentToFieldValues(
  * Flattens a single field (recursive for arrays and nested structures)
  * @param value - The field value
  * @param fieldConfig - Field configuration
- * @param fieldPath - Current field path
- * @param fieldName - Field name
+ * @param field_path - Current field path
+ * @param field_name - Field name
  * @param result - Array to accumulate results
  * @param defaultLocale - Default locale
- * @param arrayIndex - Current array index (if applicable)
- * @param parentPath - Parent field path (if applicable)
+ * @param array_index - Current array index (if applicable)
+ * @param parent_path - Parent field path (if applicable)
  */
 export function flattenField(
   value: any,
   fieldConfig: FieldConfig,
-  fieldPath: string,
-  fieldName: string,
+  field_path: string,
+  field_name: string,
   result: FlattenedFieldValue[],
   defaultLocale: string,
-  arrayIndex?: number,
-  parentPath?: string
+  array_index?: number,
+  parent_path?: string
 ): void {
 
   if (fieldConfig.type === 'array' && Array.isArray(value)) {
     // Handle array fields - don't create field values for the array itself
     value.forEach((arrayItem, index) => {
-      const arrayPath = buildFieldPath(fieldPath, index);
+      const arrayPath = buildFieldPath(field_path, index);
 
       // Process each field in the array item
       if (fieldConfig.fields) {
@@ -376,7 +376,7 @@ export function flattenField(
               result,
               defaultLocale,
               index,
-              fieldPath
+              field_path
             );
           }
         }
@@ -388,13 +388,13 @@ export function flattenField(
       if (localizedValue !== undefined && localizedValue !== null) {
         // Create field-specific type based on fieldConfig.type
         result.push(createFieldSpecificValue(
-          fieldPath,
-          fieldName,
+          field_path,
+          field_name,
           fieldConfig.type as NonArrayFieldType,
           localizedValue,
           locale,
-          arrayIndex,
-          parentPath
+          array_index,
+          parent_path
         ));
       }
     }
@@ -402,13 +402,13 @@ export function flattenField(
     // Handle regular fields (non-array types only)
     if (fieldConfig.type !== 'array') {
       result.push(createFieldSpecificValue(
-        fieldPath,
-        fieldName,
+        field_path,
+        field_name,
         fieldConfig.type as NonArrayFieldType,
         value,
         defaultLocale,
-        arrayIndex,
-        parentPath
+        array_index,
+        parent_path
       ));
     }
   }
@@ -418,34 +418,34 @@ export function flattenField(
  * Creates a field-specific value object based on field type
  */
 function createFieldSpecificValue(
-  fieldPath: string,
-  fieldName: string,
-  fieldType: NonArrayFieldType,
+  field_path: string,
+  field_name: string,
+  field_type: NonArrayFieldType,
   value: any,
   locale: string,
-  arrayIndex?: number,
-  parentPath?: string
+  array_index?: number,
+  parent_path?: string
 ): FlattenedFieldValue {
   const baseValue = {
-    fieldPath,
-    fieldName,
+    field_path,
+    field_name,
     locale,
-    arrayIndex,
-    parentPath,
+    array_index,
+    parent_path,
   };
 
-  switch (fieldType) {
+  switch (field_type) {
     case 'text':
       return {
         ...baseValue,
-        fieldType: 'text',
+        field_type: 'text',
         value: value,
       };
 
     case 'richText':
       return {
         ...baseValue,
-        fieldType: 'richText',
+        field_type: 'richText',
         value: value,
       };
 
@@ -454,97 +454,97 @@ function createFieldSpecificValue(
     case 'decimal':
       return {
         ...baseValue,
-        fieldType: fieldType,
+        field_type: field_type,
         value: value,
       };
 
     case 'boolean':
       return {
         ...baseValue,
-        fieldType: 'boolean',
+        field_type: 'boolean',
         value: value,
       };
 
     case 'datetime':
       return {
         ...baseValue,
-        fieldType: 'datetime',
-        dateType: value.dateType || 'timestamp',
-        valueDate: value.valueDate,
-        valueTime: value.valueTime,
-        valueTimestamp: value.valueTimestamp,
-        valueTimestampTz: value.valueTimestampTz,
+        field_type: 'datetime',
+        date_type: value.date_type || 'timestamp',
+        value_date: value.value_date,
+        value_time: value.value_time,
+        value_timestamp: value.value_timestamp,
+        value_timestamp_tz: value.value_timestamp_tz,
       };
 
     case 'file':
     case 'image':
       // Handle file fields - extract file-specific properties
-      if (typeof value === 'object' && value.fileId) {
+      if (typeof value === 'object' && value.file_id) {
         return {
           ...baseValue,
-          fieldType: fieldType,
-          fileId: value.fileId,
+          field_type: field_type,
+          file_id: value.file_id,
           filename: value.filename,
-          originalFilename: value.originalFilename,
-          mimeType: value.mimeType,
-          fileSize: value.fileSize,
-          storageProvider: value.storageProvider,
-          storagePath: value.storagePath,
-          storageUrl: value.storageUrl,
-          fileHash: value.fileHash,
-          imageWidth: value.imageWidth,
-          imageHeight: value.imageHeight,
-          imageFormat: value.imageFormat,
-          processingStatus: value.processingStatus,
-          thumbnailGenerated: value.thumbnailGenerated,
+          original_filename: value.original_filename,
+          mime_type: value.mime_type,
+          file_size: value.file_size,
+          storage_provider: value.storage_provider,
+          storage_path: value.storage_path,
+          storage_url: value.storage_url,
+          file_hash: value.file_hash,
+          image_width: value.image_width,
+          image_height: value.image_height,
+          image_format: value.image_format,
+          processing_status: value.processing_status,
+          thumbnail_generated: value.thumbnail_generated,
         };
       }
       // Fallback for simple file values
       return {
         ...baseValue,
-        fieldType: fieldType,
-        fileId: value,
+        field_type: field_type,
+        file_id: value,
         filename: '',
-        originalFilename: '',
-        mimeType: '',
-        fileSize: 0,
-        storageProvider: '',
-        storagePath: '',
+        original_filename: '',
+        mime_type: '',
+        file_size: 0,
+        storage_provider: '',
+        storage_path: '',
       };
 
     case 'relation':
       // Handle relation fields - extract relation-specific properties
-      if (typeof value === 'object' && value.targetDocumentId) {
+      if (typeof value === 'object' && value.target_document_id) {
         return {
           ...baseValue,
-          fieldType: 'relation',
-          targetDocumentId: value.targetDocumentId,
-          targetCollectionId: value.targetCollectionId,
-          relationshipType: value.relationshipType,
-          cascadeDelete: value.cascadeDelete,
+          field_type: 'relation',
+          target_document_id: value.target_document_id,
+          target_collection_id: value.target_collection_id,
+          relationship_type: value.relationship_type,
+          cascade_delete: value.cascade_delete,
         };
       }
       // Fallback for simple relation values
       return {
         ...baseValue,
-        fieldType: 'relation',
-        targetDocumentId: value,
-        targetCollectionId: '',
+        field_type: 'relation',
+        target_document_id: value,
+        target_collection_id: '',
       };
 
     case 'json':
     case 'object':
       return {
         ...baseValue,
-        fieldType: fieldType,
+        field_type: field_type,
         value: value,
-        jsonSchema: undefined,
-        objectKeys: typeof value === 'object' ? Object.keys(value) : undefined,
+        json_schema: undefined,
+        object_keys: typeof value === 'object' ? Object.keys(value) : undefined,
       };
 
     default:
       // This should never happen with proper typing, but provide a fallback
-      throw new Error(`Unsupported field type: ${fieldType}`);
+      throw new Error(`Unsupported field type: ${field_type}`);
   }
 }
 
@@ -598,11 +598,11 @@ export function reconstructArrayField(
   const arrayItems: { [index: number]: FlattenedFieldValue[] } = {};
 
   for (const fieldValue of fieldValues) {
-    if (fieldValue.arrayIndex !== null && fieldValue.arrayIndex !== undefined) {
-      if (!arrayItems[fieldValue.arrayIndex]) {
-        arrayItems[fieldValue.arrayIndex] = [];
+    if (fieldValue.array_index !== null && fieldValue.array_index !== undefined) {
+      if (!arrayItems[fieldValue.array_index]) {
+        arrayItems[fieldValue.array_index] = [];
       }
-      arrayItems[fieldValue.arrayIndex].push(fieldValue);
+      arrayItems[fieldValue.array_index].push(fieldValue);
     }
   }
 
@@ -663,15 +663,15 @@ export function reconstructField(
  * @returns Reconstructed value in the expected shape
  */
 function reconstructFieldValue(fieldValue: FlattenedFieldValue, fieldConfig: FieldConfig): any {
-  switch (fieldValue.fieldType) {
+  switch (fieldValue.field_type) {
     case 'relation': {
       // Reconstruct relation field as an object with relation properties
       const relationValue = fieldValue as RelationFieldValue;
       return {
-        targetDocumentId: relationValue.targetDocumentId,
-        targetCollectionId: relationValue.targetCollectionId,
-        relationshipType: relationValue.relationshipType,
-        cascadeDelete: relationValue.cascadeDelete,
+        target_document_id: relationValue.target_document_id,
+        target_collection_id: relationValue.target_collection_id,
+        relationship_type: relationValue.relationship_type,
+        cascade_delete: relationValue.cascade_delete,
       };
     }
 
@@ -680,20 +680,20 @@ function reconstructFieldValue(fieldValue: FlattenedFieldValue, fieldConfig: Fie
       // Reconstruct file field as an object with file properties
       const fileValue = fieldValue as FileFieldValue;
       return {
-        fileId: fileValue.fileId,
+        file_id: fileValue.file_id,
         filename: fileValue.filename,
-        originalFilename: fileValue.originalFilename,
-        mimeType: fileValue.mimeType,
-        fileSize: fileValue.fileSize,
-        storageProvider: fileValue.storageProvider,
-        storagePath: fileValue.storagePath,
-        storageUrl: fileValue.storageUrl,
-        fileHash: fileValue.fileHash,
-        imageWidth: fileValue.imageWidth,
-        imageHeight: fileValue.imageHeight,
-        imageFormat: fileValue.imageFormat,
-        processingStatus: fileValue.processingStatus,
-        thumbnailGenerated: fileValue.thumbnailGenerated,
+        original_filename: fileValue.original_filename,
+        mime_type: fileValue.mime_type,
+        file_size: fileValue.file_size,
+        storage_provider: fileValue.storage_provider,
+        storage_path: fileValue.storage_path,
+        storage_url: fileValue.storage_url,
+        file_hash: fileValue.file_hash,
+        image_width: fileValue.image_width,
+        image_height: fileValue.image_height,
+        image_format: fileValue.image_format,
+        processing_status: fileValue.processing_status,
+        thumbnail_generated: fileValue.thumbnail_generated,
       };
     }
 
@@ -701,19 +701,19 @@ function reconstructFieldValue(fieldValue: FlattenedFieldValue, fieldConfig: Fie
       // Reconstruct datetime field as an object with datetime properties
       const datetimeValue = fieldValue as DateTimeFieldValue;
       return {
-        dateType: datetimeValue.dateType,
-        valueDate: datetimeValue.valueDate,
-        valueTime: datetimeValue.valueTime,
-        valueTimestamp: datetimeValue.valueTimestamp,
-        valueTimestampTz: datetimeValue.valueTimestampTz,
+        date_type: datetimeValue.date_type,
+        value_date: datetimeValue.value_date,
+        value_time: datetimeValue.value_time,
+        value_timestamp: datetimeValue.value_timestamp,
+        value_timestamp_tz: datetimeValue.value_timestamp_tz,
       };
     }
 
     case 'json':
     case 'object': {
       // JSON/object fields store the value directly
-      const jsonValue = fieldValue as JsonFieldValue;
-      return jsonValue.value;
+      const json_value = fieldValue as JsonFieldValue;
+      return json_value.value;
     }
 
     case 'text':
@@ -742,7 +742,7 @@ export function reconstructLocalizedField(
 
   for (const fieldValue of fieldValues) {
     // Reconstruct the value based on field type instead of returning raw field value
-    localizedValues[fieldValue.locale] = reconstructFieldValue(fieldValue, { type: fieldValue.fieldType } as FieldConfig);
+    localizedValues[fieldValue.locale] = reconstructFieldValue(fieldValue, { type: fieldValue.field_type } as FieldConfig);
   }
 
   // If requesting a specific locale and it exists, return just that value
@@ -776,7 +776,7 @@ export function reconstructArrayItem(
 
   for (const subFieldConfig of subFieldConfigs) {
     const subFieldValues = fieldValues.filter(fv =>
-      fv.fieldName === subFieldConfig.name
+      fv.field_name === subFieldConfig.name
     );
 
     if (subFieldValues.length > 0) {
@@ -798,11 +798,11 @@ export function reconstructArrayItem(
  */
 export function groupFieldsByTopLevel(
   fieldValues: FlattenedFieldValue[]
-): { [fieldName: string]: FlattenedFieldValue[] } {
-  const groups: { [fieldName: string]: FlattenedFieldValue[] } = {};
+): { [field_name: string]: FlattenedFieldValue[] } {
+  const groups: { [field_name: string]: FlattenedFieldValue[] } = {};
 
   for (const fieldValue of fieldValues) {
-    const topLevelField = fieldValue.fieldPath.split('.')[0];
+    const topLevelField = fieldValue.field_path.split('.')[0];
     if (!groups[topLevelField]) {
       groups[topLevelField] = [];
     }
@@ -823,7 +823,7 @@ export function getArrayFieldValues(
   arrayFieldName: string
 ): ReconstructedFieldValue[] {
   return fieldValues.filter(fv =>
-    fv.fieldPath === arrayFieldName || fv.fieldPath.startsWith(`${arrayFieldName}.`)
+    fv.field_path === arrayFieldName || fv.field_path.startsWith(`${arrayFieldName}.`)
   );
 }
 
@@ -844,11 +844,11 @@ export function getFieldValuesByPath(
       .replace(/\*/g, '.*');
     const regex = new RegExp(`^${regexPattern}$`);
 
-    return fieldValues.filter(fv => regex.test(fv.fieldPath));
+    return fieldValues.filter(fv => regex.test(fv.field_path));
   }
   // Exact match or starts with
   return fieldValues.filter(fv =>
-    fv.fieldPath === pathPattern || fv.fieldPath.startsWith(`${pathPattern}.`)
+    fv.field_path === pathPattern || fv.field_path.startsWith(`${pathPattern}.`)
   );
 }
 
@@ -862,9 +862,9 @@ export function getFieldValuesByPath(
  */
 export function validateFlattenedFieldValue(fieldValue: FlattenedFieldValue): boolean {
   return !!(
-    fieldValue.fieldPath &&
-    fieldValue.fieldName &&
-    fieldValue.fieldType &&
+    fieldValue.field_path &&
+    fieldValue.field_name &&
+    fieldValue.field_type &&
     fieldValue.locale &&
     fieldValue !== undefined
   );
