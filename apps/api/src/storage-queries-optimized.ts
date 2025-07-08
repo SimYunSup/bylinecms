@@ -92,8 +92,557 @@ interface UnifiedFieldValue {
   value_bigint: string | null;
 }
 
+const textFields = sql`
+  id,
+  document_version_id,
+  collection_id,
+  'text' as "field_type",
+  field_path,
+  field_name,
+  locale,
+  array_index,
+  parent_path,
+  value as "text_value",
+  NULL::text as "numeric_value",
+  NULL::boolean as "boolean_value",
+  NULL::jsonb as "json_value",
+  NULL::varchar as "date_type",
+  NULL::date as "value_date",
+  NULL::time as "value_time",
+  NULL::timestamp as "value_timestamp",
+  NULL::timestamptz as "value_timestamp_tz",
+  NULL::uuid as "file_id",
+  NULL::varchar as "filename",
+  NULL::varchar as "original_filename",
+  NULL::varchar as "mime_type",
+  NULL::bigint as "file_size",
+  NULL::varchar as "storage_provider",
+  NULL::text as "storage_path",
+  NULL::text as "storage_url",
+  NULL::varchar as "file_hash",
+  NULL::integer as "image_width",
+  NULL::integer as "image_height",
+  NULL::varchar as "image_format",
+  NULL::varchar as "processing_status",
+  NULL::boolean as "thumbnail_generated",
+  NULL::uuid as "target_document_id",
+  NULL::uuid as "target_collection_id",
+  NULL::varchar as "relationship_type",
+  NULL::boolean as "cascade_delete",
+  NULL::varchar as "json_schema",
+  NULL::text[] as "object_keys",
+  NULL::varchar as "number_type",
+  NULL::integer as "value_integer",
+  NULL::decimal as "value_decimal",
+  NULL::real as "value_float",
+  NULL::bigint as "value_bigint"
+`
+
+const numericFields = sql`
+  id,
+  document_version_id,
+  collection_id,
+  'numeric',
+  field_path,
+  field_name,
+  locale,
+  array_index,
+  parent_path,
+  NULL,  -- text_value
+  COALESCE(value_integer::text, value_decimal::text, value_float::text, value_bigint::text),  -- numeric_value
+  NULL,  -- boolean_value
+  NULL,  -- json_value
+  NULL,  -- date_type
+  NULL,  -- value_date
+  NULL,  -- value_time
+  NULL,  -- value_timestamp
+  NULL,  -- value_timestamp_tz
+  NULL,  -- file_id
+  NULL,  -- filename
+  NULL,  -- original_filename
+  NULL,  -- mime_type
+  NULL,  -- file_size
+  NULL,  -- storage_provider
+  NULL,  -- storage_path
+  NULL,  -- storage_url
+  NULL,  -- file_hash
+  NULL,  -- image_width
+  NULL,  -- image_height
+  NULL,  -- image_format
+  NULL,  -- processing_status
+  NULL,  -- thumbnail_generated
+  NULL,  -- target_document_id
+  NULL,  -- target_collection_id
+  NULL,  -- relationship_type
+  NULL,  -- cascade_delete
+  NULL,  -- json_schema
+  NULL,  -- object_keys
+  number_type,  -- number_type
+  value_integer,  -- value_integer
+  value_decimal,  -- value_decimal
+  value_float,  -- value_float
+  value_bigint   -- value_bigint
+`
+
+const booleanFields = sql`
+  id, 
+  document_version_id,
+  collection_id,
+  'boolean',
+  field_path,
+  field_name,
+  locale,
+  array_index,
+  parent_path,
+  NULL,  -- text_value
+  NULL,  -- numeric_value
+  value, -- boolean_value
+  NULL,  -- json_value
+  NULL,  -- date_type
+  NULL,  -- value_date
+  NULL,  -- value_time
+  NULL,  -- value_timestamp
+  NULL,  -- value_timestamp_tz
+  NULL,  -- file_id
+  NULL,  -- filename
+  NULL,  -- original_filename
+  NULL,  -- mime_type
+  NULL,  -- file_size
+  NULL,  -- storage_provider
+  NULL,  -- storage_path
+  NULL,  -- storage_url
+  NULL,  -- file_hash
+  NULL,  -- image_width
+  NULL,  -- image_height
+  NULL,  -- image_format
+  NULL,  -- processing_status
+  NULL,  -- thumbnail_generated
+  NULL,  -- target_document_id
+  NULL,  -- target_collection_id
+  NULL,  -- relationship_type
+  NULL,  -- cascade_delete
+  NULL,  -- json_schema
+  NULL,  -- object_keys
+  NULL,  -- number_type
+  NULL,  -- value_integer
+  NULL,  -- value_decimal
+  NULL,  -- value_float
+  NULL   -- value_bigint
+`
+
+const datetimeFields = sql`
+  id,
+  document_version_id,
+  collection_id,
+  'datetime',
+  field_path,
+  field_name,
+  locale,
+  array_index,
+  parent_path,
+  NULL,  -- text_value
+  NULL,  -- numeric_value
+  NULL,  -- boolean_value
+  NULL,  -- json_value
+  date_type,  -- date_type
+  value_date, -- value_date
+  value_time, -- value_time
+  value_timestamp, -- value_timestamp
+  value_timestamp_tz, -- value_timestamp_tz
+  NULL,  -- file_id
+  NULL,  -- filename
+  NULL,  -- original_filename
+  NULL,  -- mime_type
+  NULL,  -- file_size
+  NULL,  -- storage_provider
+  NULL,  -- storage_path
+  NULL,  -- storage_url
+  NULL,  -- file_hash
+  NULL,  -- image_width
+  NULL,  -- image_height
+  NULL,  -- image_format
+  NULL,  -- processing_status
+  NULL,  -- thumbnail_generated
+  NULL,  -- target_document_id
+  NULL,  -- target_collection_id
+  NULL,  -- relationship_type
+  NULL,  -- cascade_delete
+  NULL,  -- json_schema
+  NULL,  -- object_keys
+  NULL,  -- number_type
+  NULL,  -- value_integer
+  NULL,  -- value_decimal
+  NULL,  -- value_float
+  NULL   -- value_bigint
+`
+
+const jsonFields = sql`  
+  id,
+  document_version_id,
+  collection_id,
+  'richText',
+  field_path,
+  field_name,
+  locale,
+  array_index,
+  parent_path,
+  NULL,  -- text_value
+  NULL,  -- numeric_value
+  NULL,  -- boolean_value
+  value, -- json_value
+  NULL,  -- date_type
+  NULL,  -- value_date
+  NULL,  -- value_time
+  NULL,  -- value_timestamp
+  NULL,  -- value_timestamp_tz
+  NULL,  -- file_id
+  NULL,  -- filename
+  NULL,  -- original_filename
+  NULL,  -- mime_type
+  NULL,  -- file_size
+  NULL,  -- storage_provider
+  NULL,  -- storage_path
+  NULL,  -- storage_url
+  NULL,  -- file_hash
+  NULL,  -- image_width
+  NULL,  -- image_height
+  NULL,  -- image_format
+  NULL,  -- processing_status
+  NULL,  -- thumbnail_generated
+  NULL,  -- target_document_id
+  NULL,  -- target_collection_id
+  NULL,  -- relationship_type
+  NULL,  -- cascade_delete
+  json_schema, -- json_schema
+  object_keys, -- object_keys
+  NULL,  -- number_type
+  NULL,  -- value_integer
+  NULL,  -- value_decimal
+  NULL,  -- value_float
+  NULL   -- value_bigint
+`
+
+const relationFields = sql`
+  id,
+  document_version_id,
+  collection_id,
+  'relation',
+  field_path,
+  field_name,
+  locale,
+  array_index,
+  parent_path,
+  NULL,  -- text_value
+  NULL,  -- numeric_value
+  NULL,  -- boolean_value
+  NULL,  -- json_value
+  NULL,  -- date_type
+  NULL,  -- value_date
+  NULL,  -- value_time
+  NULL,  -- value_timestamp
+  NULL,  -- value_timestamp_tz
+  NULL,  -- file_id
+  NULL,  -- filename
+  NULL,  -- original_filename
+  NULL,  -- mime_type
+  NULL,  -- file_size
+  NULL,  -- storage_provider
+  NULL,  -- storage_path
+  NULL,  -- storage_url
+  NULL,  -- file_hash
+  NULL,  -- image_width
+  NULL,  -- image_height
+  NULL,  -- image_format
+  NULL,  -- processing_status
+  NULL,  -- thumbnail_generated
+  target_document_id,  -- target_document_id
+  target_collection_id, -- target_collection_id
+  relationship_type,    -- relationship_type
+  cascade_delete,       -- cascade_delete
+  NULL,  -- json_schema
+  NULL,  -- object_keys
+  NULL,  -- number_type
+  NULL,  -- value_integer
+  NULL,  -- value_decimal
+  NULL,  -- value_float
+  NULL   -- value_bigint
+`
+const fileFields = sql`
+  id,
+  document_version_id,
+  collection_id,
+  'file',
+  field_path,
+  field_name,
+  locale,
+  array_index,
+  parent_path,
+  NULL,  -- text_value
+  NULL,  -- numeric_value
+  NULL,  -- boolean_value
+  NULL,  -- json_value
+  NULL,  -- date_type
+  NULL,  -- value_date
+  NULL,  -- value_time
+  NULL,  -- value_timestamp
+  NULL,  -- value_timestamp_tz
+  file_id,           -- file_id
+  filename,          -- filename
+  original_filename, -- original_filename
+  mime_type,         -- mime_type
+  file_size,         -- file_size
+  storage_provider,  -- storage_provider
+  storage_path,      -- storage_path
+  storage_url,       -- storage_url
+  file_hash,         -- file_hash
+  image_width,       -- image_width
+  image_height,      -- image_height
+  image_format,      -- image_format
+  processing_status, -- processing_status
+  thumbnail_generated, -- thumbnail_generated
+  NULL,  -- target_document_id
+  NULL,  -- target_collection_id
+  NULL,  -- relationship_type
+  NULL,  -- cascade_delete
+  NULL,  -- json_schema
+  NULL,  -- object_keys
+  NULL,  -- number_type
+  NULL,  -- value_integer
+  NULL,  -- value_decimal
+  NULL,  -- value_float
+  NULL   -- value_bigint
+`
+
 export class OptimizedDocumentQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
+
+
+  /**
+ * Optimized version using a single JOIN query (most efficient)
+ */
+  async getAllCurrentDocumentsForCollectionOptimized(
+    collectionId: string,
+    collectionConfig: CollectionConfig,
+    locale = 'all'
+  ): Promise<any[]> {
+    const localeCondition = locale === 'all'
+      ? sql`TRUE`
+      : sql`fv.locale = ${locale}`;
+
+    // Ultra-optimized single query with direct JOINs
+    const query = sql`
+    SELECT 
+      d.id as document_id,
+      d.path as document_path,
+      d.status as document_status,
+      dv.id as version_id,
+      fv.id,
+      fv.document_version_id,
+      fv.collection_id,
+      fv.field_type,
+      fv.field_path,
+      fv.field_name,
+      fv.locale,
+      fv.array_index,
+      fv.parent_path,
+      fv.text_value,
+      fv.numeric_value,
+      fv.boolean_value,
+      fv.json_value,
+      fv.date_type,
+      fv.value_date,
+      fv.value_time,
+      fv.value_timestamp,
+      fv.value_timestamp_tz,
+      fv.file_id,
+      fv.filename,
+      fv.original_filename,
+      fv.mime_type,
+      fv.file_size,
+      fv.storage_provider,
+      fv.storage_path,
+      fv.storage_url,
+      fv.file_hash,
+      fv.image_width,
+      fv.image_height,
+      fv.image_format,
+      fv.processing_status,
+      fv.thumbnail_generated,
+      fv.target_document_id,
+      fv.target_collection_id,
+      fv.relationship_type,
+      fv.cascade_delete,
+      fv.json_schema,
+      fv.object_keys,
+      fv.number_type,
+      fv.value_integer,
+      fv.value_decimal,
+      fv.value_float,
+      fv.value_bigint
+    FROM documents d
+    INNER JOIN document_versions dv ON d.id = dv.document_id AND dv.is_current = true
+    LEFT JOIN (
+      -- Text fields
+      SELECT 
+        ${textFields}
+      FROM field_values_text
+
+      UNION ALL
+
+      -- Numeric fields
+      SELECT 
+        ${numericFields}
+      FROM field_values_numeric
+
+      UNION ALL
+
+      -- Boolean fields
+      SELECT 
+        ${booleanFields}
+      FROM field_values_boolean
+
+      UNION ALL
+
+      -- DateTime fields
+      SELECT 
+        ${datetimeFields}
+      FROM field_values_datetime
+
+      UNION ALL
+
+      -- JSON fields
+      SELECT 
+        ${jsonFields}
+      FROM field_values_json
+
+      UNION ALL
+
+      -- Relation fields
+      SELECT 
+        ${relationFields}
+      FROM field_values_relation
+
+      UNION ALL
+
+      -- File fields
+      SELECT 
+        ${fileFields}
+      FROM field_values_file
+    ) fv ON dv.id = fv.document_version_id AND ${localeCondition}
+    WHERE d.collection_id = ${collectionId}
+    ORDER BY d.id, fv.field_path NULLS LAST, fv.array_index NULLS FIRST, fv.locale
+  `;
+
+    const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
+
+    return this.groupAndReconstructDocuments(rows, collectionConfig, locale);
+  }
+
+  /**
+ * Helper method to group results by document and reconstruct each document
+ * Returns an array of complete documents
+ */
+  private groupAndReconstructDocuments(
+    rows: Record<string, unknown>[],
+    collectionConfig: CollectionConfig,
+    locale: string
+  ): any[] {
+    // Group rows by document ID
+    const documentGroups = new Map<string, {
+      document: { id: string; path: string; status: string };
+      fieldValues: UnifiedFieldValue[];
+    }>();
+
+    for (const row of rows) {
+      const documentId = row.document_id as string;
+
+      if (!documentGroups.has(documentId)) {
+        documentGroups.set(documentId, {
+          document: {
+            id: documentId,
+            path: row.document_path as string,
+            status: row.document_status as string,
+          },
+          fieldValues: []
+        });
+      }
+
+      // Only add field values if they exist (LEFT JOIN can return null field values)
+      if (row.id) {
+        const fieldValue: UnifiedFieldValue = {
+          id: row.id as string,
+          document_version_id: row.document_version_id as string,
+          collection_id: row.collection_id as string,
+          field_type: row.field_type as string,
+          field_path: row.field_path as string,
+          field_name: row.field_name as string,
+          locale: row.locale as string,
+          array_index: row.array_index as number | null,
+          parent_path: row.parent_path as string | null,
+          text_value: row.text_value as string | null,
+          numeric_value: row.numeric_value as string | null,
+          boolean_value: row.boolean_value as boolean | null,
+          json_value: row.json_value as any,
+          date_type: row.date_type as string | null,
+          value_date: row.value_date as Date | null,
+          value_time: row.value_time as string | null,
+          value_timestamp: row.value_timestamp as Date | null,
+          value_timestamp_tz: row.value_timestamp_tz as Date | null,
+          file_id: row.file_id as string | null,
+          filename: row.filename as string | null,
+          original_filename: row.original_filename as string | null,
+          mime_type: row.mime_type as string | null,
+          file_size: row.file_size as number | null,
+          storage_provider: row.storage_provider as string | null,
+          storage_path: row.storage_path as string | null,
+          storage_url: row.storage_url as string | null,
+          file_hash: row.file_hash as string | null,
+          image_width: row.image_width as number | null,
+          image_height: row.image_height as number | null,
+          image_format: row.image_format as string | null,
+          processing_status: row.processing_status as string | null,
+          thumbnail_generated: row.thumbnail_generated as boolean | null,
+          target_document_id: row.target_document_id as string | null,
+          target_collection_id: row.target_collection_id as string | null,
+          relationship_type: row.relationship_type as string | null,
+          cascade_delete: row.cascade_delete as boolean | null,
+          json_schema: row.json_schema as string | null,
+          object_keys: row.object_keys as string[] | null,
+          number_type: row.number_type as string | null,
+          value_integer: row.value_integer as number | null,
+          value_decimal: row.value_decimal as string | null,
+          value_float: row.value_float as number | null,
+          value_bigint: row.value_bigint as string | null,
+        };
+
+        documentGroups.get(documentId)!.fieldValues.push(fieldValue);
+      }
+    }
+
+    // Reconstruct each document and return as array
+    const result: any[] = [];
+
+    for (const [documentId, group] of documentGroups) {
+      const flattenedFieldValues = this.convertUnifiedToFlattenedFieldValues(group.fieldValues);
+
+      const head = {
+        id: group.document.id,
+        path: group.document.path,
+        status: group.document.status
+      }
+
+      const document = reconstructDocument(
+        flattenedFieldValues,
+        collectionConfig,
+        locale
+      );
+
+      result.push({ ...head, ...document });
+    }
+
+    // Sort by document path for consistent ordering
+    return result.sort((a, b) => (a.__meta?.path || '').localeCompare(b.__meta?.path || ''));
+  }
 
   /**
    * Gets a complete reconstructed document using a single optimized query
@@ -149,49 +698,7 @@ export class OptimizedDocumentQueries {
     const query = sql`
       -- Text fields (43 columns total)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'text' as "field_type",
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        value as "text_value",
-        NULL::text as "numeric_value",
-        NULL::boolean as "boolean_value",
-        NULL::jsonb as "json_value",
-        NULL::varchar as "date_type",
-        NULL::date as "value_date",
-        NULL::time as "value_time",
-        NULL::timestamp as "value_timestamp",
-        NULL::timestamptz as "value_timestamp_tz",
-        NULL::uuid as "file_id",
-        NULL::varchar as "filename",
-        NULL::varchar as "original_filename",
-        NULL::varchar as "mime_type",
-        NULL::bigint as "file_size",
-        NULL::varchar as "storage_provider",
-        NULL::text as "storage_path",
-        NULL::text as "storage_url",
-        NULL::varchar as "file_hash",
-        NULL::integer as "image_width",
-        NULL::integer as "image_height",
-        NULL::varchar as "image_format",
-        NULL::varchar as "processing_status",
-        NULL::boolean as "thumbnail_generated",
-        NULL::uuid as "target_document_id",
-        NULL::uuid as "target_collection_id",
-        NULL::varchar as "relationship_type",
-        NULL::boolean as "cascade_delete",
-        NULL::varchar as "json_schema",
-        NULL::text[] as "object_keys",
-        NULL::varchar as "number_type",
-        NULL::integer as "value_integer",
-        NULL::decimal as "value_decimal",
-        NULL::real as "value_float",
-        NULL::bigint as "value_bigint"
+        ${textFields}
       FROM field_values_text 
       WHERE document_version_id = ${versionId} ${localeCondition}
 
@@ -199,49 +706,7 @@ export class OptimizedDocumentQueries {
 
       -- Numeric fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'numeric',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        COALESCE(value_integer::text, value_decimal::text, value_float::text, value_bigint::text),  -- numeric_value
-        NULL,  -- boolean_value
-        NULL,  -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        number_type,  -- number_type
-        value_integer,  -- value_integer
-        value_decimal,  -- value_decimal
-        value_float,  -- value_float
-        value_bigint   -- value_bigint
+        ${numericFields}
       FROM field_values_numeric 
       WHERE document_version_id = ${versionId} ${localeCondition}
 
@@ -249,49 +714,7 @@ export class OptimizedDocumentQueries {
 
       -- Boolean fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'boolean',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        value, -- boolean_value
-        NULL,  -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+        ${booleanFields}
       FROM field_values_boolean 
       WHERE document_version_id = ${versionId} ${localeCondition}
 
@@ -299,49 +722,7 @@ export class OptimizedDocumentQueries {
 
       -- DateTime fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'datetime',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        NULL,  -- boolean_value
-        NULL,  -- json_value
-        date_type,  -- date_type
-        value_date, -- value_date
-        value_time, -- value_time
-        value_timestamp, -- value_timestamp
-        value_timestamp_tz, -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+        ${datetimeFields}
       FROM field_values_datetime 
       WHERE document_version_id = ${versionId} ${localeCondition}
 
@@ -349,49 +730,7 @@ export class OptimizedDocumentQueries {
 
       -- JSON fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'richText',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        NULL,  -- boolean_value
-        value, -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        json_schema, -- json_schema
-        object_keys, -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+       ${jsonFields}
       FROM field_values_json 
       WHERE document_version_id = ${versionId} ${localeCondition}
 
@@ -399,49 +738,7 @@ export class OptimizedDocumentQueries {
 
       -- Relation fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'relation',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        NULL,  -- boolean_value
-        NULL,  -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        target_document_id,  -- target_document_id
-        target_collection_id, -- target_collection_id
-        relationship_type,    -- relationship_type
-        cascade_delete,       -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+        ${relationFields}
       FROM field_values_relation 
       WHERE document_version_id = ${versionId} ${localeCondition}
 
@@ -449,49 +746,7 @@ export class OptimizedDocumentQueries {
 
       -- File fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'file',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        NULL,  -- boolean_value
-        NULL,  -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        file_id,           -- file_id
-        filename,          -- filename
-        original_filename, -- original_filename
-        mime_type,         -- mime_type
-        file_size,         -- file_size
-        storage_provider,  -- storage_provider
-        storage_path,      -- storage_path
-        storage_url,       -- storage_url
-        file_hash,         -- file_hash
-        image_width,       -- image_width
-        image_height,      -- image_height
-        image_format,      -- image_format
-        processing_status, -- processing_status
-        thumbnail_generated, -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+        ${fileFields}
       FROM field_values_file 
       WHERE document_version_id = ${versionId} ${localeCondition}
 
@@ -675,49 +930,7 @@ export class OptimizedDocumentQueries {
     const query = sql`
       -- Text fields (43 columns total)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'text' as "field_type",
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        value as "text_value",
-        NULL::text as "numeric_value",
-        NULL::boolean as "boolean_value",
-        NULL::jsonb as "json_value",
-        NULL::varchar as "date_type",
-        NULL::date as "value_date",
-        NULL::time as "value_time",
-        NULL::timestamp as "value_timestamp",
-        NULL::timestamptz as "value_timestamp_tz",
-        NULL::uuid as "file_id",
-        NULL::varchar as "filename",
-        NULL::varchar as "original_filename",
-        NULL::varchar as "mime_type",
-        NULL::bigint as "file_size",
-        NULL::varchar as "storage_provider",
-        NULL::text as "storage_path",
-        NULL::text as "storage_url",
-        NULL::varchar as "file_hash",
-        NULL::integer as "image_width",
-        NULL::integer as "image_height",
-        NULL::varchar as "image_format",
-        NULL::varchar as "processing_status",
-        NULL::boolean as "thumbnail_generated",
-        NULL::uuid as "target_document_id",
-        NULL::uuid as "target_collection_id",
-        NULL::varchar as "relationship_type",
-        NULL::boolean as "cascade_delete",
-        NULL::varchar as "json_schema",
-        NULL::text[] as "object_keys",
-        NULL::varchar as "number_type",
-        NULL::integer as "value_integer",
-        NULL::decimal as "value_decimal",
-        NULL::real as "value_float",
-        NULL::bigint as "value_bigint"
+         ${textFields}
       FROM field_values_text 
       WHERE ${versionCondition} ${localeCondition}
 
@@ -725,49 +938,7 @@ export class OptimizedDocumentQueries {
 
       -- Numeric fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'numeric',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        COALESCE(value_integer::text, value_decimal::text, value_float::text, value_bigint::text),  -- numeric_value
-        NULL,  -- boolean_value
-        NULL,  -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        number_type,  -- number_type
-        value_integer,  -- value_integer
-        value_decimal,  -- value_decimal
-        value_float,  -- value_float
-        value_bigint   -- value_bigint
+         ${numericFields}
       FROM field_values_numeric 
       WHERE ${versionCondition} ${localeCondition}
 
@@ -775,49 +946,7 @@ export class OptimizedDocumentQueries {
 
       -- Boolean fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'boolean',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        value, -- boolean_value
-        NULL,  -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+        ${booleanFields}
       FROM field_values_boolean 
       WHERE ${versionCondition} ${localeCondition}
 
@@ -825,49 +954,7 @@ export class OptimizedDocumentQueries {
 
       -- DateTime fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'datetime',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        NULL,  -- boolean_value
-        NULL,  -- json_value
-        date_type,  -- date_type
-        value_date, -- value_date
-        value_time, -- value_time
-        value_timestamp, -- value_timestamp
-        value_timestamp_tz, -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+        ${datetimeFields}
       FROM field_values_datetime 
       WHERE ${versionCondition} ${localeCondition}
 
@@ -875,49 +962,7 @@ export class OptimizedDocumentQueries {
 
      -- JSON fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'richText',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        NULL,  -- boolean_value
-        value, -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        json_schema, -- json_schema
-        object_keys, -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+        ${jsonFields}
       FROM field_values_json 
       WHERE ${versionCondition} ${localeCondition}
 
@@ -925,49 +970,7 @@ export class OptimizedDocumentQueries {
 
       -- Relation fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'relation',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        NULL,  -- boolean_value
-        NULL,  -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        NULL,  -- file_id
-        NULL,  -- filename
-        NULL,  -- original_filename
-        NULL,  -- mime_type
-        NULL,  -- file_size
-        NULL,  -- storage_provider
-        NULL,  -- storage_path
-        NULL,  -- storage_url
-        NULL,  -- file_hash
-        NULL,  -- image_width
-        NULL,  -- image_height
-        NULL,  -- image_format
-        NULL,  -- processing_status
-        NULL,  -- thumbnail_generated
-        target_document_id,  -- target_document_id
-        target_collection_id, -- target_collection_id
-        relationship_type,    -- relationship_type
-        cascade_delete,       -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+        ${relationFields}
       FROM field_values_relation 
       WHERE ${versionCondition} ${localeCondition}
 
@@ -975,49 +978,7 @@ export class OptimizedDocumentQueries {
 
       -- File fields (43 columns total - SAME ORDER)
       SELECT 
-        id,
-        document_version_id,
-        collection_id,
-        'file',
-        field_path,
-        field_name,
-        locale,
-        array_index,
-        parent_path,
-        NULL,  -- text_value
-        NULL,  -- numeric_value
-        NULL,  -- boolean_value
-        NULL,  -- json_value
-        NULL,  -- date_type
-        NULL,  -- value_date
-        NULL,  -- value_time
-        NULL,  -- value_timestamp
-        NULL,  -- value_timestamp_tz
-        file_id,           -- file_id
-        filename,          -- filename
-        original_filename, -- original_filename
-        mime_type,         -- mime_type
-        file_size,         -- file_size
-        storage_provider,  -- storage_provider
-        storage_path,      -- storage_path
-        storage_url,       -- storage_url
-        file_hash,         -- file_hash
-        image_width,       -- image_width
-        image_height,      -- image_height
-        image_format,      -- image_format
-        processing_status, -- processing_status
-        thumbnail_generated, -- thumbnail_generated
-        NULL,  -- target_document_id
-        NULL,  -- target_collection_id
-        NULL,  -- relationship_type
-        NULL,  -- cascade_delete
-        NULL,  -- json_schema
-        NULL,  -- object_keys
-        NULL,  -- number_type
-        NULL,  -- value_integer
-        NULL,  -- value_decimal
-        NULL,  -- value_float
-        NULL   -- value_bigint
+        ${fileFields}
       FROM field_values_file 
       WHERE ${versionCondition} ${localeCondition}
 
