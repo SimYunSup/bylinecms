@@ -45,7 +45,7 @@ const siteConfig: SiteConfig = {
   }
 }
 
-// Test collection configuration (your original example)
+// Test collection configuration
 const PagesCollectionConfig: CollectionConfig = {
   path: 'pages',
   labels: {
@@ -56,6 +56,7 @@ const PagesCollectionConfig: CollectionConfig = {
     { name: 'path', type: 'text', required: true, unique: true },
     { name: 'title', type: 'text', required: true },
     { name: 'content', type: 'richText', required: true },
+    { name: 'nonGibberish', type: 'text', required: false },
     { name: 'gibberish', type: 'text', required: false, localized: true },
     { name: 'related', type: 'relation', required: false },
     {
@@ -76,6 +77,7 @@ const examplePageDocument = {
     type: "paragraph",
     content: [{ type: "text", text: "This is rich text content" }]
   },
+  nonGibberish: "This is a non-gibberish text",
   gibberish: {
     en: "English gibberish text",
     es: "Spanish gibberish text"
