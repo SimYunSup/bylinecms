@@ -26,7 +26,7 @@
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-import { documentVersions } from '../database/schema/index.js';
+import { documents, documentVersions } from '../database/schema/index.js';
 
 type DatabaseConnection = NodePgDatabase<any>;
 
@@ -536,6 +536,242 @@ export class OptimizedDocumentQueries {
     const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
 
     return this.groupAndReconstructDocuments(rows, collectionConfig, locale);
+  }
+
+  /**
+ * Alternative approach: More efficient for large collections
+ * Gets documents in batches to avoid memory issues
+ */
+  async getAllCurrentDocumentsForCollectionBatched(
+    collectionId: string,
+    collectionConfig: CollectionConfig,
+    locale = 'all',
+    batchSize = 100
+  ): Promise<any[]> {
+    // First, get all current document IDs for the collection
+    const currentDocuments = await this.db.select({
+      id: documents.id,
+      path: documents.path,
+      status: documents.status,
+    })
+      .from(documents)
+      .innerJoin(documentVersions, eq(documents.id, documentVersions.document_id))
+      .where(
+        and(
+          eq(documents.collection_id, collectionId),
+          eq(documentVersions.is_current, true)
+        )
+      )
+      .orderBy(documents.path); // Add consistent ordering
+
+    if (currentDocuments.length === 0) return [];
+
+    // Process documents in batches
+    const result: any[] = [];
+    const documentIds = currentDocuments.map(doc => doc.id);
+
+    for (let i = 0; i < documentIds.length; i += batchSize) {
+      const batch = documentIds.slice(i, i + batchSize);
+      const batchResults = await this.getMultipleDocuments(batch, collectionConfig, locale);
+
+      // Convert object result to array and maintain order
+      for (const docId of batch) {
+        if (batchResults[docId]) {
+          result.push(batchResults[docId]);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+ * Gets all current documents for a collection using a single optimized query
+ */
+  async getAllCurrentDocumentsForCollection(
+    collectionId: string,
+    collectionConfig: CollectionConfig,
+    locale = 'all'
+  ): Promise<any[]> {
+    const localeCondition = locale === 'all'
+      ? sql``
+      : sql`AND fv.locale = ${locale}`;
+
+    // Single query that joins documents -> document_versions -> field_values (UNION ALL)
+    const query = sql`
+    WITH current_documents AS (
+      SELECT 
+        d.id as document_id,
+        d.path as document_path,
+        d.status as document_status,
+        dv.id as version_id
+      FROM documents d
+      INNER JOIN document_versions dv ON d.id = dv.document_id
+      WHERE d.collection_id = ${collectionId}
+        AND dv.is_current = true
+    ),
+    all_field_values AS (
+      -- Text fields
+      SELECT 
+        ${textFields}
+      FROM field_values_text 
+      WHERE document_version_id IN (SELECT version_id FROM current_documents)
+        ${localeCondition}
+
+      UNION ALL
+
+      -- Numeric fields
+      SELECT 
+        ${numericFields}
+      FROM field_values_numeric 
+      WHERE document_version_id IN (SELECT version_id FROM current_documents)
+        ${localeCondition}
+
+      UNION ALL
+
+      -- Boolean fields
+      SELECT 
+        ${booleanFields}
+      FROM field_values_boolean 
+      WHERE document_version_id IN (SELECT version_id FROM current_documents)
+        ${localeCondition}
+
+      UNION ALL
+
+      -- DateTime fields
+      SELECT 
+        ${datetimeFields}
+      FROM field_values_datetime 
+      WHERE document_version_id IN (SELECT version_id FROM current_documents)
+        ${localeCondition}
+
+      UNION ALL
+
+      -- JSON fields
+      SELECT 
+        ${jsonFields}
+      FROM field_values_json 
+      WHERE document_version_id IN (SELECT version_id FROM current_documents)
+        ${localeCondition}
+
+      UNION ALL
+
+      -- Relation fields
+      SELECT 
+        ${relationFields}
+      FROM field_values_relation 
+      WHERE document_version_id IN (SELECT version_id FROM current_documents)
+        ${localeCondition}
+
+      UNION ALL
+
+      -- File fields
+      SELECT 
+        ${fileFields}
+      FROM field_values_file 
+      WHERE document_version_id IN (SELECT version_id FROM current_documents)
+        ${localeCondition}
+    )
+    SELECT 
+      cd.document_id,
+      cd.document_path,
+      cd.document_status,
+      cd.version_id,
+      fv.*
+    FROM current_documents cd
+    LEFT JOIN all_field_values fv ON cd.version_id = fv.document_version_id
+    ORDER BY cd.document_id, fv.field_path, fv.array_index NULLS FIRST, fv.locale
+  `;
+
+    const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
+
+    // Group results by document ID and reconstruct each document
+    return this.groupAndReconstructDocuments(rows, collectionConfig, locale);
+  }
+
+  /**
+ * Gets paginated current documents for a collection (useful for large collections)
+ */
+  async getCurrentDocumentsForCollectionPaginated(
+    collectionId: string,
+    collectionConfig: CollectionConfig,
+    options: {
+      locale?: string;
+      limit?: number;
+      offset?: number;
+      orderBy?: string;
+      orderDirection?: 'asc' | 'desc';
+    } = {}
+  ): Promise<{
+    documents: { [documentId: string]: any };
+    pagination: {
+      total: number;
+      limit: number;
+      offset: number;
+      hasMore: boolean;
+    };
+  }> {
+    const {
+      locale = 'all',
+      limit = 50,
+      offset = 0,
+      orderBy = 'created_at',
+      orderDirection = 'desc'
+    } = options;
+
+    // First get total count
+    const totalResult = await this.db.select({
+      count: sql<number>`count(*)`,
+    })
+      .from(documents)
+      .innerJoin(documentVersions, eq(documents.id, documentVersions.document_id))
+      .where(
+        and(
+          eq(documents.collection_id, collectionId),
+          eq(documentVersions.is_current, true)
+        )
+      );
+
+    const total = totalResult[0]?.count || 0;
+
+    if (total === 0) {
+      return {
+        documents: {},
+        pagination: { total: 0, limit, offset, hasMore: false }
+      };
+    }
+
+    // Get paginated document IDs
+    const orderColumn = orderBy === 'path' ? documents.path : documents.created_at;
+    const orderFunc = orderDirection === 'asc' ? sql`ASC` : sql`DESC`;
+
+    const paginatedDocs = await this.db.select({
+      id: documents.id,
+    })
+      .from(documents)
+      .innerJoin(documentVersions, eq(documents.id, documentVersions.document_id))
+      .where(
+        and(
+          eq(documents.collection_id, collectionId),
+          eq(documentVersions.is_current, true)
+        )
+      )
+      .orderBy(sql`${orderColumn} ${orderFunc}`)
+      .limit(limit)
+      .offset(offset);
+
+    const documentIds = paginatedDocs.map(doc => doc.id);
+    const documentsData = await this.getMultipleDocuments(documentIds, collectionConfig, locale);
+
+    return {
+      documents: documentsData,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total
+      }
+    };
   }
 
   /**

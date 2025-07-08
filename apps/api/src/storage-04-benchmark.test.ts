@@ -542,6 +542,29 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
       console.log('Retrieved documents:', documents.length)
       console.log('Sample document:', documents[0])
     })
+    it('get all documents for collection by page', async () => {
+
+      const startTime = performance.now()
+
+      const documents = await queryBuildersOptimized.documents.getCurrentDocumentsForCollectionPaginated(
+        testCollection.id,
+        ComplexCollectionConfig,
+        {
+          locale: 'all',
+          limit: 50,
+          offset: 0,
+          orderBy: 'created_at',
+          orderDirection: 'desc'
+        }
+      )
+
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      console.log(`All documents for collection by page: ${duration.toFixed(2)}ms`)
+      // console.log('Retrieved documents:', documents.length)
+      // console.log('Sample document:', documents[0])
+    })
   })
 
   describe('Memory Usage and Result Verification', () => {
