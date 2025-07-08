@@ -110,7 +110,7 @@ const textFields = sql`
   NULL::date as "value_date",
   NULL::time as "value_time",
   NULL::timestamp as "value_timestamp",
-  NULL::timestamptz as "value_timestamp_tz",
+  NULL::timestamp as "value_timestamp_tz",
   NULL::uuid as "file_id",
   NULL::varchar as "filename",
   NULL::varchar as "original_filename",
@@ -574,12 +574,8 @@ export class OptimizedDocumentQueries {
       const batch = documentIds.slice(i, i + batchSize);
       const batchResults = await this.getMultipleDocuments(batch, collectionConfig, locale);
 
-      // Convert object result to array and maintain order
-      for (const docId of batch) {
-        if (batchResults[docId]) {
-          result.push(batchResults[docId]);
-        }
-      }
+      // Add batch results to final result array
+      result.push(...batchResults);
     }
 
     return result;
@@ -703,7 +699,7 @@ export class OptimizedDocumentQueries {
       orderDirection?: 'asc' | 'desc';
     } = {}
   ): Promise<{
-    documents: { [documentId: string]: any };
+    documents: any[];
     pagination: {
       total: number;
       limit: number;
@@ -736,7 +732,7 @@ export class OptimizedDocumentQueries {
 
     if (total === 0) {
       return {
-        documents: {},
+        documents: [],
         pagination: { total: 0, limit, offset, hasMore: false }
       };
     }
@@ -1098,23 +1094,29 @@ export class OptimizedDocumentQueries {
     documentIds: string[],
     collectionConfig: CollectionConfig,
     locale = 'all'
-  ): Promise<{ [document_id: string]: any }> {
-    if (documentIds.length === 0) return {};
+  ): Promise<any[]> {
+    if (documentIds.length === 0) return [];
 
-    // Get current versions for all documents
-    const currentVersions = await this.db.select()
-      .from(documentVersions)
+    // Get current versions and document metadata for all documents
+    const currentVersionsWithDocs = await this.db.select({
+      document_id: documents.id,
+      document_path: documents.path,
+      document_status: documents.status,
+      version_id: documentVersions.id,
+    })
+      .from(documents)
+      .innerJoin(documentVersions, eq(documents.id, documentVersions.document_id))
       .where(
         and(
-          inArray(documentVersions.document_id, documentIds),
+          inArray(documents.id, documentIds),
           eq(documentVersions.is_current, true)
         )
       );
 
-    if (currentVersions.length === 0) return {};
+    if (currentVersionsWithDocs.length === 0) return [];
 
     // Get all field values for all versions in one query
-    const versionIds = currentVersions.map(v => v.id);
+    const versionIds = currentVersionsWithDocs.map(v => v.version_id);
     const allFieldValues = await this.getAllFieldValuesForMultipleVersions(
       versionIds,
       locale
@@ -1129,20 +1131,31 @@ export class OptimizedDocumentQueries {
       fieldValuesByVersion.get(fieldValue.document_version_id)!.push(fieldValue);
     }
 
-    // Reconstruct each document
-    const result: { [document_id: string]: any } = {};
-    for (const version of currentVersions) {
-      const versionFieldValues = fieldValuesByVersion.get(version.id) || [];
+    // Reconstruct each document with metadata at root level
+    const result: any[] = [];
+    for (const versionData of currentVersionsWithDocs) {
+      const versionFieldValues = fieldValuesByVersion.get(versionData.version_id) || [];
       const flattenedFieldValues = this.convertUnifiedToFlattenedFieldValues(versionFieldValues);
 
-      result[version.document_id] = reconstructDocument(
+      const reconstructedDocument = reconstructDocument(
         flattenedFieldValues,
         collectionConfig,
         locale
       );
+
+      // Add document metadata at root level
+      const documentWithMetadata = {
+        id: versionData.document_id,
+        path: versionData.document_path,
+        status: versionData.document_status,
+        ...reconstructedDocument
+      };
+
+      result.push(documentWithMetadata);
     }
 
-    return result;
+    // Sort by document path for consistent ordering
+    return result.sort((a, b) => (a.path || '').localeCompare(b.path || ''));
   }
 
   /**
