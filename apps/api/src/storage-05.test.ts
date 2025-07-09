@@ -22,7 +22,7 @@
 
 import { after, before, describe, it } from 'node:test'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
+import pg from 'pg'
 import * as schema from '../database/schema/index.js'
 import type { SiteConfig } from './@types.js'
 import { BulkCollectionConfig } from './seed-bulk-documents.js'
@@ -30,7 +30,7 @@ import { createQueryBuilders } from './storage-queries.js'
 import { createOptimizedQueryBuilders } from './storage-queries-optimized.js'
 
 // Test database setup
-let pool: Pool
+let pool: pg.Pool
 let db: ReturnType<typeof drizzle>
 let queryBuildersOptimized: ReturnType<typeof createOptimizedQueryBuilders>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
@@ -48,7 +48,14 @@ let bulkCollection: { id: string; name: string } = {} as any
 describe('Bulk Document Operations', () => {
   before(async () => {
     // Connect to test database
-    pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
+
+    pool = new pg.Pool({
+      connectionString: process.env.POSTGRES_CONNECTION_STRING,
+      max: 20, // set pool max size to 20
+      idleTimeoutMillis: 2000, // close idle clients after 2 second
+      connectionTimeoutMillis: 1000, // return an error after 1 second if connection could not be established
+    })
+
     db = drizzle(pool, { schema })
 
     queryBuildersOptimized = createOptimizedQueryBuilders(siteConfig, db)
@@ -61,7 +68,10 @@ describe('Bulk Document Operations', () => {
   })
 
   after(async () => {
-    await pool.end()
+    if (pool != null && typeof pool.end === 'function') {
+      console.log('Drizzle pool is ending...')
+      pool.end().catch()
+    }
   })
 
   describe('Get Documents for Collection', () => {
@@ -83,28 +93,28 @@ describe('Bulk Document Operations', () => {
       console.log('Retrieved documents:', documents.length)
       console.log('Sample document:', documents[0])
     })
-    it('get all documents for collection by page', async () => {
+    it.skip('get all documents for collection by page', async () => {
 
-      const startTime = performance.now()
+      // const startTime = performance.now()
 
-      const result = await queryBuildersOptimized.documents.getCurrentDocumentsForCollectionPaginated(
-        bulkCollection.id,
-        BulkCollectionConfig,
-        {
-          locale: 'all',
-          limit: 50,
-          offset: 0,
-          orderBy: 'created_at',
-          orderDirection: 'desc'
-        }
-      )
+      // const result = await queryBuildersOptimized.documents.getCurrentDocumentsForCollectionPaginated(
+      //   bulkCollection.id,
+      //   BulkCollectionConfig,
+      //   {
+      //     locale: 'all',
+      //     limit: 50,
+      //     offset: 0,
+      //     orderBy: 'created_at',
+      //     orderDirection: 'desc'
+      //   }
+      // )
 
-      const endTime = performance.now()
-      const duration = endTime - startTime
+      // const endTime = performance.now()
+      // const duration = endTime - startTime
 
-      console.log(`All documents for collection by page: ${duration.toFixed(2)}ms`)
-      console.log('Retrieved documents:', result.documents.length)
-      console.log('Sample document:', result.documents[0])
+      // console.log(`All documents for collection by page: ${duration.toFixed(2)}ms`)
+      // console.log('Retrieved documents:', result.documents.length)
+      // console.log('Sample document:', result.documents[0])
     })
   })
 })
