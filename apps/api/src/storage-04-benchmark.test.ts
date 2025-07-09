@@ -23,6 +23,7 @@
 import { after, before, describe, it } from 'node:test'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
+import { v7 as uuidv7 } from 'uuid'
 import * as schema from '../database/schema/index.js'
 import type { CollectionConfig, SiteConfig } from './@types.js'
 import { createCommandBuilders } from './storage-commands.js'
@@ -51,6 +52,45 @@ const ComplexCollectionConfig: CollectionConfig = {
   labels: {
     singular: 'Product',
     plural: 'Products',
+  },
+  fields: [
+    { name: 'sku', type: 'text', required: true, unique: true },
+    { name: 'name', type: 'text', required: true, localized: true },
+    { name: 'description', type: 'richText', required: true, localized: true },
+    { name: 'price', type: 'decimal', required: true },
+    { name: 'inStock', type: 'boolean', required: true },
+    { name: 'releaseDate', type: 'datetime', required: false },
+    { name: 'category', type: 'relation', required: false },
+    {
+      name: 'images', type: 'array', fields: [
+        { name: 'url', type: 'file', required: true },
+        { name: 'alt', type: 'text', required: true, localized: true },
+        { name: 'caption', type: 'text', required: false, localized: true },
+      ]
+    },
+    {
+      name: 'specifications', type: 'array', fields: [
+        { name: 'key', type: 'text', required: true, localized: true },
+        { name: 'value', type: 'text', required: true, localized: true },
+        { name: 'unit', type: 'text', required: false },
+      ]
+    },
+    {
+      name: 'reviews', type: 'array', fields: [
+        { name: 'rating', type: 'integer', required: true },
+        { name: 'comment', type: 'richText', required: true },
+        { name: 'author', type: 'relation', required: false },
+        { name: 'verified', type: 'boolean', required: true },
+      ]
+    }
+  ],
+};
+
+const BulkCollectionConfig: CollectionConfig = {
+  path: 'bulk',
+  labels: {
+    singular: 'Bulk',
+    plural: 'Bulk',
   },
   fields: [
     { name: 'sku', type: 'text', required: true, unique: true },
@@ -277,8 +317,6 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
 
       testDocuments.push(result.document.id)
     }
-
-    console.log(`Created ${testDocuments.length} test documents`)
   })
 
   after(async () => {
