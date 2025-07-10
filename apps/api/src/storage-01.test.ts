@@ -327,5 +327,58 @@ describe('Document Creation and Versioning', () => {
 
       console.log('secondVersion created:', secondVersion)
     })
+
+    it('should create multiple versions of a document and return a version history', async () => {
+      const timestamp = Date.now()
+
+      const docData = structuredClone(complexProductDocument)
+      docData.sku = `PROD-${timestamp}`
+      docData.name.en = `Product ${timestamp}`
+
+      const firstVersion = await commandBuilders.documents.createDocument({
+        collectionId: testCollection.id,
+        collectionConfig: VersionsCollectionConfig,
+        action: 'create',
+        documentData: docData,
+        path: docData.sku,
+        locale: 'all',
+        status: 'draft',
+      })
+
+      assert.notStrictEqual(firstVersion.document.document_id, null, 'Document creation failed');
+
+      const secondVersion = await commandBuilders.documents.createDocument({
+        documentId: firstVersion.document.document_id,
+        collectionId: testCollection.id,
+        collectionConfig: VersionsCollectionConfig,
+        action: 'update',
+        documentData: docData,
+        path: docData.sku,
+        locale: 'all',
+        status: 'draft',
+      })
+
+      assert.notStrictEqual(secondVersion.document.document_id, null, 'Document creation failed');
+
+      const thirdVersion = await commandBuilders.documents.createDocument({
+        documentId: firstVersion.document.document_id,
+        collectionId: testCollection.id,
+        collectionConfig: VersionsCollectionConfig,
+        action: 'update',
+        documentData: docData,
+        path: docData.sku,
+        locale: 'all',
+        status: 'draft',
+      })
+
+      assert.notStrictEqual(thirdVersion.document.document_id, null, 'Document creation failed');
+
+      const versionHistory = await queryBuilders.documents.getDocumentHistory(
+        firstVersion.document.document_id,
+        testCollection.id,
+      )
+
+      console.log('Version history:', versionHistory)
+    })
   })
 })

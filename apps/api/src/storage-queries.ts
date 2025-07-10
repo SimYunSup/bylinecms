@@ -23,7 +23,7 @@
  */
 
 
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { collections, currentDocumentsView as documents } from '../database/schema/index.js';
 
 import type {
@@ -433,6 +433,31 @@ export class DocumentQueries {
 
     // Sort by document path for consistent ordering
     return result.sort((a, b) => (a.path || '').localeCompare(b.path || ''));
+  }
+
+  async getDocumentHistory(
+    documentId: string,
+    collectionId: string
+  ): Promise<any[]> {
+    // Get all versions of the document
+    const docs = await this.db.select({
+      document_version_id: documents.id,
+      document_id: documents.document_id,
+      action: documents.event_type,
+      is_deleted: documents.is_deleted,
+      path: documents.path,
+      status: documents.status,
+      created_at: documents.created_at,
+      updated_at: documents.updated_at,
+    }).from(documents)
+      .where(
+        and(
+          eq(documents.document_id, documentId),
+          eq(documents.collection_id, collectionId)
+        )
+      ).orderBy(documents.id);
+
+    return docs
   }
 
   /**
