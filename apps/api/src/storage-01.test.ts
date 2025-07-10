@@ -1,536 +1,331 @@
-// /**
-//  * Byline CMS Server Tests
-//  *
-//  * Copyright © 2025 Anthony Bouch and contributors.
-//  *
-//  * This file is part of Byline CMS.
-//  *
-//  * This program is free software: you can redistribute it and/or modify
-//  * it under the terms of the GNU Affero General Public License as
-//  * published by the Free Software Foundation, either version 3 of the
-//  * License, or (at your option) any later version.
-//  *
-//  * This program is distributed in the hope that it will be useful,
-//  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-//  * GNU Affero General Public License for more details.
-//  *
-//  * You should have received a copy of the GNU Affero General Public License
-//  * along with this program. If not, see <https://www.gnu.org/licenses/>.
-//  */
-
-// import { after, before, beforeEach, describe, it } from 'node:test'
-// import { drizzle } from 'drizzle-orm/node-postgres'
-// import { Pool } from 'pg'
-// import { v7 as uuidv7 } from 'uuid'
-// import * as schema from '../database/schema/index.js'
-// import type { SiteConfig } from './@types/index.js'
-// import { createCommandBuilders } from './storage-commands.js'
-// import { createQueryBuilders } from './storage-queries.js'
-
-// // Test database setup
-// let pool: Pool
-// let db: ReturnType<typeof drizzle>
-// let queryBuilders: ReturnType<typeof createQueryBuilders>
-// let commandBuilders: ReturnType<typeof createCommandBuilders>
-
-// const siteConfig: SiteConfig = {
-//   i18n: {
-//     defaultLocale: 'en',
-//     locales: ['en', 'es', 'fr'],
-//   }
-// }
-
-// // Global test collections to avoid name conflicts
-// let testCollections: {
-//   documentTest: { id: string; name: string }
-//   versionTest: { id: string; name: string }
-//   fieldTest: { id: string; name: string }
-//   completeTest: { id: string; name: string }
-// } = {} as any
-
-// describe('Storage Model Tests', () => {
-//   before(async () => {
-//     // Connect to test database
-//     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
-//     db = drizzle(pool, { schema })
-//     queryBuilders = createQueryBuilders(siteConfig, db)
-//     commandBuilders = createCommandBuilders(siteConfig, db)
-
-//     // Create all test collections once to avoid unique constraint violations
-//     const timestamp = Date.now()
-
-//     const documentTestCollection = await commandBuilders.collections.create(
-//       `document_test_collection_${timestamp}`,
-//       {
-//         name: `Document Test Collection ${timestamp}`,
-//         path: `document_test_${timestamp}`,
-//         fields: [
-//           { name: 'title', type: 'text', required: true },
-//           { name: 'content', type: 'richText', required: false },
-//           { name: 'publishedOn', type: 'datetime', required: false }
-//         ]
-//       }
-//     )
-
-//     const versionTestCollection = await commandBuilders.collections.create(
-//       `version_test_collection_${timestamp}`,
-//       {
-//         name: `Version Test Collection ${timestamp}`,
-//         path: `version_test_${timestamp}`,
-//         fields: [
-//           { name: 'title', type: 'text', required: true }
-//         ]
-//       }
-//     )
-
-//     const fieldTestCollection = await commandBuilders.collections.create(
-//       `field_test_collection_${timestamp}`,
-//       {
-//         path: `field_test_${timestamp}`,
-//         fields: [
-//           { name: 'title', type: 'text', required: true },
-//           { name: 'content', type: 'richText', required: false },
-//           { name: 'published', type: 'boolean', required: false },
-//           { name: 'publishedOn', type: 'datetime', required: false },
-//           { name: 'rating', type: 'integer', required: false }
-//         ]
-//       }
-//     )
-
-//     const completeTestCollection = await commandBuilders.collections.create(
-//       `complete_test_collection_${timestamp}`,
-//       {
-//         path: `complete_test_${timestamp}`,
-//         fields: [
-//           { name: 'title', type: 'text', required: true },
-//           { name: 'content', type: 'richText', required: false },
-//           { name: 'published', type: 'boolean', required: false },
-//           { name: 'publishedOn', type: 'datetime', required: false },
-//           { name: 'rating', type: 'integer', required: false }
-//         ]
-//       }
-//     )
-
-//     testCollections = {
-//       documentTest: { id: documentTestCollection[0].id, name: documentTestCollection[0].path },
-//       versionTest: { id: versionTestCollection[0].id, name: versionTestCollection[0].path },
-//       fieldTest: { id: fieldTestCollection[0].id, name: fieldTestCollection[0].path },
-//       completeTest: { id: completeTestCollection[0].id, name: completeTestCollection[0].path }
-//     }
-
-//     console.log('Test collections created:', testCollections)
-//   })
-
-//   after(async () => {
-//     // Clean up test collections
-//     try {
-//       const collectionIds = Object.values(testCollections).map(c => c.id)
-//       for (const collection_id of collectionIds) {
-//         // Note: In a real implementation, you'd want to properly cascade delete
-//         // For now, we'll assume cascade deletes are handled by foreign key constraints
-//         await commandBuilders.collections.delete(collection_id)
-//       }
-//       console.log('Test collections cleaned up')
-//     } catch (error) {
-//       console.error('Failed to cleanup test collections:', error)
-//     }
-
-//     // Clean up database connection
-//     await pool.end()
-//   })
-
-//   beforeEach(async () => {
-//     // Clean up data between tests if needed
-//     // For now, we'll assume tables are recreated fresh
-//   })
-
-//   describe('Collection Operations', () => {
-//     it('should create a new collection', async () => {
-//       const timestamp = Date.now()
-//       const collectionPath = `test_collection_${timestamp}`
-//       const collectionConfig = {
-//         path: collectionPath,
-//         fields: [
-//           { name: 'title', type: 'text', required: true },
-//           { name: 'content', type: 'richText', required: false }
-//         ]
-//       }
-
-//       const result = await commandBuilders.collections.create(collectionPath, collectionConfig)
-//       console.log('Created collection:', result)
-//     })
-
-//     it('should find collection by name', async () => {
-//       const timestamp = Date.now()
-//       const collectionPath = `findable_collection${timestamp}`
-//       const collectionConfig = { path: collectionPath }
-
-//       await commandBuilders.collections.create(collectionPath, collectionConfig)
-//       const found = await queryBuilders.collections.findByPath(collectionPath)
-
-//       console.log('Found collection:', found)
-//     })
-
-//     it('should get all collections', async () => {
-//       const collections = await queryBuilders.collections.getAll()
-//       console.log('All collections:', collections)
-//     })
-//   })
-
-//   describe('Document Operations', () => {
-//     let testCollectionId: string
-
-//     beforeEach(async () => {
-//       // Use the global test collection
-//       testCollectionId = testCollections.documentTest.id
-//     })
-
-//     it('should create a new document', async () => {
-//       const document = await commandBuilders.documents.create(
-//         testCollectionId,
-//         'test-document',
-//         'draft'
-//       )
-
-//       console.log('Created document:', document)
-//     })
-
-//     it('should find document by id', async () => {
-//       const document = await commandBuilders.documents.create(testCollectionId, 'findable-doc')
-//       const found = await queryBuilders.documents.findById(document[0].id)
-
-//       console.log('Found document:', found)
-//     })
-
-//     it('should find documents by collection', async () => {
-//       await commandBuilders.documents.create(testCollectionId, 'doc1')
-//       await commandBuilders.documents.create(testCollectionId, 'doc2')
-
-//       const documents = await queryBuilders.documents.findByCollection(testCollectionId)
-//       console.log('Documents in collection:', documents)
-//     })
-
-//     it('should update document status', async () => {
-//       const document = await commandBuilders.documents.create(testCollectionId, 'status-test')
-//       const updated = await commandBuilders.documents.updateStatus(document[0].id, 'published')
-
-//       console.log('Updated document status:', updated)
-//     })
-
-//     it('should delete document', async () => {
-//       const document = await commandBuilders.documents.create(testCollectionId, 'delete-test')
-//       await commandBuilders.documents.delete(document[0].id)
-
-//       const found = await queryBuilders.documents.findById(document[0].id)
-//       console.log('Document after deletion (should be empty):', found)
-//     })
-//   })
-
-//   describe('Document Version Operations', () => {
-//     let testDocumentId: string
-
-//     beforeEach(async () => {
-//       // Create test document using global collection
-//       const document = await commandBuilders.documents.create(
-//         testCollections.versionTest.id,
-//         `/version-test-${Date.now()}`
-//       )
-//       testDocumentId = document[0].id
-//     })
-
-//     it('should create document version', async () => {
-//       const version = await commandBuilders.documentVersions.create(
-//         testDocumentId,
-//         1,
-//         true,
-//         uuidv7() // Simulate created_by with a UUID
-//       )
-
-//       console.log('Created document version:', version)
-//     })
-
-//     it('should find current version', async () => {
-//       await commandBuilders.documentVersions.create(testDocumentId, 1, true)
-//       const currentVersion = await queryBuilders.documentVersions.findCurrentVersion(testDocumentId)
-
-//       console.log('Current version:', currentVersion)
-//     })
-
-//     it('should create multiple versions and mark one as current', async () => {
-//       await commandBuilders.documentVersions.create(testDocumentId, 1, false)
-//       await commandBuilders.documentVersions.create(testDocumentId, 2, false)
-//       await commandBuilders.documentVersions.create(testDocumentId, 3, true)
-
-//       const allVersions = await queryBuilders.documentVersions.findByDocument(testDocumentId)
-//       const currentVersion = await queryBuilders.documentVersions.findCurrentVersion(testDocumentId)
-
-//       console.log('All versions:', allVersions)
-//       console.log('Current version:', currentVersion)
-//     })
-
-//     it('should mark specific version as current', async () => {
-//       await commandBuilders.documentVersions.create(testDocumentId, 1, true)
-//       await commandBuilders.documentVersions.create(testDocumentId, 2, false)
-
-//       await commandBuilders.documentVersions.markAsCurrent(testDocumentId, 2)
-//       const currentVersion = await queryBuilders.documentVersions.findCurrentVersion(testDocumentId)
-
-//       console.log('New current version:', currentVersion)
-//     })
-//   })
-
-//   describe('Field Value CRUD Operations', () => {
-//     let testCollectionId: string
-//     let testDocumentId: string
-//     let testVersionId: string
-
-//     beforeEach(async () => {
-//       // Use global test collection and create document and version
-//       testCollectionId = testCollections.fieldTest.id
-
-//       const document = await commandBuilders.documents.create(
-//         testCollectionId,
-//         `/field-test-${Date.now()}`
-//       )
-//       testDocumentId = document[0].id
-
-//       const version = await commandBuilders.documentVersions.create(testDocumentId, 1, true)
-//       testVersionId = version[0].id
-//     })
-
-//     it('should insert text field value', async () => {
-//       const result = await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'title',
-//         'title',
-//         'text',
-//         'Test Article Title'
-//       )
-
-//       console.log('Inserted text field:', result)
-//     })
-
-//     it('should insert richText field value', async () => {
-//       const richTextContent = {
-//         type: 'doc',
-//         content: [
-//           {
-//             type: 'paragraph',
-//             content: [{ type: 'text', text: 'This is rich text content' }]
-//           }
-//         ]
-//       }
-
-//       const result = await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'content',
-//         'content',
-//         'richText',
-//         richTextContent
-//       )
-
-//       console.log('Inserted richText field:', result)
-//     })
-
-//     it('should insert boolean field value', async () => {
-//       const result = await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'published',
-//         'published',
-//         'boolean',
-//         true
-//       )
-
-//       console.log('Inserted boolean field:', result)
-//     })
-
-//     it('should insert datetime field value', async () => {
-//       const now = new Date()
-//       const result = await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'publishedOn',
-//         'publishedOn',
-//         'datetime',
-//         now
-//       )
-
-//       console.log('Inserted datetime field:', result)
-//     })
-
-//     it('should insert integer field value', async () => {
-//       const result = await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'rating',
-//         'rating',
-//         'integer',
-//         5
-//       )
-
-//       console.log('Inserted integer field:', result)
-//     })
-
-//     it('should get all field values for a document version', async () => {
-//       // Insert multiple field values
-//       console.log('Inserting multiple field values for  testVersionID :', testVersionId)
-//       await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'title',
-//         'title',
-//         'text',
-//         'Complete Document'
-//       )
-
-//       await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'published',
-//         'published',
-//         'boolean',
-//         true
-//       )
-
-//       await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'rating',
-//         'rating',
-//         'integer',
-//         4
-//       )
-
-//       const allFields = await queryBuilders.typedFieldValues.getAllFieldValues(testVersionId)
-//       console.log('All field values:', allFields)
-//     })
-
-//     it('should update field values', async () => {
-//       // Insert initial value
-//       await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'title',
-//         'title',
-//         'text',
-//         'Original Title'
-//       )
-
-//       // Update the value
-//       const updated = await commandBuilders.fieldValues.updateFieldValue(
-//         testVersionId,
-//         'title',
-//         'text',
-//         'Updated Title'
-//       )
-
-//       console.log('Updated field value:', updated)
-//     })
-
-//     it('should delete field values', async () => {
-//       // Insert some values
-//       await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'title',
-//         'title',
-//         'text',
-//         'To Be Deleted'
-//       )
-
-//       await commandBuilders.fieldValues.insertFieldValue(
-//         testVersionId,
-//         testCollectionId,
-//         'published',
-//         'published',
-//         'boolean',
-//         false
-//       )
-
-//       // Delete specific field
-//       await commandBuilders.fieldValues.deleteFieldValues(testVersionId, 'title')
-
-//       const remainingFields = await queryBuilders.typedFieldValues.getAllFieldValues(testVersionId)
-//       console.log('Remaining fields after deletion:', remainingFields)
-
-//       // Delete all fields for the version
-//       await commandBuilders.fieldValues.deleteFieldValues(testVersionId)
-
-//       const allFieldsAfterDeletion = await queryBuilders.typedFieldValues.getAllFieldValues(testVersionId)
-//       console.log('All fields after complete deletion:', allFieldsAfterDeletion)
-//     })
-//   })
-
-//   describe('Complex Document Operations', () => {
-//     it('should create a complete document with all field types', async () => {
-//       // Use global test collection
-//       const collection_id = testCollections.completeTest.id
-
-//       // Create document
-//       const document = await commandBuilders.documents.create(
-//         collection_id,
-//         `complete-test-${Date.now()}`
-//       )
-
-//       // Create version
-//       const version = await commandBuilders.documentVersions.create(document[0].id, 1, true)
-
-//       // Insert all types of field values
-//       const fieldOperations = [
-//         commandBuilders.fieldValues.insertFieldValue(
-//           version[0].id,
-//           collection_id,
-//           'title',
-//           'title',
-//           'text',
-//           'Complete Test Document'
-//         ),
-//         commandBuilders.fieldValues.insertFieldValue(
-//           version[0].id,
-//           collection_id,
-//           'content',
-//           'content',
-//           'richText',
-//           { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Rich content here' }] }] }
-//         ),
-//         commandBuilders.fieldValues.insertFieldValue(
-//           version[0].id,
-//           collection_id,
-//           'published',
-//           'published',
-//           'boolean',
-//           true
-//         ),
-//         commandBuilders.fieldValues.insertFieldValue(
-//           version[0].id,
-//           collection_id,
-//           'publishedOn',
-//           'publishedOn',
-//           'datetime',
-//           new Date()
-//         ),
-//         commandBuilders.fieldValues.insertFieldValue(
-//           version[0].id,
-//           collection_id,
-//           'rating',
-//           'rating',
-//           'integer',
-//           5
-//         )
-//       ]
-
-//       await Promise.all(fieldOperations)
-
-//       // Retrieve the complete document
-//       const allFields = await queryBuilders.typedFieldValues.getAllFieldValues(version[0].id)
-
-//       console.log('Complete document fields:', allFields)
-//       console.log('Document metadata:', document[0])
-//       console.log('Version metadata:', version[0])
-//     })
-//   })
-// })
+import { time } from 'drizzle-orm/pg-core';
+/**
+ * Performance Comparison Tests - Optimized vs Original Storage Queries
+ *
+ * Copyright © 2025 Anthony Bouch and contributors.
+ *
+ * This file is part of Byline CMS.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
+
+import assert from 'node:assert';
+import { after, before, describe, it } from 'node:test'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import { Pool } from 'pg'
+import * as schema from '../database/schema/index.js'
+import type { CollectionConfig, SiteConfig } from './@types/index.js'
+import { createCommandBuilders } from './storage-commands.js'
+import { createQueryBuilders } from './storage-queries.js'
+
+// Test database setup
+let pool: Pool
+let db: ReturnType<typeof drizzle>
+let commandBuilders: ReturnType<typeof createCommandBuilders>
+let queryBuilders: ReturnType<typeof createQueryBuilders>
+
+const siteConfig: SiteConfig = {
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'es', 'fr'],
+  }
+}
+
+const VersionsCollectionConfig: CollectionConfig = {
+  path: 'versioning',
+  labels: {
+    singular: 'Version',
+    plural: 'Versions',
+  },
+  fields: [
+    { name: 'sku', type: 'text', required: true, unique: true },
+    { name: 'name', type: 'text', required: true, localized: true },
+    { name: 'description', type: 'richText', required: true, localized: true },
+    { name: 'price', type: 'decimal', required: true },
+    { name: 'inStock', type: 'boolean', required: true },
+    { name: 'releaseDate', type: 'datetime', required: false },
+    { name: 'category', type: 'relation', required: false },
+    {
+      name: 'images', type: 'array', fields: [
+        { name: 'url', type: 'file', required: true },
+        { name: 'alt', type: 'text', required: true, localized: true },
+        { name: 'caption', type: 'text', required: false, localized: true },
+      ]
+    },
+    {
+      name: 'specifications', type: 'array', fields: [
+        { name: 'key', type: 'text', required: true, localized: true },
+        { name: 'value', type: 'text', required: true, localized: true },
+        { name: 'unit', type: 'text', required: false },
+      ]
+    },
+    {
+      name: 'reviews', type: 'array', fields: [
+        { name: 'rating', type: 'integer', required: true },
+        { name: 'comment', type: 'richText', required: true },
+        { name: 'author', type: 'relation', required: false },
+        { name: 'verified', type: 'boolean', required: true },
+      ]
+    }
+  ],
+};
+
+// Complex test document with many fields and arrays
+const complexProductDocument = {
+  sku: "FOO-12345",
+  name: {
+    en: "Premium Wireless Headphones",
+    es: "Auriculares Inalámbricos Premium",
+    fr: "Casque Sans Fil Premium"
+  },
+  description: {
+    en: {
+      type: "paragraph",
+      content: [{ type: "text", text: "High-quality wireless headphones with noise cancellation" }]
+    },
+    es: {
+      type: "paragraph",
+      content: [{ type: "text", text: "Auriculares inalámbricos de alta calidad con cancelación de ruido" }]
+    },
+    fr: {
+      type: "paragraph",
+      content: [{ type: "text", text: "Casque sans fil de haute qualité avec suppression du bruit" }]
+    }
+  },
+  price: 299.99,
+  inStock: true,
+  releaseDate: {
+    date_type: "timestamp",
+    value_timestamp: new Date("2024-01-15T10:00:00Z")
+  },
+  // category: {
+  //   target_collection_id: "cat-123",
+  //   target_document_id: "electronics-audio"
+  // },
+  images: [
+    {
+      url: {
+        file_id: "018dd0b2-9a2a-7f01-b8b2-a0c719d0f5b3",
+        filename: "headphones-main.jpg",
+        original_filename: "wireless-headphones.jpg",
+        mime_type: "image/jpeg",
+        file_size: 2048000,
+        storage_provider: "s3",
+        storage_path: "/products/img-001.jpg"
+      },
+      alt: {
+        en: "Premium wireless headphones front view",
+        es: "Vista frontal de auriculares inalámbricos premium",
+        fr: "Vue de face du casque sans fil premium"
+      },
+      caption: {
+        en: "Sleek design with premium materials",
+        es: "Diseño elegante con materiales premium",
+        fr: "Design élégant avec des matériaux premium"
+      }
+    },
+    {
+      url: {
+        file_id: "018dd0b2-9a2a-7f02-8e73-f4c5a9e3d6b8",
+        filename: "headphones-side.jpg",
+        original_filename: "side-view.jpg",
+        mime_type: "image/jpeg",
+        file_size: 1536000,
+        storage_provider: "s3",
+        storage_path: "/products/img-002.jpg"
+      },
+      alt: {
+        en: "Side view showing comfort padding",
+        es: "Vista lateral mostrando acolchado cómodo",
+        fr: "Vue de côté montrant le rembourrage confortable"
+      }
+    }
+  ],
+  specifications: [
+    {
+      key: {
+        en: "Battery Life",
+        es: "Duración de la Batería",
+        fr: "Autonomie de la Batterie"
+      },
+      value: {
+        en: "30 hours",
+        es: "30 horas",
+        fr: "30 heures"
+      },
+      unit: "hours"
+    },
+    {
+      key: {
+        en: "Weight",
+        es: "Peso",
+        fr: "Poids"
+      },
+      value: {
+        en: "250g",
+        es: "250g",
+        fr: "250g"
+      },
+      unit: "grams"
+    },
+    {
+      key: {
+        en: "Driver Size",
+        es: "Tamaño del Driver",
+        fr: "Taille du Haut-parleur"
+      },
+      value: {
+        en: "40mm",
+        es: "40mm",
+        fr: "40mm"
+      },
+      unit: "mm"
+    }
+  ],
+  reviews: [
+    {
+      rating: 5,
+      comment: {
+        type: "paragraph",
+        content: [{ type: "text", text: "Amazing sound quality and comfort!" }]
+      },
+      // author: {
+      //   target_collection_id: "users-123",
+      //   target_document_id: "user-456"
+      // },
+      verified: true
+    },
+    {
+      rating: 4,
+      comment: {
+        type: "paragraph",
+        content: [{ type: "text", text: "Great headphones, but could be lighter." }]
+      },
+      // author: {
+      //   target_collection_id: "users-123",
+      //   target_document_id: "user-789"
+      // },
+      verified: true
+    },
+    {
+      rating: 5,
+      comment: {
+        type: "paragraph",
+        content: [{ type: "text", text: "Perfect for long listening sessions." }]
+      },
+      // author: {
+      //   target_collection_id: "users-123",
+      //   target_document_id: "user-101"
+      // },
+      verified: false
+    }
+  ]
+};
+
+// Global test variables
+let testCollection: { id: string; name: string } = {} as any
+
+describe('Document Creation and Versioning', () => {
+  before(async () => {
+    // Connect to test database
+    pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
+    db = drizzle(pool, { schema })
+
+    commandBuilders = createCommandBuilders(siteConfig, db)
+    queryBuilders = createQueryBuilders(siteConfig, db)
+
+    // Create test collection
+    const timestamp = Date.now()
+    const collection = await commandBuilders.collections.create(
+      `versions_collection_${timestamp}`,
+      VersionsCollectionConfig
+    )
+
+    testCollection = { id: collection[0].id, name: collection[0].path }
+    console.log('Test collection created:', testCollection)
+  })
+
+  after(async () => {
+    // Clean up test collection (cascades to documents)
+    try {
+      await commandBuilders.collections.delete(testCollection.id)
+      console.log('Test collection and documents cleaned up')
+    } catch (error) {
+      console.error('Failed to cleanup test collection:', error)
+    }
+
+    await pool.end()
+  })
+
+  describe('Should create documents and document versions', () => {
+
+    it('should create a document', async () => {
+      const timestamp = Date.now()
+
+      const docData = structuredClone(complexProductDocument)
+      docData.sku = `PROD-${timestamp}`
+      docData.name.en = `Product ${timestamp}`
+
+      const result = await commandBuilders.documents.createDocument({
+        collectionId: testCollection.id,
+        collectionConfig: VersionsCollectionConfig,
+        action: 'create',
+        documentData: docData,
+        path: docData.sku,
+        locale: 'all',
+        status: 'draft',
+      })
+
+      console.log('Document created:', result)
+
+      assert.notStrictEqual(result.document.document_id, null, 'Document creation failed');
+    })
+
+    it('should create a document and document version with the same path', async () => {
+      const timestamp = Date.now()
+
+      const docData = structuredClone(complexProductDocument)
+      docData.sku = `PROD-${timestamp}`
+      docData.name.en = `Product ${timestamp}`
+
+      const firstVersion = await commandBuilders.documents.createDocument({
+        collectionId: testCollection.id,
+        collectionConfig: VersionsCollectionConfig,
+        action: 'create',
+        documentData: docData,
+        path: docData.sku,
+        locale: 'all',
+        status: 'draft',
+      })
+
+      console.log('firstVersion created:', firstVersion)
+
+      assert.notStrictEqual(firstVersion.document.document_id, null, 'Document creation failed');
+
+      const secondVersion = await commandBuilders.documents.createDocument({
+        documentId: firstVersion.document.document_id,
+        collectionId: testCollection.id,
+        collectionConfig: VersionsCollectionConfig,
+        action: 'update',
+        documentData: docData,
+        path: docData.sku,
+        locale: 'all',
+        status: 'draft',
+      })
+
+      console.log('secondVersion created:', secondVersion)
+    })
+  })
+})

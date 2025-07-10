@@ -19,8 +19,7 @@ CREATE TABLE "documents" (
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"created_by" uuid,
-	"change_summary" text,
-	CONSTRAINT "unique_document_path" UNIQUE("collection_id","path","is_deleted")
+	"change_summary" text
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_boolean" (

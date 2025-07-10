@@ -1,5 +1,5 @@
 {
-  "id": "aa3a843f-551a-4d36-8342-55aae7b0fcdf",
+  "id": "77c81e97-6215-4325-9567-a87c689a1d15",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -310,17 +310,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "unique_document_path": {
-          "name": "unique_document_path",
-          "nullsNotDistinct": false,
-          "columns": [
-            "collection_id",
-            "path",
-            "is_deleted"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

@@ -50,7 +50,7 @@ export const documents = pgTable('documents', {
   // Ensure logical document belongs to only one collection
   index('idx_documents_document_collection').on(table.document_id, table.collection_id),
   // Ensure unique path per collection (for undeleted documents)
-  unique('unique_document_path').on(table.collection_id, table.path, table.is_deleted),
+  // unique('unique_document_path').on(table.collection_id, table.document_id, table.path, table.is_deleted),
 ]));
 
 // Current Documents View - gets latest version of each logical document

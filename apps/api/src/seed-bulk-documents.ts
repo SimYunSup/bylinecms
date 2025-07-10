@@ -179,12 +179,13 @@ async function run() {
     const docData = structuredClone(complexProductDocument)
     docData.path = `BULK-${12345 + i}`
     docData.name.en = `A bulk created document. ${i + 1}` // Ensure unique names  
-    await commandBuilders.documents.createDocument(
-      bulkCollection.id,
-      BulkCollectionConfig,
-      docData,
-      docData.path
-    )
+    await commandBuilders.documents.createDocument({
+      collectionId: bulkCollection.id,
+      collectionConfig: BulkCollectionConfig,
+      action: 'create',
+      documentData: docData,
+      path: docData.path,
+    })
   }
 }
 

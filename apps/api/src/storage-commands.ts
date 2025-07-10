@@ -68,32 +68,33 @@ export class DocumentCommands {
   /**
    * Creates document with all field values from a document object
    */
-  async createDocument(
+  async createDocument(options: {
+    documentId?: string, // Optional logical document ID when creating a new version for the same logical document
     collectionId: string,
     collectionConfig: CollectionConfig,
+    action: string,
     documentData: any,
     path: string,
-    locale = 'all',
-    status: 'draft' | 'published' | 'archived' = 'draft', // Optional status
-    documentId?: string, // Optional logical document ID when creating a new version for the same logical document
-    createdBy?: string // TODO: won't be optional soon.
-  ) {
+    locale?: string
+    status?: 'draft' | 'published' | 'archived'
+    createdBy?: string
+  }) {
     return await this.db.transaction(async (tx) => {
       // 1. Create the document - new version for logical document_id or new document
       const document = await tx.insert(documents).values({
         id: uuidv7(), // Document version
-        document_id: documentId ?? uuidv7(),
-        collection_id: collectionId,
-        path: path,
-        event_type: 'create',
-        status,
+        document_id: options.documentId ?? uuidv7(),
+        collection_id: options.collectionId,
+        path: options.path,
+        event_type: options.action ?? 'create',
+        status: options.status ?? 'draft',
       }).returning();
 
       // 2. Flatten the document data to field values
       const flattenedFields = flattenDocumentToFieldValues(
-        documentData,
-        collectionConfig,
-        locale
+        options.documentData,
+        options.collectionConfig,
+        options.locale ?? 'all'
       );
 
       // 3. Insert all field values
@@ -101,7 +102,7 @@ export class DocumentCommands {
         await this.insertFieldValueByType(
           tx,
           document[0].id, // Use the document version ID
-          collectionId,
+          options.collectionId,
           fieldValue
         );
       }

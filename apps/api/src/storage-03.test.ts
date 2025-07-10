@@ -1,5 +1,5 @@
 /**
- * Enhanced Byline CMS Server Tests - Complete Document Handling with Arrays
+ * Performance Comparison Tests - Optimized vs Original Storage Queries
  *
  * Copyright © 2025 Anthony Bouch and contributors.
  *
@@ -17,22 +17,21 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
  */
 
 import { after, before, describe, it } from 'node:test'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
+import pg from 'pg'
 import * as schema from '../database/schema/index.js'
-import type { CollectionConfig, SiteConfig } from './@types/index.js'
-import { createCommandBuilders } from './storage-commands.js'
+import type { SiteConfig } from './@types/index.js'
+import { BulkCollectionConfig } from './seed-bulk-documents.js'
 import { createQueryBuilders } from './storage-queries.js'
 
 // Test database setup
-let pool: Pool
+let pool: pg.Pool
 let db: ReturnType<typeof drizzle>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
-let commandBuilders: ReturnType<typeof createCommandBuilders>
-
 
 const siteConfig: SiteConfig = {
   i18n: {
@@ -41,200 +40,77 @@ const siteConfig: SiteConfig = {
   }
 }
 
-// Test collection configuration
-const PagesCollectionConfig: CollectionConfig = {
-  path: 'pages',
-  labels: {
-    singular: 'Page',
-    plural: 'Pages',
-  },
-  fields: [
-    { name: 'path', type: 'text', required: true, unique: true },
-    { name: 'title', type: 'text', required: true },
-    { name: 'content', type: 'richText', required: true },
-    { name: 'nonGibberish', type: 'text', required: false },
-    { name: 'gibberish', type: 'text', required: false, localized: true },
-    { name: 'related', type: 'relation', required: false },
-    {
-      name: 'cluster', type: 'array', fields: [
-        { name: 'one', type: 'text', required: true, localized: true },
-        { name: 'two', type: 'text', required: true, localized: true },
-        { name: 'three', type: 'text', required: true, localized: true },
-      ]
-    },
-  ],
-};
+// Global test variables
+let bulkCollection: { id: string; name: string } = {} as any
 
-// Test document data
-const examplePageDocument = {
-  path: "example-page",
-  title: "Example Page Title",
-  content: {
-    type: "paragraph",
-    content: [{ type: "text", text: "This is rich text content" }]
-  },
-  nonGibberish: "This is a non-gibberish text",
-  gibberish: {
-    en: "English gibberish text",
-    es: "Spanish gibberish text"
-  },
-  related: {},
-  cluster: [
-    {
-      one: { es: "First cluster - one", en: "First cluster - one EN" },
-      two: { es: "First cluster - two", en: "First cluster - two EN" },
-      three: { es: "First cluster - three", en: "First cluster - three EN" }
-    },
-    {
-      one: { es: "Second cluster - one", en: "Second cluster - one EN" },
-      two: { es: "Second cluster - two", en: "Second cluster - two EN" },
-      three: { es: "Second cluster - three", en: "Second cluster - three EN" }
-    },
-    {
-      one: { es: "Third cluster - one", en: "Third cluster - one EN" },
-      two: { es: "Third cluster - two", en: "Third cluster - two EN" },
-      three: { es: "Third cluster - three", en: "Third cluster - three EN" }
-    }
-  ]
-};
-
-// Global test collection
-let testCollection: { id: string; name: string } = {} as any
-
-describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
+describe('Bulk Document Operations', () => {
   before(async () => {
     // Connect to test database
-    pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
+
+    pool = new pg.Pool({
+      connectionString: process.env.POSTGRES_CONNECTION_STRING,
+      max: 20, // set pool max size to 20
+      idleTimeoutMillis: 2000, // close idle clients after 2 second
+      connectionTimeoutMillis: 1000, // return an error after 1 second if connection could not be established
+    })
+
     db = drizzle(pool, { schema })
+
     queryBuilders = createQueryBuilders(siteConfig, db)
-    commandBuilders = createCommandBuilders(siteConfig, db)
 
-    // Create test collection
-    const timestamp = Date.now()
-    const collection = await commandBuilders.collections.create(
-      `pages_collection_${timestamp}`,
-      PagesCollectionConfig
-    )
-
-    testCollection = { id: collection[0].id, name: collection[0].path }
-    console.log('Test collection created:', testCollection)
+    // Get bulk collection
+    const collection = await queryBuilders.collections.findByPath('bulk')
+    bulkCollection = { id: collection[0].id, name: collection[0].path }
+    console.log('Bulk collection retrieved:', bulkCollection)
   })
 
   after(async () => {
-    // Clean up test collection
-    try {
-      await commandBuilders.collections.delete(testCollection.id)
-      console.log('Test collection cleaned up')
-    } catch (error) {
-      console.error('Failed to cleanup test collection:', error)
+    if (pool != null && typeof pool.end === 'function') {
+      console.log('Drizzle pool is ending...')
+      pool.end().catch()
     }
-
-    // Clean up database connection
-    await pool.end()
   })
 
-  describe('Complete Document Creation Strategy', () => {
-    it('should create a complete document', async () => {
-      const sourceDocument = structuredClone(examplePageDocument)
-      sourceDocument.path = `test-page-${Date.now()}` // Ensure unique path for each test run
-      sourceDocument.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result = await commandBuilders.documents.createDocument(
-        testCollection.id,
-        PagesCollectionConfig,
-        sourceDocument,
-        sourceDocument.path,
-      )
-      console.log('Created complete document:', result)
+  describe('Get Documents for Collection', () => {
+    it('get all documents for collection', async () => {
+
+      const startTime = performance.now()
+
+      const documents = await queryBuilders.documents.getAllCurrentDocumentsForCollection
+        (
+          bulkCollection.id,
+          BulkCollectionConfig,
+          'all'
+        )
+
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      console.log(`All documents for collection: ${duration.toFixed(2)}ms`)
+      console.log('Retrieved documents:', documents.length)
+      console.log('Sample document:', documents[0])
     })
+    it('get all documents for collection by page', async () => {
+      const startTime = performance.now()
 
-    it('should create and return a complete document', async () => {
-      const sourceDocument = structuredClone(examplePageDocument)
-      sourceDocument.path = `test-page-${Date.now()}` // Ensure unique path for each test run
-      sourceDocument.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result = await commandBuilders.documents.createDocument(
-        testCollection.id,
-        PagesCollectionConfig,
-        sourceDocument,
-        sourceDocument.path,
+      const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(
+        bulkCollection.id,
+        BulkCollectionConfig,
+        {
+          locale: 'all',
+          limit: 50,
+          offset: 0,
+          orderBy: 'created_at',
+          orderDirection: 'desc'
+        }
       )
-      console.log('Created complete document:', result)
-      const completeDocument = await queryBuilders.documents.getCurrentDocument(
-        result.document.id,
-        PagesCollectionConfig,
-        'all' // Assuming 'all' locale for simplicity
-      )
-      // console.log('Retrieved complete document:', JSON.stringify(completeDocument, null, 2))
-      console.log('Retrieved complete document:', completeDocument)
+
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      console.log(`All documents for collection by page: ${duration.toFixed(2)}ms`)
+      console.log('Retrieved documents:', result.documents.length)
+      console.log('Sample document:', result.documents[0])
     })
-  })
-
-  describe('Document Relation Strategy', () => {
-    it('should create a complete document with a relationship to another document', async () => {
-      const sourceDocument1 = structuredClone(examplePageDocument)
-      sourceDocument1.path = `test-page-${Date.now()}` // Ensure unique path for each test run
-      sourceDocument1.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result1 = await commandBuilders.documents.createDocument(
-        testCollection.id,
-        PagesCollectionConfig,
-        sourceDocument1,
-        sourceDocument1.path,
-      )
-
-      const sourceDocument2 = structuredClone(examplePageDocument)
-      sourceDocument2.related = { target_collection_id: testCollection.id, target_document_id: result1.document.id }
-      sourceDocument2.path = `test-page-${Date.now()}` // Ensure unique path for each test run
-      sourceDocument2.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result2 = await commandBuilders.documents.createDocument(
-        testCollection.id,
-        PagesCollectionConfig,
-        sourceDocument2,
-        sourceDocument2.path,
-      )
-      console.log('Created document with relationship:', result2)
-      const completeDocument = await queryBuilders.documents.getCurrentDocument(
-        result2.document.id,
-        PagesCollectionConfig,
-        'all' // Assuming all locale for simplicity
-      )
-      console.log('Retrieved document with relationship:', completeDocument)
-    })
-
-    // it('should fail to delete a document that is the relative of another document.', async () => {
-    //   const sourceDocument1 = structuredClone(examplePageDocument)
-    //   sourceDocument1.path = `test-page-${Date.now()}` // Ensure unique path for each test run
-    //   sourceDocument1.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-    //   const result1 = await commandBuilders.documents.createDocument(
-    //     testCollection.id,
-    //     PagesCollectionConfig,
-    //     sourceDocument1,
-    //     sourceDocument1.path,
-    //   )
-
-    //   const sourceDocument2 = structuredClone(examplePageDocument)
-    //   sourceDocument2.related = { target_collection_id: testCollection.id, target_document_id: result1.document.id }
-    //   sourceDocument2.path = `test-page-${Date.now()}` // Ensure unique path for each test run
-    //   sourceDocument2.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-    //   const result2 = await commandBuilders.documents.createDocument(
-    //     testCollection.id,
-    //     PagesCollectionConfig,
-    //     sourceDocument2,
-    //     sourceDocument2.path,
-    //   )
-    //   console.log('Created document with relationship:', result2)
-    //   const completeDocument = await queryBuilders.documents.getCurrentDocument(
-    //     result2.document.id,
-    //     PagesCollectionConfig,
-    //     'all' // Assuming all locale for simplicity
-    //   )
-    //   console.log('Retrieved document with relationship:', completeDocument)
-
-    //   // Try to delete the first document which is referenced by the second document
-    //   try {
-    //     await commandBuilders.documents.delete(result1.document.id)
-    //     console.error('Expected error when deleting document with relationships, but deletion succeeded.')
-    //   } catch (error) {
-    //     console.log('Expected error when deleting document with relationships:')
-    //   }
-    // })
   })
 })
