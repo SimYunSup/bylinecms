@@ -87,7 +87,6 @@ export class DocumentQueries {
       fv.field_path,
       fv.field_name,
       fv.locale,
-      fv.array_index,
       fv.parent_path,
       fv.text_value,
       fv.numeric_value,
@@ -173,7 +172,7 @@ export class DocumentQueries {
       FROM field_values_file
     ) fv ON d.id = fv.document_version_id AND ${localeCondition}
     WHERE d.collection_id = ${collectionId}
-    ORDER BY d.id, fv.field_path NULLS LAST, fv.array_index NULLS FIRST, fv.locale
+    ORDER BY d.id, fv.field_path NULLS LAST, fv.locale
   `;
 
     const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
@@ -320,7 +319,6 @@ export class DocumentQueries {
     // 4. Reconstruct the document
     const reconstructedDocument = reconstructDocument(
       fieldValues,
-      collectionConfig,
       'all' // or pass locale parameter
     );
 
@@ -363,7 +361,6 @@ export class DocumentQueries {
     // 4. Reconstruct the document
     return reconstructDocument(
       fieldValues,
-      collectionConfig,
       locale
     );
   }
@@ -415,7 +412,6 @@ export class DocumentQueries {
 
       const reconstructedDocument = reconstructDocument(
         flattenedFieldValues,
-        collectionConfig,
         locale
       );
 
@@ -489,7 +485,7 @@ export class DocumentQueries {
     const query = sql`
       SELECT 
         'text' as "field_type", field_path as "field_path", field_name as "field_name",
-        locale, array_index as "array_index", parent_path as "parent_path",
+        locale, parent_path as "parent_path",
         value as "text_value"
       FROM field_values_text 
       WHERE document_version_id = ${currentDocument[0].id} 
@@ -498,7 +494,7 @@ export class DocumentQueries {
       UNION ALL
 
       SELECT 
-        'numeric', field_path, field_name, locale, array_index, parent_path,
+        'numeric', field_path, field_name, locale, parent_path,
         COALESCE(value_integer::text, value_decimal::text, value_float::text, value_bigint::text)
       FROM field_values_numeric 
       WHERE document_version_id = ${currentDocument[0].id} 
@@ -506,7 +502,7 @@ export class DocumentQueries {
 
       -- Add other field types as needed...
 
-      ORDER BY field_path, array_index NULLS FIRST, locale
+      ORDER BY field_path, locale
     `;
 
     const results = await this.db.execute(query) as unknown as UnifiedFieldValue[];
@@ -554,7 +550,6 @@ export class DocumentQueries {
           field_path: row.field_path as string,
           field_name: row.field_name as string,
           locale: row.locale as string,
-          array_index: row.array_index as number | null,
           parent_path: row.parent_path as string | null,
           text_value: row.text_value as string | null,
           numeric_value: row.numeric_value as string | null,
@@ -611,7 +606,6 @@ export class DocumentQueries {
 
       const document = reconstructDocument(
         flattenedFieldValues,
-        collectionConfig,
         locale
       );
 
@@ -688,7 +682,7 @@ export class DocumentQueries {
       FROM field_values_file 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
-      ORDER BY field_path, array_index NULLS FIRST, locale
+      ORDER BY field_path, locale
     `;
 
     const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
@@ -768,7 +762,7 @@ export class DocumentQueries {
       FROM field_values_file 
       WHERE ${documentCondition} ${localeCondition}
 
-      ORDER BY document_version_id, field_path, array_index NULLS FIRST, locale
+      ORDER BY document_version_id, field_path, locale
     `;
 
     const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
@@ -787,7 +781,6 @@ export class DocumentQueries {
         field_path: unified.field_path,
         field_name: unified.field_name,
         locale: unified.locale,
-        array_index: unified.array_index ?? undefined,
         parent_path: unified.parent_path ?? undefined,
       };
 

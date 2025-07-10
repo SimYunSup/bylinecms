@@ -9,7 +9,6 @@ export interface ParsedFieldPath {
   basePath: string;
   segments: {
     field: string;
-    array_index?: number;
   }[]
 }
 
@@ -45,7 +44,6 @@ export interface BaseFieldValue {
   field_path: string;
   field_name: string;
   locale: string;
-  array_index?: number;
   parent_path?: string;
 }
 
@@ -147,7 +145,6 @@ export interface ReconstructedFieldValue {
   field_path: string;
   field_name: string;
   locale: string;
-  array_index?: number | null;
   parent_path?: string | null;
   value: any;
 }
@@ -161,7 +158,6 @@ export interface UnifiedFieldValue {
   field_path: string;
   field_name: string;
   locale: string;
-  array_index: number | null;
   parent_path: string | null;
 
   // Value fields - only one will be populated per row

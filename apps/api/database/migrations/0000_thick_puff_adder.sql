@@ -29,12 +29,11 @@ CREATE TABLE "field_values_boolean" (
 	"field_path" varchar(500) NOT NULL,
 	"field_name" varchar(255) NOT NULL,
 	"locale" varchar(10) DEFAULT 'default' NOT NULL,
-	"array_index" integer,
 	"parent_path" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"value" boolean NOT NULL,
-	CONSTRAINT "unique_boolean_field" UNIQUE("document_version_id","field_path","locale","array_index")
+	CONSTRAINT "unique_boolean_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_datetime" (
@@ -44,7 +43,6 @@ CREATE TABLE "field_values_datetime" (
 	"field_path" varchar(500) NOT NULL,
 	"field_name" varchar(255) NOT NULL,
 	"locale" varchar(10) DEFAULT 'default' NOT NULL,
-	"array_index" integer,
 	"parent_path" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -53,7 +51,7 @@ CREATE TABLE "field_values_datetime" (
 	"value_time" time,
 	"value_timestamp" timestamp,
 	"value_timestamp_tz" timestamp with time zone,
-	CONSTRAINT "unique_datetime_field" UNIQUE("document_version_id","field_path","locale","array_index")
+	CONSTRAINT "unique_datetime_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_file" (
@@ -63,7 +61,6 @@ CREATE TABLE "field_values_file" (
 	"field_path" varchar(500) NOT NULL,
 	"field_name" varchar(255) NOT NULL,
 	"locale" varchar(10) DEFAULT 'default' NOT NULL,
-	"array_index" integer,
 	"parent_path" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -81,7 +78,7 @@ CREATE TABLE "field_values_file" (
 	"image_format" varchar(20),
 	"processing_status" varchar(20) DEFAULT 'pending',
 	"thumbnail_generated" boolean DEFAULT false,
-	CONSTRAINT "unique_file_field" UNIQUE("document_version_id","field_path","locale","array_index")
+	CONSTRAINT "unique_file_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_json" (
@@ -91,14 +88,13 @@ CREATE TABLE "field_values_json" (
 	"field_path" varchar(500) NOT NULL,
 	"field_name" varchar(255) NOT NULL,
 	"locale" varchar(10) DEFAULT 'default' NOT NULL,
-	"array_index" integer,
 	"parent_path" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"value" jsonb NOT NULL,
 	"json_schema" varchar(100),
 	"object_keys" text[],
-	CONSTRAINT "unique_json_field" UNIQUE("document_version_id","field_path","locale","array_index")
+	CONSTRAINT "unique_json_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_numeric" (
@@ -108,7 +104,6 @@ CREATE TABLE "field_values_numeric" (
 	"field_path" varchar(500) NOT NULL,
 	"field_name" varchar(255) NOT NULL,
 	"locale" varchar(10) DEFAULT 'default' NOT NULL,
-	"array_index" integer,
 	"parent_path" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -117,7 +112,7 @@ CREATE TABLE "field_values_numeric" (
 	"value_float" real,
 	"value_bigint" bigint,
 	"number_type" varchar(20) NOT NULL,
-	CONSTRAINT "unique_numeric_field" UNIQUE("document_version_id","field_path","locale","array_index")
+	CONSTRAINT "unique_numeric_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_relation" (
@@ -127,7 +122,6 @@ CREATE TABLE "field_values_relation" (
 	"field_path" varchar(500) NOT NULL,
 	"field_name" varchar(255) NOT NULL,
 	"locale" varchar(10) DEFAULT 'default' NOT NULL,
-	"array_index" integer,
 	"parent_path" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -135,7 +129,7 @@ CREATE TABLE "field_values_relation" (
 	"target_collection_id" uuid NOT NULL,
 	"relationship_type" varchar(50) DEFAULT 'reference',
 	"cascade_delete" boolean DEFAULT false,
-	CONSTRAINT "unique_relation_field" UNIQUE("document_version_id","field_path","locale","array_index")
+	CONSTRAINT "unique_relation_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_text" (
@@ -145,13 +139,12 @@ CREATE TABLE "field_values_text" (
 	"field_path" varchar(500) NOT NULL,
 	"field_name" varchar(255) NOT NULL,
 	"locale" varchar(10) DEFAULT 'default' NOT NULL,
-	"array_index" integer,
 	"parent_path" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	"value" text NOT NULL,
 	"word_count" integer,
-	CONSTRAINT "unique_text_field" UNIQUE("document_version_id","field_path","locale","array_index")
+	CONSTRAINT "unique_text_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint
 ALTER TABLE "documents" ADD CONSTRAINT "documents_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

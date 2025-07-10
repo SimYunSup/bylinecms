@@ -1,5 +1,5 @@
 {
-  "id": "77c81e97-6215-4325-9567-a87c689a1d15",
+  "id": "a4eba97c-81df-4b52-9a7e-b11a2a9d3dc8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -356,12 +356,6 @@
           "notNull": true,
           "default": "'default'"
         },
-        "array_index": {
-          "name": "array_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
         "parent_path": {
           "name": "parent_path",
           "type": "varchar(500)",
@@ -490,8 +484,7 @@
           "columns": [
             "document_version_id",
             "field_path",
-            "locale",
-            "array_index"
+            "locale"
           ]
         }
       },
@@ -539,12 +532,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'default'"
-        },
-        "array_index": {
-          "name": "array_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
         },
         "parent_path": {
           "name": "parent_path",
@@ -722,8 +709,7 @@
           "columns": [
             "document_version_id",
             "field_path",
-            "locale",
-            "array_index"
+            "locale"
           ]
         }
       },
@@ -771,12 +757,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'default'"
-        },
-        "array_index": {
-          "name": "array_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
         },
         "parent_path": {
           "name": "parent_path",
@@ -1034,8 +1014,7 @@
           "columns": [
             "document_version_id",
             "field_path",
-            "locale",
-            "array_index"
+            "locale"
           ]
         }
       },
@@ -1083,12 +1062,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'default'"
-        },
-        "array_index": {
-          "name": "array_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
         },
         "parent_path": {
           "name": "parent_path",
@@ -1212,8 +1185,7 @@
           "columns": [
             "document_version_id",
             "field_path",
-            "locale",
-            "array_index"
+            "locale"
           ]
         }
       },
@@ -1261,12 +1233,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'default'"
-        },
-        "array_index": {
-          "name": "array_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
         },
         "parent_path": {
           "name": "parent_path",
@@ -1444,8 +1410,7 @@
           "columns": [
             "document_version_id",
             "field_path",
-            "locale",
-            "array_index"
+            "locale"
           ]
         }
       },
@@ -1493,12 +1458,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'default'"
-        },
-        "array_index": {
-          "name": "array_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
         },
         "parent_path": {
           "name": "parent_path",
@@ -1698,8 +1657,7 @@
           "columns": [
             "document_version_id",
             "field_path",
-            "locale",
-            "array_index"
+            "locale"
           ]
         }
       },
@@ -1747,12 +1705,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'default'"
-        },
-        "array_index": {
-          "name": "array_index",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
         },
         "parent_path": {
           "name": "parent_path",
@@ -1897,8 +1849,7 @@
           "columns": [
             "document_version_id",
             "field_path",
-            "locale",
-            "array_index"
+            "locale"
           ]
         }
       },

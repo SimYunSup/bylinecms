@@ -8,7 +8,6 @@ export const textFields = sql`
   field_path,
   field_name,
   locale,
-  array_index,
   parent_path,
   value as "text_value",
   NULL::text as "numeric_value",
@@ -54,7 +53,6 @@ export const numericFields = sql`
   field_path,
   field_name,
   locale,
-  array_index,
   parent_path,
   NULL,  -- text_value
   COALESCE(value_integer::text, value_decimal::text, value_float::text, value_bigint::text),  -- numeric_value
@@ -100,7 +98,6 @@ export const booleanFields = sql`
   field_path,
   field_name,
   locale,
-  array_index,
   parent_path,
   NULL,  -- text_value
   NULL,  -- numeric_value
@@ -146,7 +143,6 @@ export const datetimeFields = sql`
   field_path,
   field_name,
   locale,
-  array_index,
   parent_path,
   NULL,  -- text_value
   NULL,  -- numeric_value
@@ -192,7 +188,6 @@ export const jsonFields = sql`
   field_path,
   field_name,
   locale,
-  array_index,
   parent_path,
   NULL,  -- text_value
   NULL,  -- numeric_value
@@ -238,7 +233,6 @@ export const relationFields = sql`
   field_path,
   field_name,
   locale,
-  array_index,
   parent_path,
   NULL,  -- text_value
   NULL,  -- numeric_value
@@ -283,7 +277,6 @@ export const fileFields = sql`
   field_path,
   field_name,
   locale,
-  array_index,
   parent_path,
   NULL,  -- text_value
   NULL,  -- numeric_value

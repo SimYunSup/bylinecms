@@ -38,16 +38,11 @@ import type {
 /**
  * Builds field paths for nested array structures
  * @param basePath - The base field name
- * @param array_index - Optional array index
  * @param nestedField - Optional nested field name
  * @returns Constructed field path
  */
-export function buildFieldPath(basePath: string, array_index?: number, nestedField?: string): string {
+export function buildFieldPath(basePath: string, nestedField?: string): string {
   let path = basePath;
-
-  if (array_index !== undefined) {
-    path += `.${array_index}`;
-  }
 
   if (nestedField) {
     path += `.${nestedField}`;

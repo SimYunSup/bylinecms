@@ -127,7 +127,6 @@ export class DocumentCommands {
       field_path: fieldValue.field_path,
       field_name: fieldValue.field_name,
       locale: fieldValue.locale,
-      array_index: fieldValue.array_index,
       parent_path: fieldValue.parent_path,
     };
 

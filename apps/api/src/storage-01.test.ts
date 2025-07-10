@@ -21,6 +21,8 @@
  */
 
 import assert from 'node:assert';
+import { link } from 'node:fs';
+import { text } from 'node:stream/consumers';
 import { after, before, describe, it } from 'node:test'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
@@ -73,6 +75,21 @@ const DocsCollectionConfig: CollectionConfig = {
         },
       ]
     },
+    {
+      name: 'reviews', type: 'array', fields: [
+        {
+          name: 'reviewBlock', type: 'array', fields: [
+            { name: 'rating', type: 'integer', required: true },
+            { name: 'comment', type: 'richText', required: true, localized: true },
+          ]
+        }
+      ]
+    },
+    {
+      name: 'links', type: 'array', fields: [
+        { name: "link", type: "text" }
+      ]
+    }
   ],
 };
 
@@ -123,6 +140,24 @@ const sampleDocument = {
       ]
     },
   ],
+  reviews: [
+    {
+      reviewBlock: [
+        { rating: 5 },
+        { comment: { root: { paragraph: 'Some review text here...' } } },
+      ]
+    },
+    {
+      reviewBlock: [
+        { rating: 2 },
+        { comment: { root: { paragraph: 'Some more reviews here...' } } },
+      ]
+    }
+  ],
+  links: [
+    { link: 'https://example.com' },
+    { link: 'https://another-example.com' }
+  ]
 };
 
 // Global test variables
