@@ -19,13 +19,14 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { and, eq } from "drizzle-orm";
+// ENHANCED STORAGE COMMANDS WITH ARRAY SUPPORT
+// ============================================
+
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { v7 as uuidv7 } from 'uuid'
 import {
   collections,
   documents,
-  documentVersions,
   fieldValuesBoolean,
   fieldValuesDatetime,
   fieldValuesFile,
@@ -39,9 +40,11 @@ import type { SiteConfig } from './@types.js';
 
 type DatabaseConnection = NodePgDatabase<any>;
 
+import { eq } from "drizzle-orm";
+import type { CollectionConfig } from './@types.js'
+import { isFileFieldValue, isJsonFieldValue, isNumericFieldValue, isRelationFieldValue } from './@types.js'
+import { flattenDocumentToFieldValues } from './storage-utils.js';
 
-// COLLECTION, DOCUMENT AND DOCUMENT VERSION COMMAND HELPERS
-// ========================================================
 
 export class CollectionCommands {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
@@ -62,290 +65,220 @@ export class CollectionCommands {
 export class DocumentCommands {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async create(collection_id: string, path?: string, status = 'draft') {
-    return await this.db.insert(documents).values({
-      id: uuidv7(),
-      collection_id,
-      path,
-      status,
-    }).returning();
-  }
-
-  async updateStatus(id: string, status: string) {
-    return await this.db.update(documents).set({
-      status,
-      updated_at: new Date(),
-    }).where(eq(documents.id, id)).returning();
-  }
-
-  async delete(id: string) {
-    return await this.db.delete(documents).where(eq(documents.id, id));
-  }
-}
-
-export class DocumentVersionCommands {
-  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
-
-  async create(document_id: string, version_number: number, is_current = true, created_by?: string) {
-    // If this is the current version, mark all others as not current
-    if (is_current) {
-      await this.db.update(documentVersions).set({
-        is_current: false,
-      }).where(eq(documentVersions.document_id, document_id));
-    }
-
-    return await this.db.insert(documentVersions).values({
-      id: uuidv7(),
-      document_id,
-      version_number,
-      is_current,
-      created_by,
-    }).returning();
-  }
-
-  async markAsCurrent(document_id: string, version_number: number) {
-    // Mark all versions as not current
-    await this.db.update(documentVersions).set({
-      is_current: false,
-    }).where(eq(documentVersions.document_id, document_id));
-
-    // Mark the specified version as current
-    return await this.db.update(documentVersions).set({
-      is_current: true,
-    }).where(
-      and(
-        eq(documentVersions.document_id, document_id),
-        eq(documentVersions.version_number, version_number)
-      )
-    ).returning();
-  }
-}
-
-// FIELD VALUE CRUD OPERATIONS
-// ============================
-
-export class FieldValueCRUD {
-  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
-
-  async insertFieldValue(
-    document_version_id: string,
+  /**
+   * Creates document with all field values from a document object
+   */
+  async createDocument(
     collection_id: string,
-    field_path: string,
-    field_name: string,
-    field_type: string,
-    value: any,
-    locale = 'default',
-    array_index?: number,
-    parent_path?: string
+    collectionConfig: CollectionConfig,
+    documentData: any,
+    path: string,
+    locale = 'all',
+    status: 'draft' | 'published' | 'archived' = 'draft', // Optional status
+    document_id?: string, // Optional document ID when creating a new version for the same logical document
+    created_by?: string // TODO: won't be optional soon.
   ) {
+    return await this.db.transaction(async (tx) => {
+      // 1. Create the document - new version for logical document_id or new document
+      const document = await tx.insert(documents).values({
+        id: uuidv7(),
+        document_id: document_id ?? uuidv7(),
+        collection_id,
+        path: path,
+        event_type: 'create',
+        status,
+      }).returning();
+
+      // 2. Flatten the document data to field values
+      const flattenedFields = flattenDocumentToFieldValues(
+        documentData,
+        collectionConfig,
+        locale
+      );
+
+      // 3. Insert all field values
+      for (const fieldValue of flattenedFields) {
+        await this.insertFieldValueByType(
+          tx,
+          document[0].document_id,
+          collection_id,
+          fieldValue
+        );
+      }
+
+      return {
+        document: document[0],
+        fieldCount: flattenedFields.length
+      };
+    });
+  }
+
+  private async insertFieldValueByType(
+    tx: DatabaseConnection,
+    document_id: string,
+    collection_id: string,
+    fieldValue: any
+  ): Promise<any> {
     const baseData = {
       id: uuidv7(),
-      document_version_id,
+      document_id,
       collection_id,
-      field_path,
-      field_name,
-      locale,
-      array_index,
-      parent_path,
+      field_path: fieldValue.field_path,
+      field_name: fieldValue.field_name,
+      locale: fieldValue.locale,
+      array_index: fieldValue.array_index,
+      parent_path: fieldValue.parent_path,
     };
 
-    switch (field_type) {
+    switch (fieldValue.field_type) {
       case 'text':
-        return await this.db.insert(fieldValuesText).values({
-          ...baseData,
-          value: value,
-        }).returning();
+        // Handle both simple string values and localized object values
+        if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
+          const values: any[] = [];
+          const entries = Object.entries<string>(fieldValue.value);
+          for (const [locale, localizedValue] of entries) {
+            values.push({
+              ...baseData,
+              id: uuidv7(), // we need a unique ID for each localized value
+              locale: locale,
+              value: localizedValue as string,
+            })
+          }
+          return await tx.insert(fieldValuesText).values(values);
+        }
 
-      case 'richText':
-        return await this.db.insert(fieldValuesJson).values({
+        // Simple string value
+        return await tx.insert(fieldValuesText).values({
           ...baseData,
-          value: value,
-        }).returning();
+          value: fieldValue.value as string,
+        });
 
       case 'number':
       case 'integer':
-        return await this.db.insert(fieldValuesNumeric).values({
-          ...baseData,
-          value_integer: value,
-          number_type: 'integer',
-        }).returning();
+        if (isNumericFieldValue(fieldValue)) {
+          return await tx.insert(fieldValuesNumeric).values({
+            ...baseData,
+            value_integer: fieldValue.value,
+            number_type: 'integer',
+          });
+        }
+        throw new Error(`Invalid numeric field value for ${baseData.field_path}`);
 
       case 'decimal':
-        return await this.db.insert(fieldValuesNumeric).values({
-          ...baseData,
-          value_decimal: value,
-          number_type: 'decimal',
-        }).returning();
+        if (isNumericFieldValue(fieldValue)) {
+          return await tx.insert(fieldValuesNumeric).values({
+            ...baseData,
+            // TODO: Fix
+            // @ts-ignore
+            value_decimal: fieldValue.value,
+            number_type: 'decimal',
+          });
+        }
+        throw new Error(`Invalid numeric field value for ${baseData.field_path}`);
 
       case 'boolean':
-        return await this.db.insert(fieldValuesBoolean).values({
+        return await tx.insert(fieldValuesBoolean).values({
           ...baseData,
-          value: value,
-        }).returning();
+          value: fieldValue.value,
+        });
 
       case 'datetime':
-        return await this.db.insert(fieldValuesDatetime).values({
+        return await tx.insert(fieldValuesDatetime).values({
           ...baseData,
-          value_timestamp: value,
-          date_type: 'timestamp',
-        }).returning();
-
-      case 'relation':
-        return await this.db.insert(fieldValuesRelation).values({
-          ...baseData,
-          target_document_id: value.target_document_id,
-          target_collection_id: value.target_collection_id,
-          relationship_type: value.relationship_type || 'reference',
-          cascade_delete: value.cascade_delete || false,
-        }).returning();
+          date_type: fieldValue.date_type || 'timestamp',
+          value_time: fieldValue.value_time,
+          value_date: fieldValue.value_date,
+          value_timestamp: fieldValue.value_timestamp,
+          value_timestamp_tz: fieldValue.value_timestamp_tz,
+        });
 
       case 'file':
       case 'image':
-        return await this.db.insert(fieldValuesFile).values({
-          ...baseData,
-          file_id: value.file_id,
-          filename: value.filename,
-          original_filename: value.original_filename,
-          mime_type: value.mime_type,
-          file_size: value.file_size,
-          storage_provider: value.storage_provider,
-          storage_path: value.storage_path,
-        }).returning();
+        if (isFileFieldValue(fieldValue)) {
+          return await tx.insert(fieldValuesFile).values({
+            ...baseData,
+            file_id: fieldValue.file_id,
+            filename: fieldValue.filename,
+            original_filename: fieldValue.original_filename,
+            mime_type: fieldValue.mime_type,
+            file_size: fieldValue.file_size,
+            storage_provider: fieldValue.storage_provider,
+            storage_path: fieldValue.storage_path,
+            storage_url: fieldValue.storage_url,
+            file_hash: fieldValue.file_hash,
+            image_width: fieldValue.image_width,
+            image_height: fieldValue.image_height,
+            image_format: fieldValue.image_format,
+            processing_status: fieldValue.processing_status || 'pending',
+            thumbnail_generated: fieldValue.thumbnail_generated || false,
+          });
+        }
+        throw new Error(`Invalid file field value for ${baseData.field_path}`);
 
-      case 'json':
-      case 'object':
-        return await this.db.insert(fieldValuesJson).values({
-          ...baseData,
-          value: value,
-        }).returning();
-
-      default:
-        throw new Error(`Unsupported field type: ${field_type}`);
-    }
-  }
-
-  async updateFieldValue(
-    document_version_id: string,
-    field_path: string,
-    field_type: string,
-    value: any,
-    locale = 'default',
-    array_index?: number
-  ) {
-    const conditions = [
-      eq(this.getTableForType(field_type).document_version_id, document_version_id),
-      eq(this.getTableForType(field_type).field_path, field_path),
-      eq(this.getTableForType(field_type).locale, locale)
-    ];
-
-    if (array_index !== undefined) {
-      conditions.push(eq(this.getTableForType(field_type).array_index, array_index));
-    }
-
-    const baseWhere = and(...conditions);
-
-    const updateData = { updated_at: new Date() };
-
-    switch (field_type) {
-      case 'text':
-        return await this.db.update(fieldValuesText).set({
-          ...updateData,
-          value: value,
-        }).where(baseWhere).returning();
-
-      case 'richText':
-        return await this.db.update(fieldValuesJson).set({
-          ...updateData,
-          value: value,
-        }).where(baseWhere).returning();
-
-      case 'number':
-      case 'integer':
-        return await this.db.update(fieldValuesNumeric).set({
-          ...updateData,
-          value_integer: value,
-        }).where(baseWhere).returning();
-
-      case 'decimal':
-        return await this.db.update(fieldValuesNumeric).set({
-          ...updateData,
-          value_decimal: value,
-        }).where(baseWhere).returning();
-
-      case 'boolean':
-        return await this.db.update(fieldValuesBoolean).set({
-          ...updateData,
-          value: value,
-        }).where(baseWhere).returning();
-
-      case 'datetime':
-        return await this.db.update(fieldValuesDatetime).set({
-          ...updateData,
-          value_timestamp: value,
-        }).where(baseWhere).returning();
-
-      case 'json':
-      case 'object':
-        return await this.db.update(fieldValuesJson).set({
-          ...updateData,
-          value: value,
-        }).where(baseWhere).returning();
-
-      default:
-        throw new Error(`Unsupported field type: ${field_type}`);
-    }
-  }
-
-  async deleteFieldValues(document_version_id: string, field_path?: string) {
-    const tables = [
-      fieldValuesText,
-      fieldValuesNumeric,
-      fieldValuesBoolean,
-      fieldValuesDatetime,
-      fieldValuesRelation,
-      fieldValuesFile,
-      fieldValuesJson,
-    ];
-
-    const results = await Promise.all(
-      tables.map(table => {
-        const whereCondition = field_path
-          ? and(
-            eq(table.document_version_id, document_version_id),
-            eq(table.field_path, field_path)
-          )
-          : eq(table.document_version_id, document_version_id);
-
-        return this.db.delete(table).where(whereCondition);
-      })
-    );
-
-    return results;
-  }
-
-  private getTableForType(field_type: string) {
-    switch (field_type) {
-      case 'text':
-        return fieldValuesText;
-      case 'richText':
-      case 'json':
-      case 'object':
-        return fieldValuesJson;
-      case 'number':
-      case 'integer':
-      case 'decimal':
-        return fieldValuesNumeric;
-      case 'boolean':
-        return fieldValuesBoolean;
-      case 'datetime':
-        return fieldValuesDatetime;
       case 'relation':
-        return fieldValuesRelation;
-      case 'file':
-      case 'image':
-        return fieldValuesFile;
+        if (isRelationFieldValue(fieldValue)) {
+          return await tx.insert(fieldValuesRelation).values({
+            ...baseData,
+            target_document_id: fieldValue.target_document_id,
+            target_collection_id: fieldValue.target_collection_id,
+            relationship_type: fieldValue.relationship_type || 'reference',
+            cascade_delete: fieldValue.cascade_delete || false,
+          });
+        }
+        throw new Error(`Invalid relation field value for ${baseData.field_path}`);
+
+      case 'richText':
+        // TODO: What does a localized version of rich text look like?
+
+        // // Handle both simple values and localized object values for rich text
+        // if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
+        //   const values: any[] = [];
+        //   const entries = Object.entries<string>(fieldValue.value);
+        //   for (const [locale, localizedValue] of entries) {
+        //     values.push({
+        //       ...baseData,
+        //       id: uuidv7(), // we need a unique ID for each localized value
+        //       locale: locale,
+        //       value: localizedValue as string,
+        //     })
+        //   }
+        //   return await tx.insert(fieldValuesJson).values(values);
+        // }
+        // If not a localized object, treat as regular rich text content
+        return await tx.insert(fieldValuesJson).values({
+          ...baseData,
+          value: fieldValue.value,
+        });
+
+      case 'json':
+      case 'object':
+        if (isJsonFieldValue(fieldValue)) {
+          // Handle localized JSON/object fields
+          if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
+            const values: any[] = [];
+            const entries = Object.entries<string>(fieldValue.value);
+            for (const [locale, localizedValue] of entries) {
+              values.push({
+                ...baseData,
+                id: uuidv7(), // we need a unique ID for each localized value
+                locale: locale,
+                value: localizedValue as string,
+              })
+            }
+            return await tx.insert(fieldValuesJson).values(values);
+          }
+          // If not a localized object, treat as regular JSON content
+          return await tx.insert(fieldValuesJson).values({
+            ...baseData,
+            value: fieldValue.value,
+            json_schema: fieldValue.json_schema,
+            object_keys: fieldValue.object_keys,
+          });
+        }
+        throw new Error(`Invalid JSON field value for ${baseData.field_path}`);
+
       default:
-        throw new Error(`Unknown field type: ${field_type}`);
+        throw new Error('Unsupported field type');
     }
   }
 }
@@ -357,11 +290,5 @@ export function createCommandBuilders(siteConfig: SiteConfig, db: DatabaseConnec
   return {
     collections: new CollectionCommands(siteConfig, db),
     documents: new DocumentCommands(siteConfig, db),
-    documentVersions: new DocumentVersionCommands(siteConfig, db),
-    fieldValues: new FieldValueCRUD(siteConfig, db),
   };
 }
-
-// USAGE EXAMPLE:
-// const queryBuilders = createQueryBuilders(db);
-// const results = await queryBuilders.textFields.fullTextSearch('example');

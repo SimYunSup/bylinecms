@@ -23,7 +23,8 @@ import { and, eq, or, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import {
-  documentVersions,
+  currentDocumentsView,
+  documents,
   fieldValuesBoolean,
   fieldValuesDatetime,
   fieldValuesFile,
@@ -52,14 +53,8 @@ export class EnhancedDocumentQueries {
   ): Promise<any> {
     // 1. Get current version
     const currentVersion = await this.db.select()
-      .from(documentVersions)
-      .where(
-        and(
-          eq(documentVersions.document_id, document_id),
-          eq(documentVersions.is_current, true)
-        )
-      )
-      .limit(1);
+      .from(currentDocumentsView)
+      .where(eq(currentDocumentsView.document_id, document_id))
 
     if (!currentVersion[0]) {
       throw new Error(`No current version found for document ${document_id}`);
@@ -90,14 +85,8 @@ export class EnhancedDocumentQueries {
   ): Promise<any[]> {
     // Get current version
     const currentVersion = await this.db.select()
-      .from(documentVersions)
-      .where(
-        and(
-          eq(documentVersions.document_id, document_id),
-          eq(documentVersions.is_current, true)
-        )
-      )
-      .limit(1);
+      .from(currentDocumentsView)
+      .where(eq(currentDocumentsView.document_id, document_id))
 
     if (!currentVersion[0]) {
       throw new Error(`No current version found for document ${document_id}`);
@@ -119,7 +108,7 @@ export class EnhancedDocumentQueries {
   }
 
   private async getAllFieldValuesForVersion(
-    versionId: string,
+    documentId: string,
     locale = 'all'
   ): Promise<FlattenedFieldValue[]> {
 
@@ -129,9 +118,9 @@ export class EnhancedDocumentQueries {
      * especially for large datasets.
      * Example:
           return await this.db.execute(sql`
-              SELECT 'text' as type, field_path, value, locale FROM field_values_text WHERE document_version_id = ${versionId}
+              SELECT 'text' as type, field_path, value, locale FROM field_values_text WHERE document_id = ${documentId}
               UNION ALL
-              SELECT 'numeric' as type, field_path, value_integer::text, locale FROM field_values_numeric WHERE document_version_id = ${versionId}
+              SELECT 'numeric' as type, field_path, value_integer::text, locale FROM field_values_numeric WHERE document_id = ${documentId}
           -- ... etc
         `);
      */
@@ -139,7 +128,7 @@ export class EnhancedDocumentQueries {
       // 1. Text field values
       this.db.select({
         id: fieldValuesText.id,
-        document_version_id: fieldValuesText.document_version_id,
+        document_id: fieldValuesText.document_id,
         collection_id: fieldValuesText.collection_id,
         field_type: sql<string>`'text'`.as('field_type'),
         field_path: fieldValuesText.field_path,
@@ -150,14 +139,14 @@ export class EnhancedDocumentQueries {
         value: fieldValuesText.value,
       }).from(fieldValuesText).where(
         locale === 'all'
-          ? eq(fieldValuesText.document_version_id, versionId)
-          : and(eq(fieldValuesText.document_version_id, versionId), eq(fieldValuesText.locale, locale))
+          ? eq(fieldValuesText.document_id, documentId)
+          : and(eq(fieldValuesText.document_id, documentId), eq(fieldValuesText.locale, locale))
       ),
 
       // 2. Numeric field values
       this.db.select({
         id: fieldValuesNumeric.id,
-        document_version_id: fieldValuesNumeric.document_version_id,
+        document_id: fieldValuesNumeric.document_id,
         collection_id: fieldValuesNumeric.collection_id,
         field_type: sql<string>`'numeric'`.as('field_type'),
         field_path: fieldValuesNumeric.field_path,
@@ -168,14 +157,14 @@ export class EnhancedDocumentQueries {
         value: fieldValuesNumeric.value_integer, // Simplified - would need type-specific handling
       }).from(fieldValuesNumeric).where(
         locale === 'all'
-          ? eq(fieldValuesNumeric.document_version_id, versionId)
-          : and(eq(fieldValuesNumeric.document_version_id, versionId), eq(fieldValuesNumeric.locale, locale))
+          ? eq(fieldValuesNumeric.document_id, documentId)
+          : and(eq(fieldValuesNumeric.document_id, documentId), eq(fieldValuesNumeric.locale, locale))
       ),
 
       // 3. Boolean field values
       this.db.select({
         id: fieldValuesBoolean.id,
-        document_version_id: fieldValuesBoolean.document_version_id,
+        document_id: fieldValuesBoolean.document_id,
         collection_id: fieldValuesBoolean.collection_id,
         field_type: sql<string>`'boolean'`.as('field_type'),
         field_path: fieldValuesBoolean.field_path,
@@ -186,14 +175,14 @@ export class EnhancedDocumentQueries {
         value: fieldValuesBoolean.value,
       }).from(fieldValuesBoolean).where(
         locale === 'all'
-          ? eq(fieldValuesBoolean.document_version_id, versionId)
-          : and(eq(fieldValuesBoolean.document_version_id, versionId), eq(fieldValuesBoolean.locale, locale))
+          ? eq(fieldValuesBoolean.document_id, documentId)
+          : and(eq(fieldValuesBoolean.document_id, documentId), eq(fieldValuesBoolean.locale, locale))
       ),
 
       // 4. DateTime field values
       this.db.select({
         id: fieldValuesDatetime.id,
-        document_version_id: fieldValuesDatetime.document_version_id,
+        document_id: fieldValuesDatetime.document_id,
         collection_id: fieldValuesDatetime.collection_id,
         field_type: sql<string>`'datetime'`.as('field_type'),
         field_path: fieldValuesDatetime.field_path,
@@ -208,14 +197,14 @@ export class EnhancedDocumentQueries {
         value_timestamp_tz: fieldValuesDatetime.value_timestamp_tz,
       }).from(fieldValuesDatetime).where(
         locale === 'all'
-          ? eq(fieldValuesDatetime.document_version_id, versionId)
-          : and(eq(fieldValuesDatetime.document_version_id, versionId), eq(fieldValuesDatetime.locale, locale))
+          ? eq(fieldValuesDatetime.document_id, documentId)
+          : and(eq(fieldValuesDatetime.document_id, documentId), eq(fieldValuesDatetime.locale, locale))
       ),
 
       // 5. Json field values
       this.db.select({
         id: fieldValuesJson.id,
-        document_version_id: fieldValuesJson.document_version_id,
+        document_id: fieldValuesJson.document_id,
         collection_id: fieldValuesJson.collection_id,
         field_type: sql<string>`'richText'`.as('field_type'),
         field_path: fieldValuesJson.field_path,
@@ -228,14 +217,14 @@ export class EnhancedDocumentQueries {
         object_keys: fieldValuesJson.object_keys
       }).from(fieldValuesJson).where(
         locale === 'all'
-          ? eq(fieldValuesJson.document_version_id, versionId)
-          : and(eq(fieldValuesJson.document_version_id, versionId), eq(fieldValuesJson.locale, locale))
+          ? eq(fieldValuesJson.document_id, documentId)
+          : and(eq(fieldValuesJson.document_id, documentId), eq(fieldValuesJson.locale, locale))
       ),
 
       // 6. Relation field values
       this.db.select({
         id: fieldValuesRelation.id,
-        document_version_id: fieldValuesRelation.document_version_id,
+        document_id: fieldValuesRelation.document_id,
         collection_id: fieldValuesRelation.collection_id,
         field_type: sql<string>`'relation'`.as('field_type'),
         field_path: fieldValuesRelation.field_path,
@@ -249,14 +238,14 @@ export class EnhancedDocumentQueries {
         cascade_delete: fieldValuesRelation.cascade_delete,
       }).from(fieldValuesRelation).where(
         locale === 'all'
-          ? eq(fieldValuesRelation.document_version_id, versionId)
-          : and(eq(fieldValuesRelation.document_version_id, versionId), eq(fieldValuesRelation.locale, locale))
+          ? eq(fieldValuesRelation.document_id, documentId)
+          : and(eq(fieldValuesRelation.document_id, documentId), eq(fieldValuesRelation.locale, locale))
       ),
 
       // 7. File field values
       this.db.select({
         id: fieldValuesFile.id,
-        document_version_id: fieldValuesFile.document_version_id,
+        document_id: fieldValuesFile.document_id,
         collection_id: fieldValuesFile.collection_id,
         field_type: sql<string>`'file'`.as('field_type'),
         field_path: fieldValuesFile.field_path,
@@ -289,8 +278,8 @@ export class EnhancedDocumentQueries {
         thumbnail_generated: fieldValuesFile.thumbnail_generated,
       }).from(fieldValuesFile).where(
         locale === 'all'
-          ? eq(fieldValuesFile.document_version_id, versionId)
-          : and(eq(fieldValuesFile.document_version_id, versionId), eq(fieldValuesFile.locale, locale))
+          ? eq(fieldValuesFile.document_id, documentId)
+          : and(eq(fieldValuesFile.document_id, documentId), eq(fieldValuesFile.locale, locale))
       ),
     ]);
 
@@ -300,12 +289,12 @@ export class EnhancedDocumentQueries {
   }
 
   private async getArrayFieldValues(
-    versionId: string,
+    documentId: string,
     field_name: string,
     locale: string
   ) {
     // Query field values where field_path starts with the field name
-    const allFieldValues = await this.getAllFieldValuesForVersion(versionId, locale);
+    const allFieldValues = await this.getAllFieldValuesForVersion(documentId, locale);
 
     return allFieldValues.filter(fv =>
       fv.field_path === field_name || fv.field_path.startsWith(`${field_name}.`)
