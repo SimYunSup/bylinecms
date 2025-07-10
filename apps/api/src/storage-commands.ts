@@ -36,13 +36,13 @@ import {
   fieldValuesText
 } from '../database/schema/index.js';
 
-import type { SiteConfig } from './@types.js';
+import type { SiteConfig } from './@types/index.js';
 
 type DatabaseConnection = NodePgDatabase<any>;
 
 import { eq } from "drizzle-orm";
-import type { CollectionConfig } from './@types.js'
-import { isFileFieldValue, isJsonFieldValue, isNumericFieldValue, isRelationFieldValue } from './@types.js'
+import type { CollectionConfig } from './@types/index.js'
+import { isFileFieldValue, isJsonFieldValue, isNumericFieldValue, isRelationFieldValue } from './@types/index.js'
 import { flattenDocumentToFieldValues } from './storage-utils.js';
 
 
@@ -69,21 +69,21 @@ export class DocumentCommands {
    * Creates document with all field values from a document object
    */
   async createDocument(
-    collection_id: string,
+    collectionId: string,
     collectionConfig: CollectionConfig,
     documentData: any,
     path: string,
     locale = 'all',
     status: 'draft' | 'published' | 'archived' = 'draft', // Optional status
-    document_id?: string, // Optional document ID when creating a new version for the same logical document
-    created_by?: string // TODO: won't be optional soon.
+    documentId?: string, // Optional logical document ID when creating a new version for the same logical document
+    createdBy?: string // TODO: won't be optional soon.
   ) {
     return await this.db.transaction(async (tx) => {
       // 1. Create the document - new version for logical document_id or new document
       const document = await tx.insert(documents).values({
-        id: uuidv7(),
-        document_id: document_id ?? uuidv7(),
-        collection_id,
+        id: uuidv7(), // Document version
+        document_id: documentId ?? uuidv7(),
+        collection_id: collectionId,
         path: path,
         event_type: 'create',
         status,
@@ -100,8 +100,8 @@ export class DocumentCommands {
       for (const fieldValue of flattenedFields) {
         await this.insertFieldValueByType(
           tx,
-          document[0].document_id,
-          collection_id,
+          document[0].id, // Use the document version ID
+          collectionId,
           fieldValue
         );
       }
@@ -115,14 +115,14 @@ export class DocumentCommands {
 
   private async insertFieldValueByType(
     tx: DatabaseConnection,
-    document_id: string,
-    collection_id: string,
+    documentVersionId: string,
+    collectionId: string,
     fieldValue: any
   ): Promise<any> {
     const baseData = {
       id: uuidv7(),
-      document_id,
-      collection_id,
+      document_version_id: documentVersionId,
+      collection_id: collectionId,
       field_path: fieldValue.field_path,
       field_name: fieldValue.field_name,
       locale: fieldValue.locale,

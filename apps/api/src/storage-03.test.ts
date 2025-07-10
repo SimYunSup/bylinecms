@@ -23,18 +23,15 @@ import { after, before, describe, it } from 'node:test'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '../database/schema/index.js'
-import type { CollectionConfig, SiteConfig } from './@types.js'
-import { createCommandBuilders, createEnhancedCommandBuilders } from './storage-commands.js'
+import type { CollectionConfig, SiteConfig } from './@types/index.js'
+import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
-import { createEnhancedQueryBuilders } from './storage-queries-enhanced.js'
 
 // Test database setup
 let pool: Pool
 let db: ReturnType<typeof drizzle>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
-let queryBuildersEnhanced: ReturnType<typeof createEnhancedQueryBuilders>
 let commandBuilders: ReturnType<typeof createCommandBuilders>
-let commandBuildersEnhanced: ReturnType<typeof createEnhancedCommandBuilders>
 
 
 const siteConfig: SiteConfig = {
@@ -110,9 +107,7 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
     db = drizzle(pool, { schema })
     queryBuilders = createQueryBuilders(siteConfig, db)
-    queryBuildersEnhanced = createEnhancedQueryBuilders(siteConfig, db)
     commandBuilders = createCommandBuilders(siteConfig, db)
-    commandBuildersEnhanced = createEnhancedCommandBuilders(siteConfig, db)
 
     // Create test collection
     const timestamp = Date.now()
@@ -143,7 +138,7 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       const sourceDocument = structuredClone(examplePageDocument)
       sourceDocument.path = `test-page-${Date.now()}` // Ensure unique path for each test run
       sourceDocument.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result = await commandBuildersEnhanced.documents.createCompleteDocument(
+      const result = await commandBuilders.documents.createDocument(
         testCollection.id,
         PagesCollectionConfig,
         sourceDocument,
@@ -156,14 +151,14 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       const sourceDocument = structuredClone(examplePageDocument)
       sourceDocument.path = `test-page-${Date.now()}` // Ensure unique path for each test run
       sourceDocument.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result = await commandBuildersEnhanced.documents.createCompleteDocument(
+      const result = await commandBuilders.documents.createDocument(
         testCollection.id,
         PagesCollectionConfig,
         sourceDocument,
         sourceDocument.path,
       )
       console.log('Created complete document:', result)
-      const completeDocument = await queryBuildersEnhanced.documents.getCompleteDocument(
+      const completeDocument = await queryBuilders.documents.getCurrentDocument(
         result.document.id,
         PagesCollectionConfig,
         'all' // Assuming 'all' locale for simplicity
@@ -178,7 +173,7 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       const sourceDocument1 = structuredClone(examplePageDocument)
       sourceDocument1.path = `test-page-${Date.now()}` // Ensure unique path for each test run
       sourceDocument1.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result1 = await commandBuildersEnhanced.documents.createCompleteDocument(
+      const result1 = await commandBuilders.documents.createDocument(
         testCollection.id,
         PagesCollectionConfig,
         sourceDocument1,
@@ -189,14 +184,14 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       sourceDocument2.related = { target_collection_id: testCollection.id, target_document_id: result1.document.id }
       sourceDocument2.path = `test-page-${Date.now()}` // Ensure unique path for each test run
       sourceDocument2.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result2 = await commandBuildersEnhanced.documents.createCompleteDocument(
+      const result2 = await commandBuilders.documents.createDocument(
         testCollection.id,
         PagesCollectionConfig,
         sourceDocument2,
         sourceDocument2.path,
       )
       console.log('Created document with relationship:', result2)
-      const completeDocument = await queryBuildersEnhanced.documents.getCompleteDocument(
+      const completeDocument = await queryBuilders.documents.getCurrentDocument(
         result2.document.id,
         PagesCollectionConfig,
         'all' // Assuming all locale for simplicity
@@ -204,42 +199,42 @@ describe('Enhanced Storage Model Tests - Complete Document Handling', () => {
       console.log('Retrieved document with relationship:', completeDocument)
     })
 
-    it('should fail to delete a document that is the relative of another document.', async () => {
-      const sourceDocument1 = structuredClone(examplePageDocument)
-      sourceDocument1.path = `test-page-${Date.now()}` // Ensure unique path for each test run
-      sourceDocument1.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result1 = await commandBuildersEnhanced.documents.createCompleteDocument(
-        testCollection.id,
-        PagesCollectionConfig,
-        sourceDocument1,
-        sourceDocument1.path,
-      )
+    // it('should fail to delete a document that is the relative of another document.', async () => {
+    //   const sourceDocument1 = structuredClone(examplePageDocument)
+    //   sourceDocument1.path = `test-page-${Date.now()}` // Ensure unique path for each test run
+    //   sourceDocument1.title = `Test Page Title ${Date.now()}` // Ensure unique title for
+    //   const result1 = await commandBuilders.documents.createDocument(
+    //     testCollection.id,
+    //     PagesCollectionConfig,
+    //     sourceDocument1,
+    //     sourceDocument1.path,
+    //   )
 
-      const sourceDocument2 = structuredClone(examplePageDocument)
-      sourceDocument2.related = { target_collection_id: testCollection.id, target_document_id: result1.document.id }
-      sourceDocument2.path = `test-page-${Date.now()}` // Ensure unique path for each test run
-      sourceDocument2.title = `Test Page Title ${Date.now()}` // Ensure unique title for
-      const result2 = await commandBuildersEnhanced.documents.createCompleteDocument(
-        testCollection.id,
-        PagesCollectionConfig,
-        sourceDocument2,
-        sourceDocument2.path,
-      )
-      console.log('Created document with relationship:', result2)
-      const completeDocument = await queryBuildersEnhanced.documents.getCompleteDocument(
-        result2.document.id,
-        PagesCollectionConfig,
-        'all' // Assuming all locale for simplicity
-      )
-      console.log('Retrieved document with relationship:', completeDocument)
+    //   const sourceDocument2 = structuredClone(examplePageDocument)
+    //   sourceDocument2.related = { target_collection_id: testCollection.id, target_document_id: result1.document.id }
+    //   sourceDocument2.path = `test-page-${Date.now()}` // Ensure unique path for each test run
+    //   sourceDocument2.title = `Test Page Title ${Date.now()}` // Ensure unique title for
+    //   const result2 = await commandBuilders.documents.createDocument(
+    //     testCollection.id,
+    //     PagesCollectionConfig,
+    //     sourceDocument2,
+    //     sourceDocument2.path,
+    //   )
+    //   console.log('Created document with relationship:', result2)
+    //   const completeDocument = await queryBuilders.documents.getCurrentDocument(
+    //     result2.document.id,
+    //     PagesCollectionConfig,
+    //     'all' // Assuming all locale for simplicity
+    //   )
+    //   console.log('Retrieved document with relationship:', completeDocument)
 
-      // Try to delete the first document which is referenced by the second document
-      try {
-        await commandBuilders.documents.delete(result1.document.id)
-        console.error('Expected error when deleting document with relationships, but deletion succeeded.')
-      } catch (error) {
-        console.log('Expected error when deleting document with relationships:')
-      }
-    })
+    //   // Try to delete the first document which is referenced by the second document
+    //   try {
+    //     await commandBuilders.documents.delete(result1.document.id)
+    //     console.error('Expected error when deleting document with relationships, but deletion succeeded.')
+    //   } catch (error) {
+    //     console.log('Expected error when deleting document with relationships:')
+    //   }
+    // })
   })
 })

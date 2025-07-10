@@ -2,7 +2,7 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '../database/schema/index.js'
-import type { CollectionConfig, SiteConfig } from './@types.js'
+import type { CollectionConfig, SiteConfig } from './@types/index.js'
 import { createCommandBuilders, createEnhancedCommandBuilders } from './storage-commands.js'
 
 // Test database setup

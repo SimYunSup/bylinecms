@@ -31,7 +31,7 @@ import { Pool } from 'pg'
 // import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
 import * as schema from '../database/schema/index.js'
-import type { SiteConfig } from './@types.js'
+import type { SiteConfig } from './@types/index.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
 

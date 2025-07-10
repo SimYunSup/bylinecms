@@ -30,7 +30,7 @@ import type {
   ParsedFieldPath,
   ReconstructedFieldValue,
   RelationFieldValue
-} from './@types.js';
+} from './@types/index.js';
 
 // FIELD PATH CONSTRUCTION
 // =======================

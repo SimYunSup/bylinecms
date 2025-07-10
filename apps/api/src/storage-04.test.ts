@@ -25,18 +25,15 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
 import * as schema from '../database/schema/index.js'
-import type { CollectionConfig, SiteConfig } from './@types.js'
-import { createCommandBuilders, createEnhancedCommandBuilders } from './storage-commands.js'
-import { createEnhancedQueryBuilders } from './storage-queries-enhanced.js'
-import { createOptimizedQueryBuilders } from './storage-queries-optimized.js'
+import type { CollectionConfig, SiteConfig } from './@types/index.js'
+import { createCommandBuilders } from './storage-commands.js'
+import { createQueryBuilders } from './storage-queries.js'
 
 // Test database setup
 let pool: Pool
 let db: ReturnType<typeof drizzle>
 let commandBuilders: ReturnType<typeof createCommandBuilders>
-let commandBuildersEnhanced: ReturnType<typeof createEnhancedCommandBuilders>
-let queryBuildersOriginal: ReturnType<typeof createEnhancedQueryBuilders>
-let queryBuildersOptimized: ReturnType<typeof createOptimizedQueryBuilders>
+let queryBuilders: ReturnType<typeof createQueryBuilders>
 
 const siteConfig: SiteConfig = {
   i18n: {
@@ -287,9 +284,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
     db = drizzle(pool, { schema })
 
     commandBuilders = createCommandBuilders(siteConfig, db)
-    commandBuildersEnhanced = createEnhancedCommandBuilders(siteConfig, db)
-    queryBuildersOriginal = createEnhancedQueryBuilders(siteConfig, db)
-    queryBuildersOptimized = createOptimizedQueryBuilders(siteConfig, db)
+    queryBuilders = createQueryBuilders(siteConfig, db)
 
     // Create test collection
     const timestamp = Date.now()
@@ -307,7 +302,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
       docData.sku = `PROD-${12345 + i}`
       docData.name.en = `Product ${i + 1}`
 
-      const result = await commandBuildersEnhanced.documents.createCompleteDocument(
+      const result = await commandBuilders.documents.createDocument(
         testCollection.id,
         ComplexCollectionConfig,
         docData,
@@ -334,7 +329,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
     it('should retrieve document using original approach (baseline)', async () => {
       const startTime = performance.now()
 
-      const document = await queryBuildersOriginal.documents.getCompleteDocument(
+      const document = await queryBuilders.documents.getCurrentDocument(
         testDocuments[0],
         ComplexCollectionConfig,
         'all'
@@ -357,7 +352,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
     it('should retrieve document using optimized approach', async () => {
       const startTime = performance.now()
 
-      const document = await queryBuildersOptimized.documents.getCompleteDocument(
+      const document = await queryBuilders.documents.getCurrentDocument(
         testDocuments[0],
         ComplexCollectionConfig,
         'all'
@@ -387,7 +382,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
       for (let i = 0; i < runs; i++) {
         // Test original approach
         const originalStart = performance.now()
-        await queryBuildersOriginal.documents.getCompleteDocument(
+        await queryBuilders.documents.getCurrentDocument(
           testDocuments[i % testDocuments.length],
           ComplexCollectionConfig,
           'all'
@@ -397,7 +392,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
 
         // Test optimized approach
         const optimizedStart = performance.now()
-        await queryBuildersOptimized.documents.getCompleteDocument(
+        await queryBuilders.documents.getCurrentDocument(
           testDocuments[i % testDocuments.length],
           ComplexCollectionConfig,
           'all'
@@ -427,7 +422,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
 
       const documents = {}
       for (const docId of documentIds) {
-        documents[docId] = await queryBuildersOriginal.documents.getCompleteDocument(
+        documents[docId] = await queryBuilders.documents.getCurrentDocument(
           docId,
           ComplexCollectionConfig,
           'all'
@@ -448,7 +443,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
 
       const startTime = performance.now()
 
-      const documents = await queryBuildersOptimized.documents.getMultipleDocuments(
+      const documents = await queryBuilders.documents.getCurrentDocuments(
         documentIds,
         ComplexCollectionConfig,
         'all'
@@ -481,7 +476,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
         const originalStart = performance.now()
         const originalDocs = {}
         for (const docId of documentIds) {
-          originalDocs[docId] = await queryBuildersOriginal.documents.getCompleteDocument(
+          originalDocs[docId] = await queryBuilders.documents.getCurrentDocument(
             docId,
             ComplexCollectionConfig,
             'all'
@@ -492,7 +487,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
 
         // Optimized approach (batch)
         const optimizedStart = performance.now()
-        const optimizedDocs = await queryBuildersOptimized.documents.getMultipleDocuments(
+        const optimizedDocs = await queryBuilders.documents.getCurrentDocuments(
           documentIds,
           ComplexCollectionConfig,
           'all'
@@ -518,7 +513,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
       for (const locale of locales) {
         // Original approach
         const originalStart = performance.now()
-        await queryBuildersOriginal.documents.getCompleteDocument(
+        await queryBuilders.documents.getCurrentDocument(
           testDocuments[0],
           ComplexCollectionConfig,
           locale
@@ -528,7 +523,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
 
         // Optimized approach
         const optimizedStart = performance.now()
-        await queryBuildersOptimized.documents.getCompleteDocument(
+        await queryBuilders.documents.getCurrentDocument(
           testDocuments[0],
           ComplexCollectionConfig,
           locale
@@ -553,7 +548,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
         docData.sku = `PROD-${12345 + i}`
         docData.name.en = `Product ${i + 1}`
 
-        const result = await commandBuildersEnhanced.documents.createCompleteDocument(
+        const result = await commandBuilders.documents.createDocument(
           testCollection.id,
           ComplexCollectionConfig,
           docData,
@@ -565,7 +560,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
 
       const startTime = performance.now()
 
-      const documents = await queryBuildersOptimized.documents.getAllCurrentDocumentsForCollectionOptimized
+      const documents = await queryBuilders.documents.getCurrentDocument
         (
           testCollection.id,
           ComplexCollectionConfig,
@@ -583,7 +578,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
 
       const startTime = performance.now()
 
-      const documents = await queryBuildersOptimized.documents.getCurrentDocumentsForCollectionPaginated(
+      const documents = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(
         testCollection.id,
         ComplexCollectionConfig,
         {
@@ -608,13 +603,13 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
     it('should verify both approaches return identical results', async () => {
       const document_id = testDocuments[0]
 
-      const originalResult = await queryBuildersOriginal.documents.getCompleteDocument(
+      const originalResult = await queryBuilders.documents.getCurrentDocument(
         document_id,
         ComplexCollectionConfig,
         'all'
       )
 
-      const optimizedResult = await queryBuildersOptimized.documents.getCompleteDocument(
+      const optimizedResult = await queryBuilders.documents.getCurrentDocument(
         document_id,
         ComplexCollectionConfig,
         'all'
@@ -640,7 +635,7 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
       // Load multiple documents to see memory impact
       const documents: any[] = []
       for (let i = 0; i < 5; i++) {
-        const doc = await queryBuildersOptimized.documents.getCompleteDocument(
+        const doc = await queryBuilders.documents.getCurrentDocument(
           testDocuments[i],
           ComplexCollectionConfig,
           'all'

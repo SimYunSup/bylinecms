@@ -24,15 +24,13 @@ import { after, before, describe, it } from 'node:test'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
 import * as schema from '../database/schema/index.js'
-import type { SiteConfig } from './@types.js'
+import type { SiteConfig } from './@types/index.js'
 import { BulkCollectionConfig } from './seed-bulk-documents.js'
 import { createQueryBuilders } from './storage-queries.js'
-import { createOptimizedQueryBuilders } from './storage-queries-optimized.js'
 
 // Test database setup
 let pool: pg.Pool
 let db: ReturnType<typeof drizzle>
-let queryBuildersOptimized: ReturnType<typeof createOptimizedQueryBuilders>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
 
 const siteConfig: SiteConfig = {
@@ -58,7 +56,6 @@ describe('Bulk Document Operations', () => {
 
     db = drizzle(pool, { schema })
 
-    queryBuildersOptimized = createOptimizedQueryBuilders(siteConfig, db)
     queryBuilders = createQueryBuilders(siteConfig, db)
 
     // Get bulk collection
@@ -79,7 +76,7 @@ describe('Bulk Document Operations', () => {
 
       const startTime = performance.now()
 
-      const documents = await queryBuildersOptimized.documents.getAllCurrentDocumentsForCollectionOptimized
+      const documents = await queryBuilders.documents.getAllCurrentDocumentsForCollection
         (
           bulkCollection.id,
           BulkCollectionConfig,
