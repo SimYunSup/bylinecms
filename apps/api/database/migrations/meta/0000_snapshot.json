@@ -1,5 +1,5 @@
 {
-  "id": "e47444b3-c4f8-4ab9-a273-a81045aa12bc",
+  "id": "aa3a843f-551a-4d36-8342-55aae7b0fcdf",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -57,8 +57,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.document_versions": {
-      "name": "document_versions",
+    "public.documents": {
+      "name": "documents",
       "schema": "",
       "columns": {
         "id": {
@@ -73,74 +73,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "version_number": {
-          "name": "version_number",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_current": {
-          "name": "is_current",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "created_by": {
-          "name": "created_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "document_versions_document_id_documents_id_fk": {
-          "name": "document_versions_document_id_documents_id_fk",
-          "tableFrom": "document_versions",
-          "tableTo": "documents",
-          "columnsFrom": [
-            "document_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "document_versions_document_id_version_number_unique": {
-          "name": "document_versions_document_id_version_number_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "document_id",
-            "version_number"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.documents": {
-      "name": "documents",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
         "collection_id": {
           "name": "collection_id",
           "type": "uuid",
@@ -151,7 +83,20 @@
           "name": "path",
           "type": "varchar(255)",
           "primaryKey": false,
+          "notNull": true
+        },
+        "doc": {
+          "name": "doc",
+          "type": "jsonb",
+          "primaryKey": false,
           "notNull": false
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'create'"
         },
         "status": {
           "name": "status",
@@ -159,6 +104,13 @@
           "primaryKey": false,
           "notNull": false,
           "default": "'draft'"
+        },
+        "is_deleted": {
+          "name": "is_deleted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -173,9 +125,175 @@
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "change_summary": {
+          "name": "change_summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_documents_document_id": {
+          "name": "idx_documents_document_id",
+          "columns": [
+            {
+              "expression": "document_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_documents_collection_path_deleted": {
+          "name": "idx_documents_collection_path_deleted",
+          "columns": [
+            {
+              "expression": "collection_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "path",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "is_deleted",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_documents_collection_document_deleted": {
+          "name": "idx_documents_collection_document_deleted",
+          "columns": [
+            {
+              "expression": "collection_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "document_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "is_deleted",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_documents_current_view": {
+          "name": "idx_documents_current_view",
+          "columns": [
+            {
+              "expression": "collection_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "document_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "is_deleted",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_documents_event_type": {
+          "name": "idx_documents_event_type",
+          "columns": [
+            {
+              "expression": "event_type",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_documents_created_at": {
+          "name": "idx_documents_created_at",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_documents_document_collection": {
+          "name": "idx_documents_document_collection",
+          "columns": [
+            {
+              "expression": "document_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "collection_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "documents_collection_id_collections_id_fk": {
           "name": "documents_collection_id_collections_id_fk",
@@ -193,12 +311,13 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "documents_collection_id_path_unique": {
-          "name": "documents_collection_id_path_unique",
+        "unique_document_path": {
+          "name": "unique_document_path",
           "nullsNotDistinct": false,
           "columns": [
             "collection_id",
-            "path"
+            "path",
+            "is_deleted"
           ]
         }
       },
@@ -346,10 +465,10 @@
         }
       },
       "foreignKeys": {
-        "field_values_boolean_document_version_id_document_versions_id_fk": {
-          "name": "field_values_boolean_document_version_id_document_versions_id_fk",
+        "field_values_boolean_document_version_id_documents_id_fk": {
+          "name": "field_values_boolean_document_version_id_documents_id_fk",
           "tableFrom": "field_values_boolean",
-          "tableTo": "document_versions",
+          "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -457,6 +576,12 @@
           "notNull": false,
           "default": "now()"
         },
+        "date_type": {
+          "name": "date_type",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "value_date": {
           "name": "value_date",
           "type": "date",
@@ -480,12 +605,6 @@
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
-        },
-        "date_type": {
-          "name": "date_type",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {
@@ -578,10 +697,10 @@
         }
       },
       "foreignKeys": {
-        "field_values_datetime_document_version_id_document_versions_id_fk": {
-          "name": "field_values_datetime_document_version_id_document_versions_id_fk",
+        "field_values_datetime_document_version_id_documents_id_fk": {
+          "name": "field_values_datetime_document_version_id_documents_id_fk",
           "tableFrom": "field_values_datetime",
-          "tableTo": "document_versions",
+          "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -890,10 +1009,10 @@
         }
       },
       "foreignKeys": {
-        "field_values_file_document_version_id_document_versions_id_fk": {
-          "name": "field_values_file_document_version_id_document_versions_id_fk",
+        "field_values_file_document_version_id_documents_id_fk": {
+          "name": "field_values_file_document_version_id_documents_id_fk",
           "tableFrom": "field_values_file",
-          "tableTo": "document_versions",
+          "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1068,10 +1187,10 @@
         }
       },
       "foreignKeys": {
-        "field_values_json_document_version_id_document_versions_id_fk": {
-          "name": "field_values_json_document_version_id_document_versions_id_fk",
+        "field_values_json_document_version_id_documents_id_fk": {
+          "name": "field_values_json_document_version_id_documents_id_fk",
           "tableFrom": "field_values_json",
-          "tableTo": "document_versions",
+          "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1300,10 +1419,10 @@
         }
       },
       "foreignKeys": {
-        "field_values_numeric_document_version_id_document_versions_id_fk": {
-          "name": "field_values_numeric_document_version_id_document_versions_id_fk",
+        "field_values_numeric_document_version_id_documents_id_fk": {
+          "name": "field_values_numeric_document_version_id_documents_id_fk",
           "tableFrom": "field_values_numeric",
-          "tableTo": "document_versions",
+          "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1528,10 +1647,10 @@
         }
       },
       "foreignKeys": {
-        "field_values_relation_document_version_id_document_versions_id_fk": {
-          "name": "field_values_relation_document_version_id_document_versions_id_fk",
+        "field_values_relation_document_version_id_documents_id_fk": {
+          "name": "field_values_relation_document_version_id_documents_id_fk",
           "tableFrom": "field_values_relation",
-          "tableTo": "document_versions",
+          "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1753,10 +1872,10 @@
         }
       },
       "foreignKeys": {
-        "field_values_text_document_version_id_document_versions_id_fk": {
-          "name": "field_values_text_document_version_id_document_versions_id_fk",
+        "field_values_text_document_version_id_documents_id_fk": {
+          "name": "field_values_text_document_version_id_documents_id_fk",
           "tableFrom": "field_values_text",
-          "tableTo": "document_versions",
+          "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1803,7 +1922,88 @@
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
+  "views": {
+    "public.current_documents": {
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "document_id": {
+          "name": "document_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "collection_id": {
+          "name": "collection_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "path": {
+          "name": "path",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'create'"
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'draft'"
+        },
+        "is_deleted": {
+          "name": "is_deleted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "change_summary": {
+          "name": "change_summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "definition": "select distinct \"id\", \"document_id\", \"collection_id\", \"path\", \"event_type\", \"status\", \"is_deleted\", \"created_at\", \"updated_at\", \"created_by\", \"change_summary\" from \"documents\" where \"documents\".\"is_deleted\" = false order by \"documents\".\"collection_id\", \"documents\".\"document_id\", \"documents\".\"id\" desc",
+      "name": "current_documents",
+      "schema": "public",
+      "isExisting": false,
+      "materialized": false
+    }
+  },
   "_meta": {
     "columns": {},
     "schemas": {},

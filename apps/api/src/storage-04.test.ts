@@ -538,67 +538,6 @@ describe('Performance Comparison: Optimized vs Original Storage Queries', () => 
     })
   })
 
-
-  describe('Get Documents for Collection', () => {
-    it('get all documents for collection', async () => {
-
-      // Create multiple test documents for batch testing
-      for (let i = 10; i < 110; i++) {
-        const docData = structuredClone(complexProductDocument)
-        docData.sku = `PROD-${12345 + i}`
-        docData.name.en = `Product ${i + 1}`
-
-        const result = await commandBuilders.documents.createDocument(
-          testCollection.id,
-          ComplexCollectionConfig,
-          docData,
-          docData.sku
-        )
-
-        testDocuments.push(result.document.id)
-      }
-
-      const startTime = performance.now()
-
-      const documents = await queryBuilders.documents.getCurrentDocument
-        (
-          testCollection.id,
-          ComplexCollectionConfig,
-          'all'
-        )
-
-      const endTime = performance.now()
-      const duration = endTime - startTime
-
-      console.log(`All documents for collection: ${duration.toFixed(2)}ms`)
-      console.log('Retrieved documents:', documents.length)
-      console.log('Sample document:', documents[0])
-    })
-    it('get all documents for collection by page', async () => {
-
-      const startTime = performance.now()
-
-      const documents = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(
-        testCollection.id,
-        ComplexCollectionConfig,
-        {
-          locale: 'all',
-          limit: 50,
-          offset: 0,
-          orderBy: 'created_at',
-          orderDirection: 'desc'
-        }
-      )
-
-      const endTime = performance.now()
-      const duration = endTime - startTime
-
-      console.log(`All documents for collection by page: ${duration.toFixed(2)}ms`)
-      // console.log('Retrieved documents:', documents.length)
-      // console.log('Sample document:', documents[0])
-    })
-  })
-
   describe('Memory Usage and Result Verification', () => {
     it('should verify both approaches return identical results', async () => {
       const document_id = testDocuments[0]

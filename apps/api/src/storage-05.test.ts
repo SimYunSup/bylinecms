@@ -90,28 +90,27 @@ describe('Bulk Document Operations', () => {
       console.log('Retrieved documents:', documents.length)
       console.log('Sample document:', documents[0])
     })
-    it.skip('get all documents for collection by page', async () => {
+    it('get all documents for collection by page', async () => {
+      const startTime = performance.now()
 
-      // const startTime = performance.now()
+      const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(
+        bulkCollection.id,
+        BulkCollectionConfig,
+        {
+          locale: 'all',
+          limit: 50,
+          offset: 0,
+          orderBy: 'created_at',
+          orderDirection: 'desc'
+        }
+      )
 
-      // const result = await queryBuildersOptimized.documents.getCurrentDocumentsForCollectionPaginated(
-      //   bulkCollection.id,
-      //   BulkCollectionConfig,
-      //   {
-      //     locale: 'all',
-      //     limit: 50,
-      //     offset: 0,
-      //     orderBy: 'created_at',
-      //     orderDirection: 'desc'
-      //   }
-      // )
+      const endTime = performance.now()
+      const duration = endTime - startTime
 
-      // const endTime = performance.now()
-      // const duration = endTime - startTime
-
-      // console.log(`All documents for collection by page: ${duration.toFixed(2)}ms`)
-      // console.log('Retrieved documents:', result.documents.length)
-      // console.log('Sample document:', result.documents[0])
+      console.log(`All documents for collection by page: ${duration.toFixed(2)}ms`)
+      console.log('Retrieved documents:', result.documents.length)
+      console.log('Sample document:', result.documents[0])
     })
   })
 })

@@ -743,7 +743,7 @@ export class DocumentQueries {
       FROM field_values_file 
       WHERE ${documentCondition} ${localeCondition}
 
-      ORDER BY document_id, field_path, array_index NULLS FIRST, locale
+      ORDER BY document_version_id, field_path, array_index NULLS FIRST, locale
     `;
 
     const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);

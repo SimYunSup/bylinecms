@@ -57,18 +57,6 @@ const db = drizzle(pool, { schema })
 const queryBuilders: ReturnType<typeof createQueryBuilders> = createQueryBuilders(siteConfig, db)
 const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
 
-// Helper function to reconstruct document from field values
-async function reconstructDocument(document_version_id: string) {
-  const fieldValues = await queryBuilders.typedFieldValues.getAllFieldValues(document_version_id)
-
-  const document = {}
-  for (const field of fieldValues) {
-    document[field.field_name] = field.value
-  }
-
-  return document
-}
-
 // Helper function to store document fields
 async function storeDocumentFields(
   document_version_id: string,
@@ -78,20 +66,20 @@ async function storeDocumentFields(
 ) {
   const results: any[] = []
 
-  for (const field of collectionDefinition.fields) {
-    const fieldValue = data[field.name]
-    if (fieldValue !== undefined) {
-      const result = await commandBuilders.fieldValues.insertFieldValue(
-        document_version_id,
-        collection_id,
-        field.name, // field_path same as field_name for top-level fields
-        field.name,
-        field.type === 'richtext' ? 'richText' : field.type,
-        fieldValue
-      )
-      results.push(result)
-    }
-  }
+  // for (const field of collectionDefinition.fields) {
+  //   const fieldValue = data[field.name]
+  //   if (fieldValue !== undefined) {
+  //     const result = await commandBuilders.documents.createDocument(
+  //       document_version_id,
+  //       collection_id,
+  //       field.name, // field_path same as field_name for top-level fields
+  //       field.name,
+  //       field.type === 'richtext' ? 'richText' : field.type,
+  //       fieldValue
+  //     )
+  //     results.push(result)
+  //   }
+  // }
 
   return results
 }
@@ -104,18 +92,18 @@ async function updateDocumentFields(
 ) {
   const results: any[] = []
 
-  for (const field of collectionDefinition.fields) {
-    const fieldValue = data[field.name]
-    if (fieldValue !== undefined) {
-      const result = await commandBuilders.fieldValues.updateFieldValue(
-        document_version_id,
-        field.name,
-        field.type === 'richtext' ? 'richText' : field.type,
-        fieldValue
-      )
-      results.push(result)
-    }
-  }
+  // for (const field of collectionDefinition.fields) {
+  //   const fieldValue = data[field.name]
+  //   if (fieldValue !== undefined) {
+  //     const result = await commandBuilders.fieldValues.updateFieldValue(
+  //       document_version_id,
+  //       field.name,
+  //       field.type === 'richtext' ? 'richText' : field.type,
+  //       fieldValue
+  //     )
+  //     results.push(result)
+  //   }
+  // }
 
   return results
 }
@@ -138,40 +126,23 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
     }
     const collectionRecord = collectionRecords[0]
 
-    // Get all documents for this collection
-    const documents = await queryBuilders.documents.findByCollection(collectionRecord.id)
+    // // Get all documents for this collection
+    // const documents = await queryBuilders.documents.getAllCurrentDocumentsForCollection(collectionRecord.id)
 
-    // Reconstruct each document from field values
-    const reconstructedDocuments: any[] = []
-    for (const doc of documents) {
-      const currentVersion = await queryBuilders.documentVersions.findCurrentVersion(doc.id)
-      if (currentVersion.length > 0) {
-        const documentData = await reconstructDocument(currentVersion[0].id)
-        reconstructedDocuments.push({
-          id: doc.id,
-          path: doc.path,
-          status: doc.status,
-          created_at: doc.created_at,
-          updated_at: doc.updated_at,
-          ...documentData
-        })
-      }
-    }
-
-    return {
-      records: reconstructedDocuments,
-      meta: {
-        page: 1,
-        page_size: 10,
-        total: reconstructedDocuments.length,
-        total_pages: 1,
-      },
-      included: {
-        collection: {
-          path: collection.path,
-        }
-      }
-    }
+    // return {
+    //   documents: reconstructedDocuments,
+    //   meta: {
+    //     page: 1,
+    //     page_size: 10,
+    //     total: reconstructedDocuments.length,
+    //     total_pages: 1,
+    //   },
+    //   included: {
+    //     collection: {
+    //       path: collection.path,
+    //     }
+    //   }
+    // }
   } catch (error) {
     server.log.error(error)
     reply.code(500).send({ error: 'Internal server error' })
@@ -196,38 +167,38 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
     }
     const collectionRecord = collectionRecords[0]
 
-    // Create document
-    const documentResults = await commandBuilders.documents.create(
-      collectionRecord.id,
-      body.path,
-      body.status || 'draft'
-    )
-    const document = documentResults[0]
+    // // Create document
+    // const documentResults = await commandBuilders.documents.create(
+    //   collectionRecord.id,
+    //   body.path,
+    //   body.status || 'draft'
+    // )
+    // const document = documentResults[0]
 
-    // Create initial version
-    const versionResults = await commandBuilders.documentVersions.create(
-      document.id,
-      1,
-      true
-    )
-    const version = versionResults[0]
+    // // Create initial version
+    // const versionResults = await commandBuilders.documentVersions.create(
+    //   document.id,
+    //   1,
+    //   true
+    // )
+    // const version = versionResults[0]
 
-    // Store field values
-    await storeDocumentFields(
-      version.id,
-      collectionRecord.id,
-      collection,
-      body
-    )
+    // // Store field values
+    // await storeDocumentFields(
+    //   version.id,
+    //   collectionRecord.id,
+    //   collection,
+    //   body
+    // )
 
-    reply.code(201).send({
-      status: 'ok',
-      document: {
-        id: document.id,
-        path: document.path,
-        status: document.status
-      }
-    })
+    // reply.code(201).send({
+    //   status: 'ok',
+    //   document: {
+    //     id: document.id,
+    //     path: document.path,
+    //     status: document.status
+    //   }
+    // })
   } catch (error) {
     if (error instanceof z.ZodError) {
       reply.code(400).send({
@@ -250,39 +221,39 @@ server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id
     return
   }
 
-  try {
-    // Get the document
-    const documentRecords = await queryBuilders.documents.findById(id)
-    if (documentRecords.length === 0) {
-      reply.code(404).send({ error: 'Document not found' })
-      return
-    }
-    const document = documentRecords[0]
+  // try {
+  //   // Get the document
+  //   const documentRecords = await queryBuilders.documents.findById(id)
+  //   if (documentRecords.length === 0) {
+  //     reply.code(404).send({ error: 'Document not found' })
+  //     return
+  //   }
+  //   const document = documentRecords[0]
 
-    // Get current version
-    const currentVersions = await queryBuilders.documentVersions.findCurrentVersion(document.id)
-    if (currentVersions.length === 0) {
-      reply.code(404).send({ error: 'Document version not found' })
-      return
-    }
-    const currentVersion = currentVersions[0]
+  //   // Get current version
+  //   const currentVersions = await queryBuilders.documentVersions.findCurrentVersion(document.id)
+  //   if (currentVersions.length === 0) {
+  //     reply.code(404).send({ error: 'Document version not found' })
+  //     return
+  //   }
+  //   const currentVersion = currentVersions[0]
 
-    // Reconstruct document from field values
-    const documentData = await reconstructDocument(currentVersion.id)
+  //   // Reconstruct document from field values
+  //   const documentData = await reconstructDocument(currentVersion.id)
 
-    return {
-      id: document.id,
-      path: document.path,
-      status: document.status,
-      created_at: document.created_at,
-      updated_at: document.updated_at,
-      version: currentVersion.version_number,
-      ...documentData
-    }
-  } catch (error) {
-    server.log.error(error)
-    reply.code(500).send({ error: 'Internal server error' })
-  }
+  //   return {
+  //     id: document.id,
+  //     path: document.path,
+  //     status: document.status,
+  //     created_at: document.created_at,
+  //     updated_at: document.updated_at,
+  //     version: currentVersion.version_number,
+  //     ...documentData
+  //   }
+  // } catch (error) {
+  //   server.log.error(error)
+  //   reply.code(500).send({ error: 'Internal server error' })
+  // }
 })
 
 server.put<{ Params: { collection: string; id: string }; Body: Record<string, any> }>('/api/:collection/:id', async (request, reply) => {
@@ -295,70 +266,70 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
     return
   }
 
-  try {
-    // Get the document
-    const documentRecords = await queryBuilders.documents.findById(id)
-    if (documentRecords.length === 0) {
-      reply.code(404).send({ error: 'Document not found' })
-      return
-    }
-    const document = documentRecords[0]
+  // try {
+  //   // Get the document
+  //   const documentRecords = await queryBuilders.documents.findById(id)
+  //   if (documentRecords.length === 0) {
+  //     reply.code(404).send({ error: 'Document not found' })
+  //     return
+  //   }
+  //   const document = documentRecords[0]
 
-    // Get current version
-    const currentVersions = await queryBuilders.documentVersions.findCurrentVersion(document.id)
-    if (currentVersions.length === 0) {
-      reply.code(404).send({ error: 'Document version not found' })
-      return
-    }
-    const currentVersion = currentVersions[0]
+  //   // Get current version
+  //   const currentVersions = await queryBuilders.documentVersions.findCurrentVersion(document.id)
+  //   if (currentVersions.length === 0) {
+  //     reply.code(404).send({ error: 'Document version not found' })
+  //     return
+  //   }
+  //   const currentVersion = currentVersions[0]
 
-    // Update field values in the current version
-    await updateDocumentFields(currentVersion.id, collection, body)
+  //   // Update field values in the current version
+  //   await updateDocumentFields(currentVersion.id, collection, body)
 
-    // Update document metadata if status changed
-    if (body.status && body.status !== document.status) {
-      await commandBuilders.documents.updateStatus(document.id, body.status)
-    }
+  //   // Update document metadata if status changed
+  //   if (body.status && body.status !== document.status) {
+  //     await commandBuilders.documents.updateStatus(document.id, body.status)
+  //   }
 
-    reply.code(200).send({ status: 'ok' })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      reply.code(400).send({
-        error: 'Validation failed',
-        details: error.errors
-      })
-    } else {
-      server.log.error(error)
-      reply.code(500).send({ error: 'Internal server error' })
-    }
-  }
+  //   reply.code(200).send({ status: 'ok' })
+  // } catch (error) {
+  //   if (error instanceof z.ZodError) {
+  //     reply.code(400).send({
+  //       error: 'Validation failed',
+  //       details: error.errors
+  //     })
+  //   } else {
+  //     server.log.error(error)
+  //     reply.code(500).send({ error: 'Internal server error' })
+  //   }
+  // }
 })
 
 server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
 
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
-    reply.code(404).send({ error: 'Collection not found' })
-    return
-  }
+  // const collection = getCollectionDefinition(path)
+  // if (!collection) {
+  //   reply.code(404).send({ error: 'Collection not found' })
+  //   return
+  // }
 
-  try {
-    // Get the document to ensure it exists
-    const documentRecords = await queryBuilders.documents.findById(id)
-    if (documentRecords.length === 0) {
-      reply.code(404).send({ error: 'Document not found' })
-      return
-    }
+  // try {
+  //   // Get the document to ensure it exists
+  //   const documentRecords = await queryBuilders.documents.findById(id)
+  //   if (documentRecords.length === 0) {
+  //     reply.code(404).send({ error: 'Document not found' })
+  //     return
+  //   }
 
-    // Delete the document (cascading deletes will handle versions and field values)
-    await commandBuilders.documents.delete(id)
+  //   // Delete the document (cascading deletes will handle versions and field values)
+  //   await commandBuilders.documents.delete(id)
 
-    reply.code(200).send({ status: 'ok' })
-  } catch (error) {
-    server.log.error(error)
-    reply.code(500).send({ error: 'Internal server error' })
-  }
+  //   reply.code(200).send({ status: 'ok' })
+  // } catch (error) {
+  //   server.log.error(error)
+  //   reply.code(500).send({ error: 'Internal server error' })
+  // }
 })
 
 const port = Number(process.env.PORT) || 3001

@@ -7,24 +7,20 @@ CREATE TABLE "collections" (
 	CONSTRAINT "collections_path_unique" UNIQUE("path")
 );
 --> statement-breakpoint
-CREATE TABLE "document_versions" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"document_id" uuid NOT NULL,
-	"version_number" integer NOT NULL,
-	"is_current" boolean DEFAULT false,
-	"created_at" timestamp DEFAULT now(),
-	"created_by" uuid,
-	CONSTRAINT "document_versions_document_id_version_number_unique" UNIQUE("document_id","version_number")
-);
---> statement-breakpoint
 CREATE TABLE "documents" (
 	"id" uuid PRIMARY KEY NOT NULL,
+	"document_id" uuid NOT NULL,
 	"collection_id" uuid NOT NULL,
-	"path" varchar(255),
+	"path" varchar(255) NOT NULL,
+	"doc" jsonb,
+	"event_type" varchar(20) DEFAULT 'create' NOT NULL,
 	"status" varchar(50) DEFAULT 'draft',
+	"is_deleted" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
-	CONSTRAINT "documents_collection_id_path_unique" UNIQUE("collection_id","path")
+	"created_by" uuid,
+	"change_summary" text,
+	CONSTRAINT "unique_document_path" UNIQUE("collection_id","path","is_deleted")
 );
 --> statement-breakpoint
 CREATE TABLE "field_values_boolean" (
@@ -53,11 +49,11 @@ CREATE TABLE "field_values_datetime" (
 	"parent_path" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
+	"date_type" varchar(20) NOT NULL,
 	"value_date" date,
 	"value_time" time,
 	"value_timestamp" timestamp,
 	"value_timestamp_tz" timestamp with time zone,
-	"date_type" varchar(20) NOT NULL,
 	CONSTRAINT "unique_datetime_field" UNIQUE("document_version_id","field_path","locale","array_index")
 );
 --> statement-breakpoint
@@ -159,24 +155,30 @@ CREATE TABLE "field_values_text" (
 	CONSTRAINT "unique_text_field" UNIQUE("document_version_id","field_path","locale","array_index")
 );
 --> statement-breakpoint
-ALTER TABLE "document_versions" ADD CONSTRAINT "document_versions_document_id_documents_id_fk" FOREIGN KEY ("document_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "documents" ADD CONSTRAINT "documents_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "field_values_boolean" ADD CONSTRAINT "field_values_boolean_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "field_values_boolean" ADD CONSTRAINT "field_values_boolean_document_version_id_documents_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "field_values_boolean" ADD CONSTRAINT "field_values_boolean_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "field_values_datetime" ADD CONSTRAINT "field_values_datetime_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "field_values_datetime" ADD CONSTRAINT "field_values_datetime_document_version_id_documents_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "field_values_datetime" ADD CONSTRAINT "field_values_datetime_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "field_values_file" ADD CONSTRAINT "field_values_file_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "field_values_file" ADD CONSTRAINT "field_values_file_document_version_id_documents_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "field_values_file" ADD CONSTRAINT "field_values_file_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "field_values_json" ADD CONSTRAINT "field_values_json_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "field_values_json" ADD CONSTRAINT "field_values_json_document_version_id_documents_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "field_values_json" ADD CONSTRAINT "field_values_json_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "field_values_numeric" ADD CONSTRAINT "field_values_numeric_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "field_values_numeric" ADD CONSTRAINT "field_values_numeric_document_version_id_documents_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "field_values_numeric" ADD CONSTRAINT "field_values_numeric_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "field_values_relation" ADD CONSTRAINT "field_values_relation_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "field_values_relation" ADD CONSTRAINT "field_values_relation_document_version_id_documents_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "field_values_relation" ADD CONSTRAINT "field_values_relation_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "field_values_relation" ADD CONSTRAINT "field_values_relation_target_document_id_documents_id_fk" FOREIGN KEY ("target_document_id") REFERENCES "public"."documents"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "field_values_relation" ADD CONSTRAINT "field_values_relation_target_collection_id_collections_id_fk" FOREIGN KEY ("target_collection_id") REFERENCES "public"."collections"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "field_values_text" ADD CONSTRAINT "field_values_text_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "field_values_text" ADD CONSTRAINT "field_values_text_document_version_id_documents_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "field_values_text" ADD CONSTRAINT "field_values_text_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "idx_documents_document_id" ON "documents" USING btree ("document_id");--> statement-breakpoint
+CREATE INDEX "idx_documents_collection_path_deleted" ON "documents" USING btree ("collection_id","path","is_deleted");--> statement-breakpoint
+CREATE INDEX "idx_documents_collection_document_deleted" ON "documents" USING btree ("collection_id","document_id","is_deleted");--> statement-breakpoint
+CREATE INDEX "idx_documents_current_view" ON "documents" USING btree ("collection_id","document_id","is_deleted","id");--> statement-breakpoint
+CREATE INDEX "idx_documents_event_type" ON "documents" USING btree ("event_type");--> statement-breakpoint
+CREATE INDEX "idx_documents_created_at" ON "documents" USING btree ("created_at");--> statement-breakpoint
+CREATE INDEX "idx_documents_document_collection" ON "documents" USING btree ("document_id","collection_id");--> statement-breakpoint
 CREATE INDEX "idx_boolean_value" ON "field_values_boolean" USING btree ("value");--> statement-breakpoint
 CREATE INDEX "idx_boolean_path_value" ON "field_values_boolean" USING btree ("field_path","value");--> statement-breakpoint
 CREATE INDEX "idx_boolean_collection_value" ON "field_values_boolean" USING btree ("collection_id","field_path","value");--> statement-breakpoint
@@ -208,4 +210,5 @@ CREATE INDEX "idx_relation_collection_to_collection" ON "field_values_relation" 
 CREATE INDEX "idx_text_value" ON "field_values_text" USING btree ("value");--> statement-breakpoint
 CREATE INDEX "idx_text_fulltext" ON "field_values_text" USING gin (to_tsvector('english', "value"));--> statement-breakpoint
 CREATE INDEX "idx_text_locale_value" ON "field_values_text" USING btree ("locale","value");--> statement-breakpoint
-CREATE INDEX "idx_text_path_value" ON "field_values_text" USING btree ("field_path","value");
+CREATE INDEX "idx_text_path_value" ON "field_values_text" USING btree ("field_path","value");--> statement-breakpoint
+CREATE VIEW "public"."current_documents" AS (select distinct "id", "document_id", "collection_id", "path", "event_type", "status", "is_deleted", "created_at", "updated_at", "created_by", "change_summary" from "documents" where "documents"."is_deleted" = false order by "documents"."collection_id", "documents"."document_id", "documents"."id" desc);

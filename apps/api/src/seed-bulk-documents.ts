@@ -3,13 +3,12 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '../database/schema/index.js'
 import type { CollectionConfig, SiteConfig } from './@types/index.js'
-import { createCommandBuilders, createEnhancedCommandBuilders } from './storage-commands.js'
+import { createCommandBuilders } from './storage-commands.js'
 
 // Test database setup
 let pool: Pool
 let db: ReturnType<typeof drizzle>
 let commandBuilders: ReturnType<typeof createCommandBuilders>
-let commandBuildersEnhanced: ReturnType<typeof createEnhancedCommandBuilders>
 
 const siteConfig: SiteConfig = {
   i18n: {
@@ -165,7 +164,6 @@ async function run() {
   db = drizzle(pool, { schema })
 
   commandBuilders = createCommandBuilders(siteConfig, db)
-  commandBuildersEnhanced = createEnhancedCommandBuilders(siteConfig, db)
 
   // Create bulk documents to populate the database.
   const bulkCollectionResult = await commandBuilders.collections.create(
@@ -181,7 +179,7 @@ async function run() {
     const docData = structuredClone(complexProductDocument)
     docData.path = `BULK-${12345 + i}`
     docData.name.en = `A bulk created document. ${i + 1}` // Ensure unique names  
-    await commandBuildersEnhanced.documents.createCompleteDocument(
+    await commandBuilders.documents.createDocument(
       bulkCollection.id,
       BulkCollectionConfig,
       docData,
