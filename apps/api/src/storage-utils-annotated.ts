@@ -22,12 +22,9 @@
 
 import type {
   CollectionConfig,
-  DateTimeFieldValue,
   FieldConfig,
-  FileFieldValue,
   FlattenedFieldValue,
   NonArrayFieldType,
-  RelationFieldValue,
 } from './@types/index.js';
 
 function createFieldSpecificValue(
@@ -149,42 +146,6 @@ export function flattenDocument(
   return flattenedFields;
 }
 
-function createReconstructedValue(fieldValue: FlattenedFieldValue): any {
-  switch (fieldValue.field_type) {
-    case 'text':
-    case 'richText':
-    case 'number':
-    case 'integer':
-    case 'decimal':
-    case 'boolean':
-    case 'json':
-    case 'object':
-      return (fieldValue as any).value;
-
-    case 'datetime': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as DateTimeFieldValue & { value?: any };
-      delete value.value;
-      return value;
-    }
-
-    case 'file':
-    case 'image': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as FileFieldValue & { value?: any };
-      delete value.value;
-      return value;
-    }
-
-    case 'relation': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as RelationFieldValue & { value?: any };
-      delete value.value;
-      return value;
-    }
-
-    default:
-      return (fieldValue as any).value;
-  }
-}
-
 export function reconstructDocument(
   fieldValues: FlattenedFieldValue[],
   locale = 'default'
@@ -243,11 +204,19 @@ export function reconstructDocument(
     if (values.length > 1 && values.some(v => v.locale !== 'default')) { // Localized
       const localizedObject: Record<string, any> = {};
       values.forEach(v => {
-        localizedObject[v.locale] = createReconstructedValue(v);
+        const val = createFieldSpecificValue(v.field_path, v.field_name, v.field_type as NonArrayFieldType, v, v.locale);
+        localizedObject[v.locale] = (val as any).value || val;
       });
       setValue(document, path, localizedObject);
     } else if (preferredValue) {
-      const valueToSet = createReconstructedValue(preferredValue);
+      const reconstructedValue = createFieldSpecificValue(
+        preferredValue.field_path,
+        preferredValue.field_name,
+        preferredValue.field_type as NonArrayFieldType,
+        preferredValue,
+        preferredValue.locale
+      );
+      const valueToSet = (reconstructedValue as any).value || reconstructedValue;
       setValue(document, path, valueToSet);
     }
   }

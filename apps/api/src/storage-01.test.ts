@@ -1,4 +1,3 @@
-import { time } from 'drizzle-orm/pg-core';
 /**
  * Performance Comparison Tests - Optimized vs Original Storage Queries
  *
@@ -29,6 +28,7 @@ import * as schema from '../database/schema/index.js'
 import type { CollectionConfig, SiteConfig } from './@types/index.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
+import { flattenDocument, reconstructDocument } from './storage-utils.js'
 
 // Test database setup
 let pool: Pool
@@ -43,195 +43,86 @@ const siteConfig: SiteConfig = {
   }
 }
 
-const VersionsCollectionConfig: CollectionConfig = {
-  path: 'versioning',
+const DocsCollectionConfig: CollectionConfig = {
+  path: 'docs',
   labels: {
-    singular: 'Version',
-    plural: 'Versions',
+    singular: 'Document',
+    plural: 'Documents',
   },
   fields: [
-    { name: 'sku', type: 'text', required: true, unique: true },
-    { name: 'name', type: 'text', required: true, localized: true },
-    { name: 'description', type: 'richText', required: true, localized: true },
-    { name: 'price', type: 'decimal', required: true },
-    { name: 'inStock', type: 'boolean', required: true },
-    { name: 'releaseDate', type: 'datetime', required: false },
+    { name: 'path', type: 'text', required: true, unique: true },
+    { name: 'title', type: 'text', required: true, localized: true },
+    { name: 'summary', type: 'text', required: true, localized: true },
     { name: 'category', type: 'relation', required: false },
+    { name: 'publishedOn', type: 'datetime', required: false },
     {
-      name: 'images', type: 'array', fields: [
-        { name: 'url', type: 'file', required: true },
-        { name: 'alt', type: 'text', required: true, localized: true },
-        { name: 'caption', type: 'text', required: false, localized: true },
+      name: 'content', type: 'array', fields: [
+        {
+          name: 'richTextBlock', type: 'array', fields: [
+            { name: 'constrainedWidth', type: 'boolean', required: false },
+            { name: 'richText', type: 'richText', required: true, localized: true },
+          ]
+        },
+        {
+          name: 'photoBlock', type: 'array', fields: [
+            { name: 'display', type: 'text', required: false },
+            { name: 'photo', type: 'file', required: true },
+            { name: 'alt', type: 'text', required: true, localized: false },
+            { name: 'caption', type: 'richText', required: false, localized: true },
+          ]
+        },
       ]
     },
-    {
-      name: 'specifications', type: 'array', fields: [
-        { name: 'key', type: 'text', required: true, localized: true },
-        { name: 'value', type: 'text', required: true, localized: true },
-        { name: 'unit', type: 'text', required: false },
-      ]
-    },
-    {
-      name: 'reviews', type: 'array', fields: [
-        { name: 'rating', type: 'integer', required: true },
-        { name: 'comment', type: 'richText', required: true },
-        { name: 'author', type: 'relation', required: false },
-        { name: 'verified', type: 'boolean', required: true },
-      ]
-    }
   ],
 };
 
 // Complex test document with many fields and arrays
-const complexProductDocument = {
-  sku: "FOO-12345",
-  name: {
-    en: "Premium Wireless Headphones",
-    es: "Auriculares Inalámbricos Premium",
-    fr: "Casque Sans Fil Premium"
+const sampleDocument = {
+  path: "my-first-document",
+  title: {
+    en: "My First Document",
+    es: "Mi Primer Documento",
+    fr: "Mon Premier Document"
   },
-  description: {
-    en: {
-      type: "paragraph",
-      content: [{ type: "text", text: "High-quality wireless headphones with noise cancellation" }]
-    },
-    es: {
-      type: "paragraph",
-      content: [{ type: "text", text: "Auriculares inalámbricos de alta calidad con cancelación de ruido" }]
-    },
-    fr: {
-      type: "paragraph",
-      content: [{ type: "text", text: "Casque sans fil de haute qualité avec suppression du bruit" }]
-    }
-  },
-  price: 299.99,
-  inStock: true,
-  releaseDate: {
-    date_type: "timestamp",
-    value_timestamp: new Date("2024-01-15T10:00:00Z")
+  summary: {
+    en: "This is a sample document for testing purposes.",
+    es: "Este es un documento de muestra para fines de prueba.",
+    fr: "Il s'agit d'un document d'exemple à des fins de test."
   },
   // category: {
   //   target_collection_id: "cat-123",
   //   target_document_id: "electronics-audio"
   // },
-  images: [
+  publishedOn: {
+    date_type: "timestamp",
+    value_timestamp: new Date("2024-01-15T10:00:00")
+  },
+  content: [
     {
-      url: {
-        file_id: "018dd0b2-9a2a-7f01-b8b2-a0c719d0f5b3",
-        filename: "headphones-main.jpg",
-        original_filename: "wireless-headphones.jpg",
-        mime_type: "image/jpeg",
-        file_size: 2048000,
-        storage_provider: "s3",
-        storage_path: "/products/img-001.jpg"
-      },
-      alt: {
-        en: "Premium wireless headphones front view",
-        es: "Vista frontal de auriculares inalámbricos premium",
-        fr: "Vue de face du casque sans fil premium"
-      },
-      caption: {
-        en: "Sleek design with premium materials",
-        es: "Diseño elegante con materiales premium",
-        fr: "Design élégant avec des matériaux premium"
-      }
+      richTextBlock: [
+        { constrainedWidth: true },
+        {
+          richText: {
+            en: { root: { paragraph: 'Some text here...' } },
+            es: { root: { paragraph: 'Some spanish text here' } }
+          }
+        },
+      ],
     },
     {
-      url: {
-        file_id: "018dd0b2-9a2a-7f02-8e73-f4c5a9e3d6b8",
-        filename: "headphones-side.jpg",
-        original_filename: "side-view.jpg",
-        mime_type: "image/jpeg",
-        file_size: 1536000,
-        storage_provider: "s3",
-        storage_path: "/products/img-002.jpg"
-      },
-      alt: {
-        en: "Side view showing comfort padding",
-        es: "Vista lateral mostrando acolchado cómodo",
-        fr: "Vue de côté montrant le rembourrage confortable"
-      }
-    }
+      photoBlock: [
+        { display: 'wide' },
+        { photo: { file_id: 'foo', filename: 'somefile' } },
+        { alt: 'Some alt text here' },
+        {
+          caption: {
+            en: { root: { paragraph: 'Some text here...' } },
+            es: { root: { paragraph: 'Some spanish text here...' } }
+          }
+        },
+      ]
+    },
   ],
-  specifications: [
-    {
-      key: {
-        en: "Battery Life",
-        es: "Duración de la Batería",
-        fr: "Autonomie de la Batterie"
-      },
-      value: {
-        en: "30 hours",
-        es: "30 horas",
-        fr: "30 heures"
-      },
-      unit: "hours"
-    },
-    {
-      key: {
-        en: "Weight",
-        es: "Peso",
-        fr: "Poids"
-      },
-      value: {
-        en: "250g",
-        es: "250g",
-        fr: "250g"
-      },
-      unit: "grams"
-    },
-    {
-      key: {
-        en: "Driver Size",
-        es: "Tamaño del Driver",
-        fr: "Taille du Haut-parleur"
-      },
-      value: {
-        en: "40mm",
-        es: "40mm",
-        fr: "40mm"
-      },
-      unit: "mm"
-    }
-  ],
-  reviews: [
-    {
-      rating: 5,
-      comment: {
-        type: "paragraph",
-        content: [{ type: "text", text: "Amazing sound quality and comfort!" }]
-      },
-      // author: {
-      //   target_collection_id: "users-123",
-      //   target_document_id: "user-456"
-      // },
-      verified: true
-    },
-    {
-      rating: 4,
-      comment: {
-        type: "paragraph",
-        content: [{ type: "text", text: "Great headphones, but could be lighter." }]
-      },
-      // author: {
-      //   target_collection_id: "users-123",
-      //   target_document_id: "user-789"
-      // },
-      verified: true
-    },
-    {
-      rating: 5,
-      comment: {
-        type: "paragraph",
-        content: [{ type: "text", text: "Perfect for long listening sessions." }]
-      },
-      // author: {
-      //   target_collection_id: "users-123",
-      //   target_document_id: "user-101"
-      // },
-      verified: false
-    }
-  ]
 };
 
 // Global test variables
@@ -249,8 +140,8 @@ describe('Document Creation and Versioning', () => {
     // Create test collection
     const timestamp = Date.now()
     const collection = await commandBuilders.collections.create(
-      `versions_collection_${timestamp}`,
-      VersionsCollectionConfig
+      `documents_collection_${timestamp}`,
+      DocsCollectionConfig
     )
 
     testCollection = { id: collection[0].id, name: collection[0].path }
@@ -269,116 +160,28 @@ describe('Document Creation and Versioning', () => {
     await pool.end()
   })
 
-  describe('Should create documents and document versions', () => {
+  describe('Flattening and Reconstruction', () => {
+    // it('should flatten a document with new method', () => {
+    //   const flattened = flattenDocumentNew(sampleDocument, DocsCollectionConfig)
+    //   assert(flattened, 'Flattened document should not be null or undefined')
+    //   assert(flattened.length > 0, 'Flattened document should contain field values')
+    //   console.log('Flattened document (new):', flattened)
+    // })
 
-    it('should create a document', async () => {
-      const timestamp = Date.now()
+    it('should flatten and reconstruct a document with new method', () => {
+      const flattened = flattenDocument(sampleDocument, DocsCollectionConfig)
+      assert(flattened, 'Flattened document should not be null or undefined')
+      assert(flattened.length > 0, 'Flattened document should contain field values')
+      console.log('Flattened document (new):', flattened)
 
-      const docData = structuredClone(complexProductDocument)
-      docData.sku = `PROD-${timestamp}`
-      docData.name.en = `Product ${timestamp}`
+      const reconstructed = reconstructDocument(flattened)
+      assert(reconstructed, 'Reconstructed document should not be null or undefined')
+      console.log('Reconstructed document (new):', JSON.stringify(reconstructed, null, 2))
 
-      const result = await commandBuilders.documents.createDocument({
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'create',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
+      // A simplified version of the sample document for deep equality check
+      // const simplifiedSample = JSON.parse(JSON.stringify(sampleDocument));
 
-      console.log('Document created:', result)
-
-      assert.notStrictEqual(result.document.document_id, null, 'Document creation failed');
-    })
-
-    it('should create a document and document version with the same path', async () => {
-      const timestamp = Date.now()
-
-      const docData = structuredClone(complexProductDocument)
-      docData.sku = `PROD-${timestamp}`
-      docData.name.en = `Product ${timestamp}`
-
-      const firstVersion = await commandBuilders.documents.createDocument({
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'create',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      console.log('firstVersion created:', firstVersion)
-
-      assert.notStrictEqual(firstVersion.document.document_id, null, 'Document creation failed');
-
-      const secondVersion = await commandBuilders.documents.createDocument({
-        documentId: firstVersion.document.document_id,
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'update',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      console.log('secondVersion created:', secondVersion)
-    })
-
-    it('should create multiple versions of a document and return a version history', async () => {
-      const timestamp = Date.now()
-
-      const docData = structuredClone(complexProductDocument)
-      docData.sku = `PROD-${timestamp}`
-      docData.name.en = `Product ${timestamp}`
-
-      const firstVersion = await commandBuilders.documents.createDocument({
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'create',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      assert.notStrictEqual(firstVersion.document.document_id, null, 'Document creation failed');
-
-      const secondVersion = await commandBuilders.documents.createDocument({
-        documentId: firstVersion.document.document_id,
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'update',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      assert.notStrictEqual(secondVersion.document.document_id, null, 'Document creation failed');
-
-      const thirdVersion = await commandBuilders.documents.createDocument({
-        documentId: firstVersion.document.document_id,
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'update',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      assert.notStrictEqual(thirdVersion.document.document_id, null, 'Document creation failed');
-
-      const versionHistory = await queryBuilders.documents.getDocumentHistory(
-        firstVersion.document.document_id,
-        testCollection.id,
-      )
-
-      console.log('Version history:', versionHistory)
+      // assert.deepStrictEqual(reconstructed, simplifiedSample, 'Reconstructed document should match the original structure');
     })
   })
 })

@@ -1,0 +1,923 @@
+/**
+ * Byline CMS Server Tests
+ *
+ * Copyright © 2025 Anthony Bouch and contributors.
+ *
+ * This file is part of Byline CMS.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import type {
+  CollectionConfig,
+  DateTimeFieldValue,
+  FieldConfig,
+  FileFieldValue,
+  FlattenedFieldValue,
+  JsonFieldValue,
+  NonArrayFieldType,
+  ParsedFieldPath,
+  ReconstructedFieldValue,
+  RelationFieldValue
+} from './@types/index.js';
+
+// FIELD PATH CONSTRUCTION
+// =======================
+
+/**
+ * Builds field paths for nested array structures
+ * @param basePath - The base field name
+ * @param array_index - Optional array index
+ * @param nestedField - Optional nested field name
+ * @returns Constructed field path
+ */
+export function buildFieldPath(basePath: string, array_index?: number, nestedField?: string): string {
+  let path = basePath;
+
+  if (array_index !== undefined) {
+    path += `.${array_index}`;
+  }
+
+  if (nestedField) {
+    path += `.${nestedField}`;
+  }
+
+  return path;
+}
+
+/**
+ * Parses a field path to extract components
+ * @param field_path - The field path to parse (e.g., "cluster.1.two")
+ * @returns Parsed field path components
+ */
+export function parseFieldPath(field_path: string): ParsedFieldPath {
+  const segments = field_path.split('.');
+  const parsedSegments: Array<{ field: string; array_index?: number }> = [];
+
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    const nextSegment = segments[i + 1];
+
+    // Check if next segment is a number (array index)
+    if (nextSegment && !Number.isNaN(Number.parseInt(nextSegment))) {
+      parsedSegments.push({
+        field: segment,
+        array_index: Number.parseInt(nextSegment)
+      });
+      i++; // Skip the index segment
+    } else {
+      parsedSegments.push({ field: segment });
+    }
+  }
+
+  return {
+    basePath: segments[0],
+    segments: parsedSegments
+  };
+}
+
+/**
+ * Checks if a field path represents an array field
+ * @param field_path - The field path to check
+ * @returns True if the path contains array indices
+ */
+export function isArrayFieldPath(field_path: string): boolean {
+  const segments = field_path.split('.');
+  return segments.some(segment => !Number.isNaN(Number.parseInt(segment)));
+}
+
+/**
+ * Gets the parent path for an array field
+ * @param field_path - The field path (e.g., "cluster.1.two")
+ * @returns Parent path (e.g., "cluster")
+ */
+export function getParentPath(field_path: string): string | null {
+  const segments = field_path.split('.');
+  if (segments.length <= 1) return null;
+
+  // Find the first array index and return everything before it
+  for (let i = 1; i < segments.length; i++) {
+    if (!Number.isNaN(Number.parseInt(segments[i]))) {
+      return segments.slice(0, i).join('.');
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Gets the array index from a field path
+ * @param field_path - The field path (e.g., "cluster.1.two")
+ * @returns Array index or null if not an array field
+ */
+export function getArrayIndex(field_path: string): number | null {
+  const segments = field_path.split('.');
+
+  for (let i = 1; i < segments.length; i++) {
+    const parsed = Number.parseInt(segments[i]);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+// DOCUMENT FLATTENING
+// ===================
+
+/**
+ * Flattens a complete document into field values for storage
+ * @param document - The document object to flatten
+ * @param collectionConfig - The collection configuration
+ * @param locale - Default locale for non-localized fields
+ * @returns Array of flattened field values
+ */
+export function flattenDocumentToFieldValues(
+  documentData: any,
+  collectionConfig: CollectionConfig,
+  locale = 'default'
+): FlattenedFieldValue[] {
+  const flattenedFields: FlattenedFieldValue[] = [];
+
+  function flattenObject(
+    obj: any,
+    fieldConfigs: any[],
+    basePath = '',
+    parent_path?: string,
+    array_index?: number
+  ) {
+    for (const fieldConfig of fieldConfigs) {
+      const field_path = basePath ? `${basePath}.${fieldConfig.name}` : fieldConfig.name;
+      const value = obj[fieldConfig.name];
+
+      if (value === undefined || value === null) continue;
+
+      // Handle localized fields first - check if field is localized and value is an object
+      if (fieldConfig.localized && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        // For localized fields, create separate field values for each locale
+        for (const [localeKey, localizedValue] of Object.entries(value)) {
+          if (localizedValue !== undefined && localizedValue !== null) {
+            switch (fieldConfig.type) {
+              case 'text':
+                flattenedFields.push({
+                  field_type: 'text',
+                  field_path,
+                  field_name: fieldConfig.name,
+                  locale: localeKey,
+                  array_index,
+                  parent_path,
+                  value: localizedValue as string,
+                });
+                break;
+
+              case 'richText':
+                flattenedFields.push({
+                  field_type: 'richText',
+                  field_path,
+                  field_name: fieldConfig.name,
+                  locale: localeKey,
+                  array_index,
+                  parent_path,
+                  value: localizedValue,
+                });
+                break;
+
+              case 'json':
+              case 'object':
+                flattenedFields.push({
+                  field_type: fieldConfig.type,
+                  field_path,
+                  field_name: fieldConfig.name,
+                  locale: localeKey,
+                  array_index,
+                  parent_path,
+                  value: localizedValue,
+                  json_schema: fieldConfig.json_schema,
+                  object_keys: typeof localizedValue === 'object' ? Object.keys(localizedValue) : undefined,
+                });
+                break;
+
+              default:
+                // For other field types that can be localized, create field-specific values
+                flattenedFields.push(createFieldSpecificValue(
+                  field_path,
+                  fieldConfig.name,
+                  fieldConfig.type as NonArrayFieldType,
+                  localizedValue,
+                  localeKey,
+                  array_index,
+                  parent_path
+                ));
+            }
+          }
+        }
+        continue; // Skip the rest of the processing for this field since we handled localization
+      }
+
+      // Handle field-specific properties based on type (non-localized fields)
+      switch (fieldConfig.type) {
+        case 'file':
+        case 'image':
+          if (typeof value === 'object' && value.file_id) {
+            flattenedFields.push({
+              field_type: fieldConfig.type,
+              field_path,
+              field_name: fieldConfig.name,
+              locale,
+              array_index,
+              parent_path,
+              value: value.file_id, // For backward compatibility
+              file_id: value.file_id,
+              filename: value.filename,
+              original_filename: value.original_filename,
+              mime_type: value.mime_type,
+              file_size: value.file_size,
+              storage_provider: value.storage_provider,
+              storage_path: value.storage_path,
+              storage_url: value.storage_url,
+              file_hash: value.file_hash,
+              image_width: value.image_width,
+              image_height: value.image_height,
+              image_format: value.image_format,
+              processing_status: value.processing_status,
+              thumbnail_generated: value.thumbnail_generated,
+            } as FileFieldValue);
+          }
+          break;
+
+        case 'relation':
+          if (typeof value === 'object' && value.target_document_id) {
+            flattenedFields.push({
+              field_type: 'relation',
+              field_path,
+              field_name: fieldConfig.name,
+              locale,
+              array_index,
+              parent_path,
+              value: value.target_document_id,
+              target_document_id: value.target_document_id,
+              target_collection_id: value.target_collection_id,
+              relationship_type: value.relationship_type,
+              cascade_delete: value.cascade_delete,
+            } as RelationFieldValue);
+          } else if (typeof value === 'string') {
+            // Handle simple string reference
+            flattenedFields.push({
+              field_type: 'relation',
+              field_path,
+              field_name: fieldConfig.name,
+              locale,
+              array_index,
+              parent_path,
+              value: value,
+              target_document_id: value,
+              target_collection_id: fieldConfig.targetCollection || '',
+            } as RelationFieldValue);
+          }
+          break;
+
+        case 'json':
+        case 'object':
+          flattenedFields.push({
+            field_type: fieldConfig.type,
+            field_path,
+            field_name: fieldConfig.name,
+            locale,
+            array_index,
+            parent_path,
+            value,
+            json_schema: fieldConfig.json_schema,
+            object_keys: typeof value === 'object' ? Object.keys(value) : undefined,
+          });
+          break;
+
+        case 'array':
+          if (Array.isArray(value) && fieldConfig.fields) {
+            value.forEach((item, index) => {
+              flattenObject(
+                item,
+                fieldConfig.fields,
+                field_path,
+                field_path,
+                index
+              );
+            });
+          }
+          break;
+
+        default:
+          // Handle simple field types
+          flattenedFields.push({
+            field_type: fieldConfig.type,
+            field_path,
+            field_name: fieldConfig.name,
+            locale,
+            array_index,
+            parent_path,
+            value,
+          } as FlattenedFieldValue);
+      }
+    }
+  }
+
+  flattenObject(documentData, collectionConfig.fields);
+  return flattenedFields;
+}
+
+/**
+ * Flattens a single field (recursive for arrays and nested structures)
+ * @param value - The field value
+ * @param fieldConfig - Field configuration
+ * @param field_path - Current field path
+ * @param field_name - Field name
+ * @param result - Array to accumulate results
+ * @param defaultLocale - Default locale
+ * @param array_index - Current array index (if applicable)
+ * @param parent_path - Parent field path (if applicable)
+ */
+export function flattenField(
+  value: any,
+  fieldConfig: FieldConfig,
+  field_path: string,
+  field_name: string,
+  result: FlattenedFieldValue[],
+  defaultLocale: string,
+  array_index?: number,
+  parent_path?: string
+): void {
+
+  if (fieldConfig.type === 'array' && Array.isArray(value)) {
+    // Handle array fields - don't create field values for the array itself
+    value.forEach((arrayItem, index) => {
+      const arrayPath = buildFieldPath(field_path, index);
+
+      // Process each field in the array item
+      if (fieldConfig.fields) {
+        for (const subFieldConfig of fieldConfig.fields) {
+          const subFieldValue = arrayItem[subFieldConfig.name];
+          if (subFieldValue !== undefined && subFieldValue !== null) {
+            flattenField(
+              subFieldValue,
+              subFieldConfig,
+              buildFieldPath(arrayPath, undefined, subFieldConfig.name),
+              subFieldConfig.name,
+              result,
+              defaultLocale,
+              index,
+              field_path
+            );
+          }
+        }
+      }
+    });
+  } else if (fieldConfig.localized && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    // Handle localized fields (object with locale keys)
+    for (const [locale, localizedValue] of Object.entries(value)) {
+      if (localizedValue !== undefined && localizedValue !== null) {
+        // Create field-specific type based on fieldConfig.type
+        result.push(createFieldSpecificValue(
+          field_path,
+          field_name,
+          fieldConfig.type as NonArrayFieldType,
+          localizedValue,
+          locale,
+          array_index,
+          parent_path
+        ));
+      }
+    }
+  } else {
+    // Handle regular fields (non-array types only)
+    if (fieldConfig.type !== 'array') {
+      result.push(createFieldSpecificValue(
+        field_path,
+        field_name,
+        fieldConfig.type as NonArrayFieldType,
+        value,
+        defaultLocale,
+        array_index,
+        parent_path
+      ));
+    }
+  }
+}
+
+/**
+ * Creates a field-specific value object based on field type
+ */
+function createFieldSpecificValue(
+  field_path: string,
+  field_name: string,
+  field_type: NonArrayFieldType,
+  value: any,
+  locale: string,
+  array_index?: number,
+  parent_path?: string
+): FlattenedFieldValue {
+  const baseValue = {
+    field_path,
+    field_name,
+    locale,
+    array_index,
+    parent_path,
+  };
+
+  switch (field_type) {
+    case 'text':
+      return {
+        ...baseValue,
+        field_type: 'text',
+        value: value,
+      };
+
+    case 'richText':
+      return {
+        ...baseValue,
+        field_type: 'richText',
+        value: value,
+      };
+
+    case 'number':
+    case 'integer':
+    case 'decimal':
+      return {
+        ...baseValue,
+        field_type: field_type,
+        value: value,
+      };
+
+    case 'boolean':
+      return {
+        ...baseValue,
+        field_type: 'boolean',
+        value: value,
+      };
+
+    case 'datetime':
+      return {
+        ...baseValue,
+        field_type: 'datetime',
+        date_type: value.date_type || 'timestamp',
+        value_date: value.value_date,
+        value_time: value.value_time,
+        value_timestamp: value.value_timestamp,
+        value_timestamp_tz: value.value_timestamp_tz,
+      };
+
+    case 'file':
+    case 'image':
+      // Handle file fields - extract file-specific properties
+      if (typeof value === 'object' && value.file_id) {
+        return {
+          ...baseValue,
+          field_type: field_type,
+          file_id: value.file_id,
+          filename: value.filename,
+          original_filename: value.original_filename,
+          mime_type: value.mime_type,
+          file_size: value.file_size,
+          storage_provider: value.storage_provider,
+          storage_path: value.storage_path,
+          storage_url: value.storage_url,
+          file_hash: value.file_hash,
+          image_width: value.image_width,
+          image_height: value.image_height,
+          image_format: value.image_format,
+          processing_status: value.processing_status,
+          thumbnail_generated: value.thumbnail_generated,
+        };
+      }
+      // Fallback for simple file values
+      return {
+        ...baseValue,
+        field_type: field_type,
+        file_id: value,
+        filename: '',
+        original_filename: '',
+        mime_type: '',
+        file_size: 0,
+        storage_provider: '',
+        storage_path: '',
+      };
+
+    case 'relation':
+      // Handle relation fields - extract relation-specific properties
+      if (typeof value === 'object' && value.target_document_id) {
+        return {
+          ...baseValue,
+          field_type: 'relation',
+          target_document_id: value.target_document_id,
+          target_collection_id: value.target_collection_id,
+          relationship_type: value.relationship_type,
+          cascade_delete: value.cascade_delete,
+        };
+      }
+      // Fallback for simple relation values
+      return {
+        ...baseValue,
+        field_type: 'relation',
+        target_document_id: value,
+        target_collection_id: '',
+      };
+
+    case 'json':
+    case 'object':
+      return {
+        ...baseValue,
+        field_type: field_type,
+        value: value,
+        json_schema: undefined,
+        object_keys: typeof value === 'object' ? Object.keys(value) : undefined,
+      };
+
+    default:
+      // This should never happen with proper typing, but provide a fallback
+      throw new Error(`Unsupported field type: ${field_type}`);
+  }
+}
+
+// DOCUMENT RECONSTRUCTION
+// ======================
+
+/**
+ * Reconstructs a complete document from flattened field values
+ * @param fieldValues - Array of field values from storage
+ * @param collectionConfig - Collection configuration
+ * @param locale - Preferred locale for reconstruction
+ * @returns Reconstructed document object
+ */
+export function reconstructDocument(
+  fieldValues: FlattenedFieldValue[],
+  collectionConfig: CollectionConfig,
+  locale = 'default'
+): any {
+  const document: any = {};
+
+  // Group field values by top-level field
+  const fieldGroups = groupFieldsByTopLevel(fieldValues);
+
+  for (const fieldConfig of collectionConfig.fields) {
+    const fieldGroup = fieldGroups[fieldConfig.name];
+    if (fieldGroup && fieldGroup.length > 0) {
+      document[fieldConfig.name] = reconstructField(
+        fieldGroup,
+        fieldConfig,
+        locale
+      );
+    }
+  }
+
+  return document;
+}
+
+/**
+ * Reconstructs a specific array field from field values
+ * @param fieldValues - Field values for the array
+ * @param fieldConfig - Field configuration for the array
+ * @param locale - Preferred locale
+ * @returns Reconstructed array
+ */
+export function reconstructArrayField(
+  fieldValues: FlattenedFieldValue[],
+  fieldConfig: FieldConfig,
+  locale = 'default'
+): any[] {
+  // Group by array index
+  const arrayItems: { [index: number]: FlattenedFieldValue[] } = {};
+
+  for (const fieldValue of fieldValues) {
+    if (fieldValue.array_index !== null && fieldValue.array_index !== undefined) {
+      if (!arrayItems[fieldValue.array_index]) {
+        arrayItems[fieldValue.array_index] = [];
+      }
+      arrayItems[fieldValue.array_index].push(fieldValue);
+    }
+  }
+
+  // Reconstruct each array item
+  const result: any[] = [];
+  const sortedIndexes = Object.keys(arrayItems).map(Number).sort((a, b) => a - b);
+
+  for (const index of sortedIndexes) {
+    const itemFieldValues = arrayItems[index];
+    const reconstructedItem = reconstructArrayItem(
+      itemFieldValues,
+      fieldConfig.fields || [],
+      locale
+    );
+    result[index] = reconstructedItem;
+  }
+
+  return result;
+}
+
+/**
+ * Reconstructs a single field value
+ * @param fieldValues - Field values for this field
+ * @param fieldConfig - Field configuration
+ * @param locale - Preferred locale
+ * @returns Reconstructed field value
+ */
+export function reconstructField(
+  fieldValues: FlattenedFieldValue[],
+  fieldConfig: FieldConfig,
+  locale: string
+): any {
+  if (fieldConfig.type === 'array') {
+    return reconstructArrayField(fieldValues, fieldConfig, locale);
+  }
+
+  if (fieldConfig.localized) {
+    return reconstructLocalizedField(fieldValues, locale);
+  }
+
+  // Regular field - get the value for the specified locale or default
+  const fieldValue = fieldValues.find(fv =>
+    fv.locale === locale || (fv.locale === 'all' && !fieldValues.some(f => f.locale === locale))
+  );
+
+  if (!fieldValue) {
+    return undefined;
+  }
+
+  // Handle field-specific reconstruction based on type
+  return reconstructFieldValue(fieldValue, fieldConfig);
+}
+
+/**
+ * Reconstructs a field value based on its type
+ * @param fieldValue - The flattened field value
+ * @param fieldConfig - Field configuration
+ * @returns Reconstructed value in the expected shape
+ */
+function reconstructFieldValue(fieldValue: FlattenedFieldValue, fieldConfig: FieldConfig): any {
+  switch (fieldValue.field_type) {
+    case 'relation': {
+      // Reconstruct relation field as an object with relation properties
+      const relationValue = fieldValue as RelationFieldValue;
+      return {
+        target_document_id: relationValue.target_document_id,
+        target_collection_id: relationValue.target_collection_id,
+        relationship_type: relationValue.relationship_type,
+        cascade_delete: relationValue.cascade_delete,
+      };
+    }
+
+    case 'file':
+    case 'image': {
+      // Reconstruct file field as an object with file properties
+      const fileValue = fieldValue as FileFieldValue;
+      return {
+        file_id: fileValue.file_id,
+        filename: fileValue.filename,
+        original_filename: fileValue.original_filename,
+        mime_type: fileValue.mime_type,
+        file_size: fileValue.file_size,
+        storage_provider: fileValue.storage_provider,
+        storage_path: fileValue.storage_path,
+        storage_url: fileValue.storage_url,
+        file_hash: fileValue.file_hash,
+        image_width: fileValue.image_width,
+        image_height: fileValue.image_height,
+        image_format: fileValue.image_format,
+        processing_status: fileValue.processing_status,
+        thumbnail_generated: fileValue.thumbnail_generated,
+      };
+    }
+
+    case 'datetime': {
+      // Reconstruct datetime field as an object with datetime properties
+      const datetimeValue = fieldValue as DateTimeFieldValue;
+      return {
+        date_type: datetimeValue.date_type,
+        value_date: datetimeValue.value_date,
+        value_time: datetimeValue.value_time,
+        value_timestamp: datetimeValue.value_timestamp,
+        value_timestamp_tz: datetimeValue.value_timestamp_tz,
+      };
+    }
+
+    case 'json':
+    case 'object': {
+      // JSON/object fields store the value directly
+      const json_value = fieldValue as JsonFieldValue;
+      return json_value.value;
+    }
+
+    case 'text':
+    case 'richText':
+    case 'number':
+    case 'integer':
+    case 'decimal':
+    case 'boolean':
+    default:
+      // Simple field types - return the value directly
+      return (fieldValue as any).value;
+  }
+}
+
+/**
+ * Reconstructs a localized field
+ * @param fieldValues - Field values with different locales
+ * @param preferredLocale - Preferred locale
+ * @returns Localized field value (object or single value)
+ */
+export function reconstructLocalizedField(
+  fieldValues: FlattenedFieldValue[],
+  preferredLocale: string
+): any {
+  const localizedValues: { [locale: string]: any } = {};
+
+  for (const fieldValue of fieldValues) {
+    // Reconstruct the value based on field type instead of returning raw field value
+    localizedValues[fieldValue.locale] = reconstructFieldValue(fieldValue, { type: fieldValue.field_type } as FieldConfig);
+  }
+
+  // If requesting a specific locale and it exists, return just that value
+  if (localizedValues[preferredLocale] !== undefined) {
+    return localizedValues[preferredLocale];
+  }
+
+  // If multiple locales exist, return the object with all locales
+  if (Object.keys(localizedValues).length > 1) {
+    return localizedValues;
+  }
+
+  // If only one locale exists, return that value directly
+  const singleLocale = Object.keys(localizedValues)[0];
+  return localizedValues[singleLocale];
+}
+
+/**
+ * Reconstructs an array item from field values
+ * @param fieldValues - Field values for the array item
+ * @param subFieldConfigs - Field configurations for array item fields
+ * @param locale - Preferred locale
+ * @returns Reconstructed array item object
+ */
+export function reconstructArrayItem(
+  fieldValues: FlattenedFieldValue[],
+  subFieldConfigs: FieldConfig[],
+  locale: string
+): any {
+  const item: any = {};
+
+  for (const subFieldConfig of subFieldConfigs) {
+    const subFieldValues = fieldValues.filter(fv =>
+      fv.field_name === subFieldConfig.name
+    );
+
+    if (subFieldValues.length > 0) {
+      item[subFieldConfig.name] = reconstructField(
+        subFieldValues,
+        subFieldConfig,
+        locale
+      );
+    }
+  }
+
+  return item;
+}
+
+/**
+ * Groups field values by their top-level field name
+ * @param fieldValues - Array of field values
+ * @returns Grouped field values by top-level field
+ */
+export function groupFieldsByTopLevel(
+  fieldValues: FlattenedFieldValue[]
+): { [field_name: string]: FlattenedFieldValue[] } {
+  const groups: { [field_name: string]: FlattenedFieldValue[] } = {};
+
+  for (const fieldValue of fieldValues) {
+    const topLevelField = fieldValue.field_path.split('.')[0];
+    if (!groups[topLevelField]) {
+      groups[topLevelField] = [];
+    }
+    groups[topLevelField].push(fieldValue);
+  }
+
+  return groups;
+}
+
+/**
+ * Gets field values for a specific array field
+ * @param fieldValues - All field values
+ * @param arrayFieldName - Name of the array field
+ * @returns Field values that belong to the array field
+ */
+export function getArrayFieldValues(
+  fieldValues: ReconstructedFieldValue[],
+  arrayFieldName: string
+): ReconstructedFieldValue[] {
+  return fieldValues.filter(fv =>
+    fv.field_path === arrayFieldName || fv.field_path.startsWith(`${arrayFieldName}.`)
+  );
+}
+
+/**
+ * Gets field values for a specific path pattern
+ * @param fieldValues - All field values
+ * @param pathPattern - Path pattern to match (supports wildcards)
+ * @returns Matching field values
+ */
+export function getFieldValuesByPath(
+  fieldValues: ReconstructedFieldValue[],
+  pathPattern: string
+): ReconstructedFieldValue[] {
+  if (pathPattern.includes('*')) {
+    // Convert wildcard pattern to regex
+    const regexPattern = pathPattern
+      .replace(/\./g, '\\.')
+      .replace(/\*/g, '.*');
+    const regex = new RegExp(`^${regexPattern}$`);
+
+    return fieldValues.filter(fv => regex.test(fv.field_path));
+  }
+  // Exact match or starts with
+  return fieldValues.filter(fv =>
+    fv.field_path === pathPattern || fv.field_path.startsWith(`${pathPattern}.`)
+  );
+}
+
+// UTILITY FUNCTIONS
+// =================
+
+/**
+ * Validates a flattened field value
+ * @param fieldValue - The field value to validate
+ * @returns True if valid, false otherwise
+ */
+export function validateFlattenedFieldValue(fieldValue: FlattenedFieldValue): boolean {
+  return !!(
+    fieldValue.field_path &&
+    fieldValue.field_name &&
+    fieldValue.field_type &&
+    fieldValue.locale &&
+    fieldValue !== undefined
+  );
+}
+
+/**
+ * Validates a collection configuration
+ * @param config - The collection config to validate
+ * @returns True if valid, false otherwise
+ */
+export function validateCollectionConfig(config: CollectionConfig): boolean {
+  if (!config.path || !config.labels || !Array.isArray(config.fields)) {
+    return false;
+  }
+
+  // Validate each field
+  for (const field of config.fields) {
+    if (!field.name || !field.type) {
+      return false;
+    }
+
+    // Validate array fields have sub-fields
+    if (field.type === 'array' && (!field.fields || !Array.isArray(field.fields))) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Gets all unique locales from a set of field values
+ * @param fieldValues - Array of field values
+ * @returns Array of unique locale strings
+ */
+export function getUniqueLocales(fieldValues: ReconstructedFieldValue[]): string[] {
+  const locales = new Set(fieldValues.map(fv => fv.locale));
+  return Array.from(locales).sort();
+}
+
+/**
+ * Filters field values by locale
+ * @param fieldValues - Array of field values
+ * @param locale - Locale to filter by
+ * @param includeDefault - Whether to include 'default' locale as fallback
+ * @returns Filtered field values
+ */
+export function filterFieldValuesByLocale(
+  fieldValues: ReconstructedFieldValue[],
+  locale: string,
+  includeDefault = true
+): ReconstructedFieldValue[] {
+  return fieldValues.filter(fv =>
+    fv.locale === locale || (includeDefault && fv.locale === 'default')
+  );
+}

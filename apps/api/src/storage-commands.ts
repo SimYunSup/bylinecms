@@ -43,7 +43,7 @@ type DatabaseConnection = NodePgDatabase<any>;
 import { eq } from "drizzle-orm";
 import type { CollectionConfig } from './@types/index.js'
 import { isFileFieldValue, isJsonFieldValue, isNumericFieldValue, isRelationFieldValue } from './@types/index.js'
-import { flattenDocumentToFieldValues } from './storage-utils.js';
+import { flattenDocument } from './storage-utils.js';
 
 
 export class CollectionCommands {
@@ -91,7 +91,7 @@ export class DocumentCommands {
       }).returning();
 
       // 2. Flatten the document data to field values
-      const flattenedFields = flattenDocumentToFieldValues(
+      const flattenedFields = flattenDocument(
         options.documentData,
         options.collectionConfig,
         options.locale ?? 'all'
