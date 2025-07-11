@@ -29,7 +29,6 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
 import * as schema from '../database/schema/index.js'
 import type { SiteConfig } from './@types/index.js'
-import { BulkDocsCollectionConfig } from './seed-bulk-documents.js'
 import { createQueryBuilders } from './storage-queries.js'
 
 // Test database setup

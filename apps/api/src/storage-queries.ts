@@ -88,7 +88,6 @@ export class DocumentQueries {
       fv.locale,
       fv.parent_path,
       fv.text_value,
-      fv.numeric_value,
       fv.boolean_value,
       fv.json_value,
       fv.date_type,
@@ -491,7 +490,6 @@ export class DocumentQueries {
           locale: row.locale as string,
           parent_path: row.parent_path as string | null,
           text_value: row.text_value as string | null,
-          numeric_value: row.numeric_value as string | null,
           boolean_value: row.boolean_value as boolean | null,
           json_value: row.json_value as any,
           date_type: row.date_type as string | null,
@@ -566,7 +564,7 @@ export class DocumentQueries {
       : sql`AND locale = ${locale}`;
 
     const query = sql`
-      -- Text fields (42 columns total)
+      -- Text fields (41 columns total)
       SELECT 
         ${textFields}
       FROM field_values_text 
@@ -574,7 +572,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Numeric fields (42 columns total - SAME ORDER)
+      -- Numeric fields (41 columns total - SAME ORDER)
       SELECT 
         ${numericFields}
       FROM field_values_numeric 
@@ -582,7 +580,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Boolean fields (42 columns total - SAME ORDER)
+      -- Boolean fields (41 columns total - SAME ORDER)
       SELECT 
         ${booleanFields}
       FROM field_values_boolean 
@@ -590,7 +588,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- DateTime fields (42 columns total - SAME ORDER)
+      -- DateTime fields (41 columns total - SAME ORDER)
       SELECT 
         ${datetimeFields}
       FROM field_values_datetime 
@@ -598,7 +596,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- JSON fields (42 columns total - SAME ORDER)
+      -- JSON fields (41 columns total - SAME ORDER)
       SELECT 
        ${jsonFields}
       FROM field_values_json 
@@ -606,7 +604,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Relation fields (42 columns total - SAME ORDER)
+      -- Relation fields (41 columns total - SAME ORDER)
       SELECT 
         ${relationFields}
       FROM field_values_relation 
@@ -614,7 +612,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- File fields (42 columns total - SAME ORDER)
+      -- File fields (41 columns total - SAME ORDER)
       SELECT 
         ${fileFields}
       FROM field_values_file 
@@ -644,7 +642,7 @@ export class DocumentQueries {
 
     // Use the same UNION ALL query but with IN clause for multiple versions
     const query = sql`
-      -- Text fields (42 columns total)
+      -- Text fields (41 columns total)
       SELECT 
          ${textFields}
       FROM field_values_text 
@@ -652,7 +650,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Numeric fields (42 columns total - SAME ORDER)
+      -- Numeric fields (41 columns total - SAME ORDER)
       SELECT 
          ${numericFields}
       FROM field_values_numeric 
@@ -660,7 +658,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Boolean fields (42 columns total - SAME ORDER)
+      -- Boolean fields (41 columns total - SAME ORDER)
       SELECT 
         ${booleanFields}
       FROM field_values_boolean 
@@ -668,7 +666,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- DateTime fields (42 columns total - SAME ORDER)
+      -- DateTime fields (41 columns total - SAME ORDER)
       SELECT 
         ${datetimeFields}
       FROM field_values_datetime 
@@ -676,7 +674,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-     -- JSON fields (42 columns total - SAME ORDER)
+     -- JSON fields (41 columns total - SAME ORDER)
       SELECT 
         ${jsonFields}
       FROM field_values_json 
@@ -684,7 +682,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Relation fields (42 columns total - SAME ORDER)
+      -- Relation fields (41 columns total - SAME ORDER)
       SELECT 
         ${relationFields}
       FROM field_values_relation 
@@ -692,7 +690,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- File fields (42 columns total - SAME ORDER)
+      -- File fields (41 columns total - SAME ORDER)
       SELECT 
         ${fileFields}
       FROM field_values_file 

@@ -10,7 +10,6 @@ export const textFields = sql`
   locale,
   parent_path,
   value as "text_value",
-  NULL::text as "numeric_value",
   NULL::boolean as "boolean_value",
   NULL::jsonb as "json_value",
   NULL::varchar as "date_type",
@@ -54,7 +53,6 @@ export const numericFields = sql`
   locale,
   parent_path,
   NULL,  -- text_value
-  COALESCE(value_integer::text, value_decimal::text, value_float::text),  -- numeric_value
   NULL,  -- boolean_value
   NULL,  -- json_value
   NULL,  -- date_type
@@ -98,7 +96,6 @@ export const booleanFields = sql`
   locale,
   parent_path,
   NULL,  -- text_value
-  NULL,  -- numeric_value
   value, -- boolean_value
   NULL,  -- json_value
   NULL,  -- date_type
@@ -142,7 +139,6 @@ export const datetimeFields = sql`
   locale,
   parent_path,
   NULL,  -- text_value
-  NULL,  -- numeric_value
   NULL,  -- boolean_value
   NULL,  -- json_value
   date_type,  -- date_type
@@ -186,7 +182,6 @@ export const jsonFields = sql`
   locale,
   parent_path,
   NULL,  -- text_value
-  NULL,  -- numeric_value
   NULL,  -- boolean_value
   value, -- json_value
   NULL,  -- date_type
@@ -230,7 +225,6 @@ export const relationFields = sql`
   locale,
   parent_path,
   NULL,  -- text_value
-  NULL,  -- numeric_value
   NULL,  -- boolean_value
   NULL,  -- json_value
   NULL,  -- date_type
@@ -273,7 +267,6 @@ export const fileFields = sql`
   locale,
   parent_path,
   NULL,  -- text_value
-  NULL,  -- numeric_value
   NULL,  -- boolean_value
   NULL,  -- json_value
   NULL,  -- date_type

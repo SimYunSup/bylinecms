@@ -44,7 +44,7 @@ const siteConfig: SiteConfig = {
 }
 
 const FieldTypesCollectionConfig: CollectionConfig = {
-  path: 'docs',
+  path: 'docs-field-types',
   labels: {
     singular: 'FieldTypes',
     plural: 'FieldType',

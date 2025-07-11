@@ -166,7 +166,6 @@ export interface UnionRowValue {
 
   // Value fields - only one will be populated per row
   text_value: string | null;
-  numeric_value: string | null; // Converted to string for uniformity
   boolean_value: boolean | null;
   json_value: any | null;
 
