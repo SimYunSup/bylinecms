@@ -30,56 +30,6 @@ import type {
   RelationFieldValue,
 } from './@types/index.js';
 
-function createFieldSpecificValue(
-  field_path: string,
-  field_name: string,
-  field_type: NonArrayFieldType,
-  value: any,
-  locale: string,
-  parent_path?: string
-): FlattenedFieldValue {
-  const baseValue = {
-    field_path,
-    field_name,
-    locale,
-    parent_path,
-  };
-
-  switch (field_type) {
-    case 'text':
-    case 'boolean':
-      return { ...baseValue, field_type, value };
-
-    case 'richText':
-      return { ...baseValue, field_type, value };
-
-    case 'number':
-    case 'integer':
-    case 'decimal':
-      return { ...baseValue, field_type, value };
-
-    case 'datetime':
-      return { ...baseValue, field_type, ...value };
-
-    case 'file':
-    case 'image':
-      return { ...baseValue, field_type, ...value };
-
-    case 'relation':
-      return { ...baseValue, field_type, ...value };
-
-    case 'json':
-    case 'object':
-      return {
-        ...baseValue,
-        field_type,
-        ...value,
-      };
-
-    default:
-      throw new Error(`Unsupported field type: ${field_type}`);
-  }
-}
 
 export function flattenDocument(
   documentData: any,
@@ -149,39 +99,54 @@ export function flattenDocument(
   return flattenedFields;
 }
 
-function createReconstructedValue(fieldValue: FlattenedFieldValue): any {
-  switch (fieldValue.field_type) {
+function createFieldSpecificValue(
+  field_path: string,
+  field_name: string,
+  field_type: NonArrayFieldType,
+  value: any,
+  locale: string,
+  parent_path?: string
+): FlattenedFieldValue {
+  const baseValue = {
+    field_path,
+    field_name,
+    locale,
+    parent_path,
+  };
+
+  switch (field_type) {
     case 'text':
+    case 'boolean':
+      return { ...baseValue, field_type, value };
+
     case 'richText':
+      return { ...baseValue, field_type, value }
+
     case 'number':
     case 'integer':
     case 'decimal':
-    case 'boolean':
-    case 'json':
-    case 'object':
-      return (fieldValue as any).value;
+      return { ...baseValue, field_type, value };
 
-    case 'datetime': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as DateTimeFieldValue & { value?: any };
-      delete value.value;
-      return value;
-    }
+    case 'datetime':
+      return { ...baseValue, field_type, ...value };
 
     case 'file':
-    case 'image': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as FileFieldValue & { value?: any };
-      delete value.value;
-      return value;
-    }
+    case 'image':
+      return { ...baseValue, field_type, ...value };
 
-    case 'relation': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as RelationFieldValue & { value?: any };
-      delete value.value;
-      return value;
-    }
+    case 'relation':
+      return { ...baseValue, field_type, ...value };
+
+    case 'json':
+    case 'object':
+      return {
+        ...baseValue,
+        field_type,
+        ...value,
+      };
 
     default:
-      return (fieldValue as any).value;
+      throw new Error(`Unsupported field type: ${field_type}`);
   }
 }
 
@@ -253,4 +218,40 @@ export function reconstructDocument(
   }
 
   return document;
+}
+
+function createReconstructedValue(fieldValue: FlattenedFieldValue): any {
+  switch (fieldValue.field_type) {
+    case 'text':
+    case 'richText':
+    case 'number':
+    case 'integer':
+    case 'decimal':
+    case 'boolean':
+    case 'json':
+    case 'object':
+      return (fieldValue as any).value;
+
+    case 'datetime': {
+      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as DateTimeFieldValue & { value?: any };
+      delete value.value;
+      return value;
+    }
+
+    case 'file':
+    case 'image': {
+      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as FileFieldValue & { value?: any };
+      delete value.value;
+      return value;
+    }
+
+    case 'relation': {
+      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as RelationFieldValue & { value?: any };
+      delete value.value;
+      return value;
+    }
+
+    default:
+      return (fieldValue as any).value;
+  }
 }

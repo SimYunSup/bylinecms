@@ -1,6 +1,7 @@
 
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
+import { v7 as uuidv7 } from 'uuid'
 import * as schema from '../database/schema/index.js'
 import type { CollectionConfig, SiteConfig } from './@types/index.js'
 import { createCommandBuilders } from './storage-commands.js'
@@ -17,145 +18,129 @@ const siteConfig: SiteConfig = {
   }
 }
 
-export const BulkCollectionConfig: CollectionConfig = {
-  path: 'bulk',
+export const BulkDocsCollectionConfig: CollectionConfig = {
+  path: 'bulk-docs',
   labels: {
-    singular: 'Bulk',
-    plural: 'Bulk',
+    singular: 'Document',
+    plural: 'Documents',
   },
   fields: [
     { name: 'path', type: 'text', required: true, unique: true },
-    { name: 'name', type: 'text', required: true, localized: true },
-    { name: 'description', type: 'richText', required: true, localized: true },
-    { name: 'approved', type: 'boolean', required: true },
+    { name: 'title', type: 'text', required: true, localized: true },
+    { name: 'summary', type: 'text', required: true, localized: true },
+    { name: 'category', type: 'relation', required: false },
     { name: 'publishedOn', type: 'datetime', required: false },
     {
-      name: 'images', type: 'array', fields: [
+      name: 'content', type: 'array', fields: [
         {
-          name: 'imageBlock', type: 'array', fields: [
-            { name: 'file', type: 'file', required: true },
-            { name: 'alt', type: 'text', required: true, localized: true },
-            { name: 'caption', type: 'text', required: false, localized: true },
+          name: 'richTextBlock', type: 'array', fields: [
+            { name: 'constrainedWidth', type: 'boolean', required: false },
+            { name: 'richText', type: 'richText', required: true, localized: true },
           ]
-        }
+        },
+        {
+          name: 'photoBlock', type: 'array', fields: [
+            { name: 'display', type: 'text', required: false },
+            { name: 'photo', type: 'file', required: true },
+            { name: 'alt', type: 'text', required: true, localized: false },
+            { name: 'caption', type: 'richText', required: false, localized: true },
+          ]
+        },
       ]
     },
     {
       name: 'reviews', type: 'array', fields: [
         {
-          name: 'reviewBlock', type: 'array', fields: [
+          name: 'reviewItem', type: 'array', fields: [
             { name: 'rating', type: 'integer', required: true },
-            { name: 'comment', type: 'richText', required: true, localized: true },
+            { name: 'comment', type: 'richText', required: true, localized: false },
           ]
         }
       ]
     },
+    {
+      name: 'links', type: 'array', fields: [
+        { name: "link", type: "text" }
+      ]
+    }
   ],
 };
 
 // Complex test document with many fields and arrays
-export const complexProductDocument = {
-  path: "BULK-12345",
-  name: {
-    en: "A bulk created document.",
-    es: "Un documento creado en masa.",
-    fr: "Un document créé en masse."
+const sampleDocument = {
+  path: "my-first-bulk-document",
+  title: {
+    en: "My First Document",
+    es: "Mi Primer Documento",
+    fr: "Mon Premier Document"
   },
-  description: {
-    en: {
-      type: "paragraph",
-      content: [{ type: "text", text: "High quality content for your reading pleasure" }]
-    },
-    es: {
-      type: "paragraph",
-      content: [{ type: "text", text: "Contenido de alta calidad para tu disfrute de lectura." }]
-    },
-    fr: {
-      type: "paragraph",
-      content: [{ type: "text", text: "Du contenu de haute qualité pour le plaisir de votre lecture." }]
-    }
+  summary: {
+    en: "This is a sample document for testing purposes.",
+    es: "Este es un documento de muestra para fines de prueba.",
+    fr: "Il s'agit d'un document d'exemple à des fins de test."
   },
-  approved: true,
+  // category: {
+  //   target_collection_id: "cat-123",
+  //   target_document_id: "electronics-audio"
+  // },
   publishedOn: {
     date_type: "timestamp",
-    value_timestamp: new Date("2024-01-15T10:00:00Z")
+    value_timestamp: new Date("2024-01-15T10:00:00")
   },
-  images: [
+  content: [
     {
-      imageBlock: [
+      richTextBlock: [
+        { constrainedWidth: true },
         {
-          file_id: "018dd0b2-9a2a-7f01-b8b2-a0c719d0f5b3",
-          filename: "editorial-image-01.jpg",
-          original_filename: "editorial-image-01.jpg",
-          mime_type: "image/jpeg",
-          file_size: 2048000,
-          storage_provider: "s3",
-          storage_path: "/bulk/img-001.jpg"
-        },
-        {
-          alt: {
-            en: "Editorial staff working on a new story.",
-            es: "Personal del editorial trabajando en una nueva historia.",
-            fr: "Le personnel de rédaction travaillant sur une nouvelle histoire."
+          richText: {
+            en: { root: { paragraph: 'Some text here...' } },
+            es: { root: { paragraph: 'Some spanish text here' } }
           }
         },
-        {
-          caption: {
-            en: "Our editorial team hard at work on a new story.",
-            es: "Nuestro equipo editorial trabajando arduamente en una nueva historia.",
-            fr: "Notre équipe de rédaction travaille dur sur une nouvelle histoire."
-          }
-        }
-      ]
+      ],
     },
     {
-      imageBlock: [
+      photoBlock: [
+        { display: 'wide' },
         {
-          file_id: "018dd0b2-9a2a-7f01-b8b2-a0c719d0f5b3",
-          filename: "editorial-image-01.jpg",
-          original_filename: "editorial-image-02.jpg",
-          mime_type: "image/jpeg",
-          file_size: 2048000,
-          storage_provider: "s3",
-          storage_path: "/bulk/img-002.jpg"
-        },
-        {
-          alt: {
-            en: "Editorial staff working on a new story.",
-            es: "Personal del editorial trabajando en una nueva historia.",
-            fr: "Le personnel de rédaction travaillant sur une nouvelle histoire."
+          photo: {
+            file_id: uuidv7(),
+            filename: 'docs-photo-01.jpg',
+            original_filename: 'some-original-filename.jpg',
+            mime_type: "image/jpeg",
+            file_size: 123456,
+            storage_provider: 'local',
+            storage_path: 'uploads/docs-photo-01.jpg',
           }
         },
+        { alt: 'Some alt text here' },
         {
           caption: {
-            en: "Our editorial team hard at work on a new story.",
-            es: "Nuestro equipo editorial trabajando arduamente en una nueva historia.",
-            fr: "Notre équipe de rédaction travaille dur sur une nouvelle histoire."
+            en: { root: { paragraph: 'Some text here...' } },
+            es: { root: { paragraph: 'Some spanish text here...' } }
           }
-        }
+        },
       ]
     },
   ],
   reviews: [
     {
-      reviewBlock: [
+      reviewItem: [
         { rating: 5 },
         { comment: { root: { paragraph: 'Some review text here...' } } },
       ]
     },
     {
-      reviewBlock: [
+      reviewItem: [
         { rating: 2 },
-        { comment: { root: { paragraph: 'A bad  reviews here...' } } },
-      ]
-    },
-    {
-      reviewBlock: [
-        { rating: 4 },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
     }
   ],
+  links: [
+    { link: 'https://example.com' },
+    { link: 'https://another-example.com' }
+  ]
 };
 
 async function run() {
@@ -166,22 +151,22 @@ async function run() {
   commandBuilders = createCommandBuilders(siteConfig, db)
 
   // Create bulk documents to populate the database.
-  const bulkCollectionResult = await commandBuilders.collections.create(
+  const bulkDocsCollectionResult = await commandBuilders.collections.create(
     'bulk',
-    BulkCollectionConfig
+    BulkDocsCollectionConfig
   )
 
-  const bulkCollection = { id: bulkCollectionResult[0].id, name: bulkCollectionResult[0].path }
+  const bulkDocsCollection = { id: bulkDocsCollectionResult[0].id, name: bulkDocsCollectionResult[0].path }
 
-  console.log(`Created Bulk Collection ${bulkCollection}`)
+  console.log(`Created Bulk Docs Collection ${bulkDocsCollection}`)
 
   for (let i = 0; i < 1000; i++) {
-    const docData = structuredClone(complexProductDocument)
-    docData.path = `BULK-${12345 + i}`
-    docData.name.en = `A bulk created document. ${i + 1}` // Ensure unique names  
+    const docData = structuredClone(sampleDocument)
+    docData.path = `my-first-bulk-document-${12345 + i}`
+    docData.title.en = `A bulk created document. ${i + 1}` // Ensure unique names  
     await commandBuilders.documents.createDocument({
-      collectionId: bulkCollection.id,
-      collectionConfig: BulkCollectionConfig,
+      collectionId: bulkDocsCollection.id,
+      collectionConfig: BulkDocsCollectionConfig,
       action: 'create',
       documentData: docData,
       path: docData.path,

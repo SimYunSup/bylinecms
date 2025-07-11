@@ -598,7 +598,7 @@ export class DocumentQueries {
       const flattenedFieldValues = this.convertUnifiedToFlattenedFieldValues(group.fieldValues);
 
       const head = {
-        document_version_od: group.document.document_version_id,
+        document_version_id: group.document.document_version_id,
         document_id: group.document.document_id,
         path: group.document.path,
         status: group.document.status

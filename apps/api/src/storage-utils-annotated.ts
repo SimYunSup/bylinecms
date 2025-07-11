@@ -27,56 +27,6 @@ import type {
   NonArrayFieldType,
 } from './@types/index.js';
 
-function createFieldSpecificValue(
-  field_path: string,
-  field_name: string,
-  field_type: NonArrayFieldType,
-  value: any,
-  locale: string,
-  parent_path?: string
-): FlattenedFieldValue {
-  const baseValue = {
-    field_path,
-    field_name,
-    locale,
-    parent_path,
-  };
-
-  switch (field_type) {
-    case 'text':
-    case 'boolean':
-      return { ...baseValue, field_type, value };
-
-    case 'richText':
-      return { ...baseValue, field_type, value };
-
-    case 'number':
-    case 'integer':
-    case 'decimal':
-      return { ...baseValue, field_type, value };
-
-    case 'datetime':
-      return { ...baseValue, field_type, ...value };
-
-    case 'file':
-    case 'image':
-      return { ...baseValue, field_type, ...value };
-
-    case 'relation':
-      return { ...baseValue, field_type, ...value };
-
-    case 'json':
-    case 'object':
-      return {
-        ...baseValue,
-        field_type,
-        ...value,
-      };
-
-    default:
-      throw new Error(`Unsupported field type: ${field_type}`);
-  }
-}
 
 export function flattenDocument(
   documentData: any,
@@ -222,4 +172,55 @@ export function reconstructDocument(
   }
 
   return document;
+}
+
+function createFieldSpecificValue(
+  field_path: string,
+  field_name: string,
+  field_type: NonArrayFieldType,
+  value: any,
+  locale: string,
+  parent_path?: string
+): FlattenedFieldValue {
+  const baseValue = {
+    field_path,
+    field_name,
+    locale,
+    parent_path,
+  };
+
+  switch (field_type) {
+    case 'text':
+    case 'boolean':
+      return { ...baseValue, field_type, value };
+
+    case 'richText':
+      return { ...baseValue, field_type, value };
+
+    case 'number':
+    case 'integer':
+    case 'decimal':
+      return { ...baseValue, field_type, value };
+
+    case 'datetime':
+      return { ...baseValue, field_type, ...value };
+
+    case 'file':
+    case 'image':
+      return { ...baseValue, field_type, ...value };
+
+    case 'relation':
+      return { ...baseValue, field_type, ...value };
+
+    case 'json':
+    case 'object':
+      return {
+        ...baseValue,
+        field_type,
+        ...value,
+      };
+
+    default:
+      throw new Error(`Unsupported field type: ${field_type}`);
+  }
 }

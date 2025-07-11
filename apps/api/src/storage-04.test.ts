@@ -25,7 +25,7 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
 import * as schema from '../database/schema/index.js'
 import type { SiteConfig } from './@types/index.js'
-import { BulkCollectionConfig } from './seed-bulk-documents.js'
+import { BulkDocsCollectionConfig } from './seed-bulk-documents.js'
 import { createQueryBuilders } from './storage-queries.js'
 
 // Test database setup
@@ -79,7 +79,7 @@ describe('Bulk Document Operations', () => {
       const documents = await queryBuilders.documents.getAllCurrentDocumentsForCollection
         (
           bulkCollection.id,
-          BulkCollectionConfig,
+          BulkDocsCollectionConfig,
           'all'
         )
 
@@ -95,7 +95,7 @@ describe('Bulk Document Operations', () => {
 
       const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(
         bulkCollection.id,
-        BulkCollectionConfig,
+        BulkDocsCollectionConfig,
         {
           locale: 'all',
           limit: 50,

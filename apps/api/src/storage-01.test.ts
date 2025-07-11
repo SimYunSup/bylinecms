@@ -21,11 +21,11 @@
  */
 
 import assert from 'node:assert';
-import { link } from 'node:fs';
-import { text } from 'node:stream/consumers';
 import { after, before, describe, it } from 'node:test'
+import { uuid } from 'drizzle-orm/gel-core';
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
+import { v7 as uuidv7 } from 'uuid'
 import * as schema from '../database/schema/index.js'
 import type { CollectionConfig, SiteConfig } from './@types/index.js'
 import { createCommandBuilders } from './storage-commands.js'
@@ -78,9 +78,9 @@ const DocsCollectionConfig: CollectionConfig = {
     {
       name: 'reviews', type: 'array', fields: [
         {
-          name: 'reviewBlock', type: 'array', fields: [
+          name: 'reviewItem', type: 'array', fields: [
             { name: 'rating', type: 'integer', required: true },
-            { name: 'comment', type: 'richText', required: true, localized: true },
+            { name: 'comment', type: 'richText', required: true, localized: false },
           ]
         }
       ]
@@ -92,6 +92,8 @@ const DocsCollectionConfig: CollectionConfig = {
     }
   ],
 };
+
+let filedId = uuidv7()
 
 // Complex test document with many fields and arrays
 const sampleDocument = {
@@ -129,7 +131,17 @@ const sampleDocument = {
     {
       photoBlock: [
         { display: 'wide' },
-        { photo: { file_id: 'foo', filename: 'somefile' } },
+        {
+          photo: {
+            file_id: filedId,
+            filename: 'docs-photo-01.jpg',
+            original_filename: 'some-original-filename.jpg',
+            mime_type: "image/jpeg",
+            file_size: 123456,
+            storage_provider: 'local',
+            storage_path: 'uploads/docs-photo-01.jpg',
+          }
+        },
         { alt: 'Some alt text here' },
         {
           caption: {
@@ -142,13 +154,13 @@ const sampleDocument = {
   ],
   reviews: [
     {
-      reviewBlock: [
+      reviewItem: [
         { rating: 5 },
         { comment: { root: { paragraph: 'Some review text here...' } } },
       ]
     },
     {
-      reviewBlock: [
+      reviewItem: [
         { rating: 2 },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
@@ -163,7 +175,7 @@ const sampleDocument = {
 // Global test variables
 let testCollection: { id: string; name: string } = {} as any
 
-describe('Document Creation and Versioning', () => {
+describe('Document Flattening and Reconstruction', () => {
   before(async () => {
     // Connect to test database
     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
@@ -195,28 +207,20 @@ describe('Document Creation and Versioning', () => {
     await pool.end()
   })
 
-  describe('Flattening and Reconstruction', () => {
-    // it('should flatten a document with new method', () => {
-    //   const flattened = flattenDocumentNew(sampleDocument, DocsCollectionConfig)
-    //   assert(flattened, 'Flattened document should not be null or undefined')
-    //   assert(flattened.length > 0, 'Flattened document should contain field values')
-    //   console.log('Flattened document (new):', flattened)
-    // })
+  it('should flatten and reconstruct a document', () => {
+    const flattened = flattenDocument(sampleDocument, DocsCollectionConfig)
+    assert(flattened, 'Flattened document should not be null or undefined')
+    assert(flattened.length > 0, 'Flattened document should contain field values')
+    console.log('Flattened document:', flattened)
 
-    it('should flatten and reconstruct a document with new method', () => {
-      const flattened = flattenDocument(sampleDocument, DocsCollectionConfig)
-      assert(flattened, 'Flattened document should not be null or undefined')
-      assert(flattened.length > 0, 'Flattened document should contain field values')
-      console.log('Flattened document (new):', flattened)
+    const reconstructed = reconstructDocument(flattened)
+    assert(reconstructed, 'Reconstructed document should not be null or undefined')
+    const reconstructedJson = JSON.parse(JSON.stringify(reconstructed, null, 2));
+    console.log('Reconstructed document:', reconstructedJson)
 
-      const reconstructed = reconstructDocument(flattened)
-      assert(reconstructed, 'Reconstructed document should not be null or undefined')
-      console.log('Reconstructed document (new):', JSON.stringify(reconstructed, null, 2))
+    // A simplified version of the sample document for deep equality check
+    const sampleDocumentJson = JSON.parse(JSON.stringify(sampleDocument));
 
-      // A simplified version of the sample document for deep equality check
-      // const simplifiedSample = JSON.parse(JSON.stringify(sampleDocument));
-
-      // assert.deepStrictEqual(reconstructed, simplifiedSample, 'Reconstructed document should match the original structure');
-    })
+    assert.deepStrictEqual(reconstructedJson, sampleDocumentJson, 'Reconstructed document should match the original structure');
   })
 })
