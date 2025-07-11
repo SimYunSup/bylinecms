@@ -117,10 +117,7 @@ const complexProductDocument = {
   },
   price: 299.99,
   inStock: true,
-  releaseDate: {
-    date_type: "timestamp",
-    value_timestamp: new Date("2024-01-15T10:00:00Z")
-  },
+  releaseDate: new Date("2024-01-15T10:00:00Z"),
   images: [
     {
       imageItem: [
@@ -243,13 +240,13 @@ const complexProductDocument = {
   reviews: [
     {
       reviewItem: [
-        { rating: { value_integer: 5 } },
+        { rating: 5 },
         { comment: { root: { paragraph: 'Some review text here...' } } },
       ]
     },
     {
       reviewItem: [
-        { rating: { value_integer: 3 } },
+        { rating: 3 },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
     }
@@ -316,7 +313,6 @@ describe('Performance Analysis', () => {
 
       const document = await queryBuilders.documents.getCurrentDocument(
         testDocuments[0],
-        ComplexCollectionConfig,
         'all'
       )
 
@@ -345,7 +341,6 @@ describe('Performance Analysis', () => {
         const optimizedStart = performance.now()
         await queryBuilders.documents.getCurrentDocument(
           testDocuments[i % testDocuments.length],
-          ComplexCollectionConfig,
           'all'
         )
         const optimizedEnd = performance.now()
@@ -369,7 +364,6 @@ describe('Performance Analysis', () => {
 
       const documents = await queryBuilders.documents.getCurrentDocuments(
         documentIds,
-        ComplexCollectionConfig,
         'all'
       )
 
@@ -397,7 +391,6 @@ describe('Performance Analysis', () => {
         const optimizedStart = performance.now()
         await queryBuilders.documents.getCurrentDocuments(
           documentIds,
-          ComplexCollectionConfig,
           'all'
         )
         const optimizedEnd = performance.now()
@@ -422,7 +415,6 @@ describe('Performance Analysis', () => {
         const optimizedStart = performance.now()
         await queryBuilders.documents.getCurrentDocument(
           testDocuments[0],
-          ComplexCollectionConfig,
           locale
         )
         const optimizedEnd = performance.now()
@@ -443,7 +435,6 @@ describe('Performance Analysis', () => {
       for (let i = 0; i < 5; i++) {
         const doc = await queryBuilders.documents.getCurrentDocument(
           testDocuments[i],
-          ComplexCollectionConfig,
           'all'
         )
         documents.push(doc)

@@ -39,6 +39,8 @@ const DocsCollectionConfig: CollectionConfig = {
     { name: 'summary', type: 'text', required: true, localized: true },
     { name: 'category', type: 'relation', required: false },
     { name: 'publishedOn', type: 'datetime', required: false },
+    { name: 'views', type: 'integer', required: false },
+    { name: 'price', type: 'decimal', required: false },
     {
       name: 'content', type: 'array', fields: [
         {
@@ -94,10 +96,9 @@ const sampleDocument = {
   //   target_collection_id: "cat-123",
   //   target_document_id: "electronics-audio"
   // },
-  publishedOn: {
-    date_type: "timestamp",
-    value_timestamp: new Date("2024-01-15T10:00:00")
-  },
+  publishedOn: new Date("2024-01-15T10:00:00"),
+  views: 100,
+  price: '19.99',
   content: [
     {
       richTextBlock: [
@@ -137,13 +138,13 @@ const sampleDocument = {
   reviews: [
     {
       reviewItem: [
-        { rating: { value_integer: 6 } },
+        { rating: 6 },
         { comment: { root: { paragraph: 'Some review text here...' } } },
       ]
     },
     {
       reviewItem: [
-        { rating: { value_integer: 2 } },
+        { rating: 2 },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
     }

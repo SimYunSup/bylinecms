@@ -112,13 +112,12 @@ export const fieldValuesText = pgTable('field_values_text', {
 export const fieldValuesNumeric = pgTable('field_values_numeric', {
   ...baseFieldValueColumns,
 
+  // Store the original number type for reconstruction
+  number_type: varchar('number_type', { length: 20 }).notNull(), // 'integer', 'decimal', 'float'
+
   value_integer: integer('value_integer'),
   value_decimal: decimal('value_decimal', { precision: 10, scale: 2 }),
   value_float: real('value_float'),
-  value_bigint: bigint('value_bigint', { mode: 'bigint' }),
-
-  // Store the original number type for reconstruction
-  number_type: varchar('number_type', { length: 20 }).notNull(), // 'integer', 'decimal', 'float', 'bigint'
 
 }, (table) => ([
   // Optimized indexes for numeric operations
@@ -150,8 +149,10 @@ export const fieldValuesBoolean = pgTable('field_values_boolean', {
 // 4. DATE/TIME FIELDS TABLE
 export const fieldValuesDatetime = pgTable('field_values_datetime', {
   ...baseFieldValueColumns,
+
   // Store the original date type for reconstruction
   date_type: varchar('date_type', { length: 20 }).notNull(), // 'date', 'time', 'timestamp', 'timestamptz'
+
   value_date: date('value_date'),
   value_time: time('value_time'),
   value_timestamp: timestamp('value_timestamp'),

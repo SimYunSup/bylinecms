@@ -107,11 +107,10 @@ CREATE TABLE "field_values_numeric" (
 	"parent_path" varchar(500),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
+	"number_type" varchar(20) NOT NULL,
 	"value_integer" integer,
 	"value_decimal" numeric(10, 2),
 	"value_float" real,
-	"value_bigint" bigint,
-	"number_type" varchar(20) NOT NULL,
 	CONSTRAINT "unique_numeric_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint

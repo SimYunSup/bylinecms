@@ -1,5 +1,5 @@
 {
-  "id": "a4eba97c-81df-4b52-9a7e-b11a2a9d3dc8",
+  "id": "d6cf1306-123f-4653-b9b5-3753030d030a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1254,6 +1254,12 @@
           "notNull": false,
           "default": "now()"
         },
+        "number_type": {
+          "name": "number_type",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "value_integer": {
           "name": "value_integer",
           "type": "integer",
@@ -1271,18 +1277,6 @@
           "type": "real",
           "primaryKey": false,
           "notNull": false
-        },
-        "value_bigint": {
-          "name": "value_bigint",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "number_type": {
-          "name": "number_type",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {

@@ -29,7 +29,6 @@ import * as schema from '../database/schema/index.js'
 import type { CollectionConfig, SiteConfig } from './@types/index.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
-import { flattenDocument, reconstructDocument } from './storage-utils.js'
 
 // Test database setup
 let pool: Pool
@@ -80,12 +79,9 @@ const sampleDocument = {
   //   target_collection_id: "cat-123",
   //   target_document_id: "electronics-audio"
   // },
-  publishedOn: {
-    date_type: "timestamp",
-    value_timestamp: new Date("2024-01-15T10:00:00")
-  },
-  views: { field_type: "integer", value_integer: 100 },
-  price: { field_type: "decimal", value_decimal: '19.99' },
+  publishedOn: new Date("2024-01-15T10:00:00"),
+  views: 100,
+  price: '19.99',
   attachment: {
     file_id: filedId,
     filename: "sample-attachment.pdf",
@@ -141,7 +137,7 @@ describe('Field Types', () => {
       collectionId: testCollection.id,
       collectionConfig: FieldTypesCollectionConfig,
       action: 'create',
-      documentData: sampleDocument,
+      documentData: sourceDocument,
       path: sourceDocument.path,
     })
 
@@ -149,7 +145,6 @@ describe('Field Types', () => {
 
     const document = await queryBuilders.documents.getCurrentDocument(
       result.document.id,
-      FieldTypesCollectionConfig
     )
 
     console.log('Retrieved document:', document)

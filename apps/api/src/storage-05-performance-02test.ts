@@ -83,7 +83,6 @@ describe('Bulk Document Operations', () => {
       const documents = await queryBuilders.documents.getAllCurrentDocumentsForCollection
         (
           bulkCollection.id,
-          BulkDocsCollectionConfig,
           'all'
         )
 
@@ -99,7 +98,6 @@ describe('Bulk Document Operations', () => {
 
       const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(
         bulkCollection.id,
-        BulkDocsCollectionConfig,
         {
           locale: 'all',
           limit: 50,

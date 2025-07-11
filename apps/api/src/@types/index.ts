@@ -30,7 +30,7 @@ export interface CollectionConfig {
 
 export interface FieldConfig {
   name: string;
-  type: 'text' | 'richText' | 'array' | 'number' | 'integer' | 'decimal' | 'bigint' | 'boolean' | 'datetime' | 'relation' | 'file' | 'image' | 'json' | 'object';
+  type: 'text' | 'richText' | 'array' | 'float' | 'integer' | 'decimal' | 'boolean' | 'datetime' | 'relation' | 'file' | 'image' | 'json' | 'object';
   required?: boolean;
   unique?: boolean;
   localized?: boolean;
@@ -53,11 +53,12 @@ export interface TextFieldValue extends BaseFieldValue {
 }
 
 export interface NumericFieldValue extends BaseFieldValue {
-  field_type: 'number' | 'integer' | 'decimal' | 'bigint';
-  value_integer: number,
-  value_decimal: string
-  value_float: number,
-  value_bigint: bigint,
+  field_type: 'float' | 'integer' | 'decimal';
+  number_type: 'float' | 'integer' | 'decimal'; // For reconstruction
+  value_float?: number,
+  value_integer?: number,
+  value_decimal?: string
+
 }
 
 export interface BooleanFieldValue extends BaseFieldValue {
@@ -68,10 +69,10 @@ export interface BooleanFieldValue extends BaseFieldValue {
 export interface DateTimeFieldValue extends BaseFieldValue {
   field_type: 'datetime';
   date_type: 'timestamp' | 'timestampTz' | 'date' | 'time';
-  value_time: string;
-  value_date: Date;
-  value_timestamp: Date,
-  value_timestamp_tz: Date,
+  value_time?: string;
+  value_date?: Date;
+  value_timestamp?: Date,
+  value_timestamp_tz?: Date,
 }
 
 export interface FileFieldValue extends BaseFieldValue {
@@ -137,7 +138,7 @@ export function isJsonFieldValue(fieldValue: FlattenedFieldValue): fieldValue is
 }
 
 export function isNumericFieldValue(fieldValue: FlattenedFieldValue): fieldValue is NumericFieldValue {
-  return ['number', 'integer', 'decimal', 'bigint'].includes(fieldValue.field_type);
+  return ['float', 'integer', 'decimal'].includes(fieldValue.field_type);
 }
 
 export interface ReconstructedFieldValue {
@@ -153,7 +154,7 @@ export interface ReconstructedFieldValue {
 }
 
 // Standardized field value structure for unified processing
-export interface UnifiedFieldValue {
+export interface UnionRowValue {
   id: string;
   document_version_id: string;
   collection_id: string;
@@ -207,5 +208,4 @@ export interface UnifiedFieldValue {
   value_integer: number | null;
   value_decimal: string | null;
   value_float: number | null;
-  value_bigint: string | null;
 }

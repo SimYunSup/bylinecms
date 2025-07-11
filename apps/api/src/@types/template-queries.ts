@@ -41,8 +41,7 @@ export const textFields = sql`
   NULL::varchar as "number_type",
   NULL::integer as "value_integer",
   NULL::decimal as "value_decimal",
-  NULL::real as "value_float",
-  NULL::bigint as "value_bigint"
+  NULL::real as "value_float"
 `
 
 export const numericFields = sql`
@@ -55,7 +54,7 @@ export const numericFields = sql`
   locale,
   parent_path,
   NULL,  -- text_value
-  COALESCE(value_integer::text, value_decimal::text, value_float::text, value_bigint::text),  -- numeric_value
+  COALESCE(value_integer::text, value_decimal::text, value_float::text),  -- numeric_value
   NULL,  -- boolean_value
   NULL,  -- json_value
   NULL,  -- date_type
@@ -86,8 +85,7 @@ export const numericFields = sql`
   number_type,  -- number_type
   value_integer,  -- value_integer
   value_decimal,  -- value_decimal
-  value_float,  -- value_float
-  value_bigint   -- value_bigint
+  value_float  -- value_float
 `
 
 export const booleanFields = sql`
@@ -131,8 +129,7 @@ export const booleanFields = sql`
   NULL,  -- number_type
   NULL,  -- value_integer
   NULL,  -- value_decimal
-  NULL,  -- value_float
-  NULL   -- value_bigint
+  NULL  -- value_float
 `
 
 export const datetimeFields = sql`
@@ -176,8 +173,7 @@ export const datetimeFields = sql`
   NULL,  -- number_type
   NULL,  -- value_integer
   NULL,  -- value_decimal
-  NULL,  -- value_float
-  NULL   -- value_bigint
+  NULL  -- value_float
 `
 
 export const jsonFields = sql`  
@@ -221,8 +217,7 @@ export const jsonFields = sql`
   NULL,  -- number_type
   NULL,  -- value_integer
   NULL,  -- value_decimal
-  NULL,  -- value_float
-  NULL   -- value_bigint
+  NULL  -- value_float
 `
 
 export const relationFields = sql`
@@ -266,8 +261,7 @@ export const relationFields = sql`
   NULL,  -- number_type
   NULL,  -- value_integer
   NULL,  -- value_decimal
-  NULL,  -- value_float
-  NULL   -- value_bigint
+  NULL  -- value_float  
 `
 export const fileFields = sql`
   id,
@@ -310,6 +304,5 @@ export const fileFields = sql`
   NULL,  -- number_type
   NULL,  -- value_integer
   NULL,  -- value_decimal
-  NULL,  -- value_float
-  NULL   -- value_bigint
+  NULL  -- value_float
 `

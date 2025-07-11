@@ -19,7 +19,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 import type {
   CollectionConfig,
   DateTimeFieldValue,
@@ -70,7 +69,7 @@ export function flattenDocument(
         for (const [localeKey, localizedValue] of Object.entries(value)) {
           if (localizedValue !== undefined && localizedValue !== null) {
             flattenedFields.push(
-              createFieldSpecificValue(
+              createFlattenedFieldValue(
                 currentPath,
                 fieldConfig.name,
                 fieldConfig.type as NonArrayFieldType,
@@ -83,7 +82,7 @@ export function flattenDocument(
         }
       } else {
         flattenedFields.push(
-          createFieldSpecificValue(
+          createFlattenedFieldValue(
             currentPath,
             fieldConfig.name,
             fieldConfig.type as NonArrayFieldType,
@@ -100,7 +99,7 @@ export function flattenDocument(
   return flattenedFields;
 }
 
-function createFieldSpecificValue(
+function createFlattenedFieldValue(
   field_path: string,
   field_name: string,
   field_type: NonArrayFieldType,
@@ -123,14 +122,28 @@ function createFieldSpecificValue(
     case 'richText':
       return { ...baseValue, field_type, value }
 
-    case 'number':
+    case 'float':
     case 'integer':
     case 'decimal':
-    case 'bigint':
-      return { ...baseValue, field_type, ...value };
+      return {
+        ...baseValue,
+        field_type,
+        number_type: field_type,
+        value_float: field_type === 'float' ? value : undefined,
+        value_decimal: field_type === 'decimal' ? value : undefined,
+        value_integer: field_type === 'integer' ? value : undefined,
+      };
 
     case 'datetime':
-      return { ...baseValue, field_type, ...value };
+      return {
+        ...baseValue,
+        field_type,
+        date_type: 'timestampTz', // Default to timestamp, can be extended later
+        value_time: undefined,
+        value_date: undefined,
+        value_timestamp: undefined,
+        value_timestamp_tz: value ?? undefined,
+      };
 
     case 'file':
     case 'image':
@@ -227,19 +240,26 @@ function createReconstructedValue(fieldValue: FlattenedFieldValue): any {
     case 'object':
       return (fieldValue as any).value;
 
-    case 'number':
+    case 'float':
     case 'integer':
-    case 'bigint':
     case 'decimal': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as NumericFieldValue & { value?: any };
-      delete value.value;
-      return value;
+      const value = fieldValue as NumericFieldValue;
+      if (fieldValue.field_type === 'float') {
+        return value.value_float
+      }
+      if (fieldValue.field_type === 'integer') {
+        return fieldValue.value_integer
+      }
+      if (fieldValue.field_type === 'decimal') {
+        return fieldValue.value_decimal
+      }
+      return undefined;
     }
 
     case 'datetime': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as DateTimeFieldValue & { value?: any };
-      delete value.value;
-      return value;
+      // TODO: Implement date, time, timestamp reconstruction
+      const value = fieldValue as DateTimeFieldValue;
+      return value.value_timestamp_tz;
     }
 
     case 'file':

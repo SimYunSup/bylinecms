@@ -153,19 +153,16 @@ export class DocumentCommands {
           value: fieldValue.value as string,
         });
 
-      case 'number':
+      case 'float':
       case 'integer':
       case 'decimal':
-      case 'bigint':
         if (isNumericFieldValue(fieldValue)) {
           return await tx.insert(fieldValuesNumeric).values({
             ...baseData,
+            number_type: fieldValue.number_type,
             value_float: fieldValue.value_float, // For 'number' type
-            value_bigint: fieldValue.value_bigint, // For 'bigint' type
             value_integer: fieldValue.value_integer,
             value_decimal: fieldValue.value_decimal,
-
-            number_type: fieldValue.field_type,
           });
         }
         throw new Error(`Invalid numeric field value for ${baseData.field_path}`);
@@ -176,6 +173,7 @@ export class DocumentCommands {
           value: fieldValue.value,
         });
 
+      // TODO: Implement date, time, and explicit timestamp support
       case 'datetime':
         return await tx.insert(fieldValuesDatetime).values({
           ...baseData,

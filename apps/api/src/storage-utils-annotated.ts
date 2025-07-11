@@ -66,7 +66,7 @@ export function flattenDocument(
         for (const [localeKey, localizedValue] of Object.entries(value)) {
           if (localizedValue !== undefined && localizedValue !== null) {
             flattenedFields.push(
-              createFieldSpecificValue(
+              createFlattenedFieldValue(
                 currentPath,
                 fieldConfig.name,
                 fieldConfig.type as NonArrayFieldType,
@@ -79,7 +79,7 @@ export function flattenDocument(
         }
       } else {
         flattenedFields.push(
-          createFieldSpecificValue(
+          createFlattenedFieldValue(
             currentPath,
             fieldConfig.name,
             fieldConfig.type as NonArrayFieldType,
@@ -154,12 +154,12 @@ export function reconstructDocument(
     if (values.length > 1 && values.some(v => v.locale !== 'default')) { // Localized
       const localizedObject: Record<string, any> = {};
       values.forEach(v => {
-        const val = createFieldSpecificValue(v.field_path, v.field_name, v.field_type as NonArrayFieldType, v, v.locale);
+        const val = createFlattenedFieldValue(v.field_path, v.field_name, v.field_type as NonArrayFieldType, v, v.locale);
         localizedObject[v.locale] = (val as any).value || val;
       });
       setValue(document, path, localizedObject);
     } else if (preferredValue) {
-      const reconstructedValue = createFieldSpecificValue(
+      const reconstructedValue = createFlattenedFieldValue(
         preferredValue.field_path,
         preferredValue.field_name,
         preferredValue.field_type as NonArrayFieldType,
@@ -174,7 +174,7 @@ export function reconstructDocument(
   return document;
 }
 
-function createFieldSpecificValue(
+function createFlattenedFieldValue(
   field_path: string,
   field_name: string,
   field_type: NonArrayFieldType,
@@ -197,13 +197,28 @@ function createFieldSpecificValue(
     case 'richText':
       return { ...baseValue, field_type, value };
 
-    case 'number':
+    case 'float':
     case 'integer':
     case 'decimal':
-      return { ...baseValue, field_type, value };
+      return {
+        ...baseValue,
+        field_type,
+        number_type: field_type,
+        value_float: field_type === 'float' ? value : undefined,
+        value_decimal: field_type === 'decimal' ? value : undefined,
+        value_integer: field_type === 'integer' ? value : undefined,
+      };
 
     case 'datetime':
-      return { ...baseValue, field_type, ...value };
+      return {
+        ...baseValue,
+        field_type,
+        date_type: 'timestampTz', // Default to timestamp, can be extended later
+        value_time: undefined,
+        value_date: undefined,
+        value_timestamp: undefined,
+        value_timestamp_tz: value ?? undefined,
+      };
 
     case 'file':
     case 'image':

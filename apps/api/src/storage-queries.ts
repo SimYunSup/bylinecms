@@ -31,7 +31,7 @@ import type {
   DatabaseConnection,
   FlattenedFieldValue,
   SiteConfig,
-  UnifiedFieldValue
+  UnionRowValue
 } from './@types/index.js'
 
 import {
@@ -67,7 +67,6 @@ export class DocumentQueries {
    */
   async getAllCurrentDocumentsForCollection(
     collectionId: string,
-    collectionConfig: CollectionConfig,
     locale = 'all'
   ): Promise<any[]> {
     const localeCondition = locale === 'all'
@@ -120,8 +119,7 @@ export class DocumentQueries {
       fv.number_type,
       fv.value_integer,
       fv.value_decimal,
-      fv.value_float,
-      fv.value_bigint
+      fv.value_float
     FROM current_documents d
     LEFT JOIN (
       -- Text fields
@@ -177,7 +175,7 @@ export class DocumentQueries {
 
     const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
 
-    return this.groupAndReconstructDocuments(rows, collectionConfig, locale);
+    return this.groupAndReconstructDocuments(rows, locale);
   }
 
   /**
@@ -185,7 +183,6 @@ export class DocumentQueries {
    */
   async getAllCurrentDocumentsForCollectionBatched(
     collectionId: string,
-    collectionConfig: CollectionConfig,
     locale = 'all',
     batchSize = 100
   ): Promise<any[]> {
@@ -208,7 +205,7 @@ export class DocumentQueries {
 
     for (let i = 0; i < documentVersionIds.length; i += batchSize) {
       const batch = documentVersionIds.slice(i, i + batchSize);
-      const batchResults = await this.getCurrentDocuments(batch, collectionConfig, locale);
+      const batchResults = await this.getCurrentDocuments(batch, locale);
 
       // Add batch results to final result array
       result.push(...batchResults);
@@ -222,7 +219,6 @@ export class DocumentQueries {
    */
   async getCurrentDocumentsForCollectionPaginated(
     collectionId: string,
-    collectionConfig: CollectionConfig,
     options: {
       locale?: string;
       limit?: number;
@@ -279,7 +275,7 @@ export class DocumentQueries {
       .offset(offset);
 
     const documentVersionIds = paginatedDocs.map(doc => doc.id);
-    const documentsData = await this.getCurrentDocuments(documentVersionIds, collectionConfig, locale);
+    const documentsData = await this.getCurrentDocuments(documentVersionIds, locale);
 
     return {
       documents: documentsData,
@@ -292,7 +288,7 @@ export class DocumentQueries {
     };
   }
 
-  async getCurrentDocumentByPath(collectionConfig: CollectionConfig, collection_id: string, path: string) {
+  async getCurrentDocumentByPath(collection_id: string, path: string) {
     // 1. Get current version
     const currentDocument = await this.db.select()
       .from(documents)
@@ -314,7 +310,7 @@ export class DocumentQueries {
     );
 
     // 3. Convert unified values back to FlattenedFieldValue format
-    const fieldValues = this.convertUnifiedToFlattenedFieldValues(unifiedFieldValues);
+    const fieldValues = this.convertUnionRowToFlattenedFieldValues(unifiedFieldValues);
 
     // 4. Reconstruct the document
     const reconstructedDocument = reconstructDocument(
@@ -337,7 +333,6 @@ export class DocumentQueries {
    */
   async getCurrentDocument(
     documentVersionId: string,
-    collectionConfig: CollectionConfig,
     locale = 'all'
   ): Promise<any> {
     // 1. Get current version
@@ -356,7 +351,7 @@ export class DocumentQueries {
     );
 
     // 3. Convert unified values back to FlattenedFieldValue format
-    const fieldValues = this.convertUnifiedToFlattenedFieldValues(unifiedFieldValues);
+    const fieldValues = this.convertUnionRowToFlattenedFieldValues(unifiedFieldValues);
 
     // 4. Reconstruct the document
     return reconstructDocument(
@@ -370,7 +365,6 @@ export class DocumentQueries {
    */
   async getCurrentDocuments(
     documentVersionIds: string[],
-    collectionConfig: CollectionConfig,
     locale = 'all'
   ): Promise<any[]> {
     if (documentVersionIds.length === 0) return [];
@@ -396,7 +390,7 @@ export class DocumentQueries {
     );
 
     // Group field values by document version
-    const fieldValuesByVersion = new Map<string, UnifiedFieldValue[]>();
+    const fieldValuesByVersion = new Map<string, UnionRowValue[]>();
     for (const fieldValue of allFieldValues) {
       if (!fieldValuesByVersion.has(fieldValue.document_version_id)) {
         fieldValuesByVersion.set(fieldValue.document_version_id, []);
@@ -408,7 +402,7 @@ export class DocumentQueries {
     const result: any[] = [];
     for (const doc of docs) {
       const versionFieldValues = fieldValuesByVersion.get(doc.document_version_id) || [];
-      const flattenedFieldValues = this.convertUnifiedToFlattenedFieldValues(versionFieldValues);
+      const flattenedFieldValues = this.convertUnionRowToFlattenedFieldValues(versionFieldValues);
 
       const reconstructedDocument = reconstructDocument(
         flattenedFieldValues,
@@ -457,72 +451,17 @@ export class DocumentQueries {
   }
 
   /**
-   * getFieldValuesByPaths (possibly useful for partial updates - although
-   * we may not use this)
-   */
-  async getFieldValuesByPaths(
-    documentVersionId: string,
-    fieldPaths: string[],
-    locale = 'all'
-  ): Promise<FlattenedFieldValue[]> {
-    if (fieldPaths.length === 0) return [];
-
-    // Get current version
-    const currentDocument = await this.db.select()
-      .from(documents)
-      .where(eq(documents.id, documentVersionId),
-      )
-
-    if (!currentDocument[0]) return [];
-
-    const localeCondition = locale === 'all'
-      ? sql``
-      : sql`AND locale = ${locale}`;
-
-    const pathCondition = sql`field_path = ANY(${fieldPaths})`;
-
-    // Similar UNION ALL query but filtered by field paths
-    const query = sql`
-      SELECT 
-        'text' as "field_type", field_path as "field_path", field_name as "field_name",
-        locale, parent_path as "parent_path",
-        value as "text_value"
-      FROM field_values_text 
-      WHERE document_version_id = ${currentDocument[0].id} 
-        AND ${pathCondition} ${localeCondition}
-
-      UNION ALL
-
-      SELECT 
-        'numeric', field_path, field_name, locale, parent_path,
-        COALESCE(value_integer::text, value_decimal::text, value_float::text, value_bigint::text)
-      FROM field_values_numeric 
-      WHERE document_version_id = ${currentDocument[0].id} 
-        AND ${pathCondition} ${localeCondition}
-
-      -- Add other field types as needed...
-
-      ORDER BY field_path, locale
-    `;
-
-    const results = await this.db.execute(query) as unknown as UnifiedFieldValue[];
-    // Convert to FlattenedFieldValue format
-    return this.convertUnifiedToFlattenedFieldValues(results);
-  }
-
-  /**
  * Helper method to group results by document and reconstruct each document
  * Returns an array of complete documents
  */
   private groupAndReconstructDocuments(
     rows: Record<string, unknown>[],
-    collectionConfig: CollectionConfig,
     locale: string
   ): any[] {
     // Group rows by document ID
     const documentGroups = new Map<string, {
       document: { document_version_id: string; document_id: string; path: string; status: string };
-      fieldValues: UnifiedFieldValue[];
+      fieldValues: UnionRowValue[];
     }>();
 
     for (const row of rows) {
@@ -542,7 +481,7 @@ export class DocumentQueries {
 
       // Only add field values if they exist (LEFT JOIN can return null field values)
       if (row.id) {
-        const fieldValue: UnifiedFieldValue = {
+        const fieldValue: UnionRowValue = {
           id: row.id as string,
           document_version_id: row.document_version_id as string,
           collection_id: row.collection_id as string,
@@ -584,7 +523,6 @@ export class DocumentQueries {
           value_integer: row.value_integer as number | null,
           value_decimal: row.value_decimal as string | null,
           value_float: row.value_float as number | null,
-          value_bigint: row.value_bigint as string | null,
         };
 
         documentGroups.get(documentVersionId)?.fieldValues.push(fieldValue);
@@ -595,7 +533,7 @@ export class DocumentQueries {
     const result: any[] = [];
 
     for (const [documentId, group] of documentGroups) {
-      const flattenedFieldValues = this.convertUnifiedToFlattenedFieldValues(group.fieldValues);
+      const flattenedFieldValues = this.convertUnionRowToFlattenedFieldValues(group.fieldValues);
 
       const head = {
         document_version_id: group.document.document_version_id,
@@ -622,13 +560,13 @@ export class DocumentQueries {
   private async getAllFieldValues(
     documentVersionId: string,
     locale = 'all'
-  ): Promise<UnifiedFieldValue[]> {
+  ): Promise<UnionRowValue[]> {
     const localeCondition = locale === 'all'
       ? sql``
       : sql`AND locale = ${locale}`;
 
     const query = sql`
-      -- Text fields (43 columns total)
+      -- Text fields (42 columns total)
       SELECT 
         ${textFields}
       FROM field_values_text 
@@ -636,7 +574,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Numeric fields (43 columns total - SAME ORDER)
+      -- Numeric fields (42 columns total - SAME ORDER)
       SELECT 
         ${numericFields}
       FROM field_values_numeric 
@@ -644,7 +582,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Boolean fields (43 columns total - SAME ORDER)
+      -- Boolean fields (42 columns total - SAME ORDER)
       SELECT 
         ${booleanFields}
       FROM field_values_boolean 
@@ -652,7 +590,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- DateTime fields (43 columns total - SAME ORDER)
+      -- DateTime fields (42 columns total - SAME ORDER)
       SELECT 
         ${datetimeFields}
       FROM field_values_datetime 
@@ -660,7 +598,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- JSON fields (43 columns total - SAME ORDER)
+      -- JSON fields (42 columns total - SAME ORDER)
       SELECT 
        ${jsonFields}
       FROM field_values_json 
@@ -668,7 +606,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Relation fields (43 columns total - SAME ORDER)
+      -- Relation fields (42 columns total - SAME ORDER)
       SELECT 
         ${relationFields}
       FROM field_values_relation 
@@ -676,7 +614,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- File fields (43 columns total - SAME ORDER)
+      -- File fields (42 columns total - SAME ORDER)
       SELECT 
         ${fileFields}
       FROM field_values_file 
@@ -686,7 +624,7 @@ export class DocumentQueries {
     `;
 
     const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
-    return rows as unknown as UnifiedFieldValue[];
+    return rows as unknown as UnionRowValue[];
   }
 
   /**
@@ -695,7 +633,7 @@ export class DocumentQueries {
   private async getAllFieldValuesForMultipleVersions(
     documentVersionIds: string[],
     locale = 'all'
-  ): Promise<UnifiedFieldValue[]> {
+  ): Promise<UnionRowValue[]> {
     if (documentVersionIds.length === 0) return [];
 
     const localeCondition = locale === 'all'
@@ -706,7 +644,7 @@ export class DocumentQueries {
 
     // Use the same UNION ALL query but with IN clause for multiple versions
     const query = sql`
-      -- Text fields (43 columns total)
+      -- Text fields (42 columns total)
       SELECT 
          ${textFields}
       FROM field_values_text 
@@ -714,7 +652,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Numeric fields (43 columns total - SAME ORDER)
+      -- Numeric fields (42 columns total - SAME ORDER)
       SELECT 
          ${numericFields}
       FROM field_values_numeric 
@@ -722,7 +660,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Boolean fields (43 columns total - SAME ORDER)
+      -- Boolean fields (42 columns total - SAME ORDER)
       SELECT 
         ${booleanFields}
       FROM field_values_boolean 
@@ -730,7 +668,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- DateTime fields (43 columns total - SAME ORDER)
+      -- DateTime fields (42 columns total - SAME ORDER)
       SELECT 
         ${datetimeFields}
       FROM field_values_datetime 
@@ -738,7 +676,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-     -- JSON fields (43 columns total - SAME ORDER)
+     -- JSON fields (42 columns total - SAME ORDER)
       SELECT 
         ${jsonFields}
       FROM field_values_json 
@@ -746,7 +684,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- Relation fields (43 columns total - SAME ORDER)
+      -- Relation fields (42 columns total - SAME ORDER)
       SELECT 
         ${relationFields}
       FROM field_values_relation 
@@ -754,7 +692,7 @@ export class DocumentQueries {
 
       UNION ALL
 
-      -- File fields (43 columns total - SAME ORDER)
+      -- File fields (42 columns total - SAME ORDER)
       SELECT 
         ${fileFields}
       FROM field_values_file 
@@ -764,102 +702,124 @@ export class DocumentQueries {
     `;
 
     const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
-    return rows as unknown as UnifiedFieldValue[];
+    return rows as unknown as UnionRowValue[];
   }
 
   /**
-   * Converts unified field values back to the FlattenedFieldValue format
+   * Converts a union field row - back into an array of FlattenedFieldValue
    * that the reconstruction utilities expect
    */
-  private convertUnifiedToFlattenedFieldValues(
-    unifiedValues: UnifiedFieldValue[]
+  private convertUnionRowToFlattenedFieldValues(
+    unionRowValues: UnionRowValue[]
   ): FlattenedFieldValue[] {
-    return unifiedValues.map(unified => {
+    return unionRowValues.map(row => {
       const baseValue = {
-        field_path: unified.field_path,
-        field_name: unified.field_name,
-        locale: unified.locale,
-        parent_path: unified.parent_path ?? undefined,
+        field_path: row.field_path,
+        field_name: row.field_name,
+        locale: row.locale,
+        parent_path: row.parent_path ?? undefined,
       };
 
-      switch (unified.field_type) {
+      switch (row.field_type) {
         case 'text':
           return {
             ...baseValue,
             field_type: 'text' as const,
-            value: unified.text_value!,
+            value: row.text_value,
           };
 
         case 'richText':
           return {
             ...baseValue,
             field_type: 'richText' as const,
-            value: unified.json_value!,
+            value: row.json_value,
           };
 
         case 'numeric':
           return {
             ...baseValue,
-            field_type: unified.number_type as 'number' | 'integer' | 'decimal',
-            value: unified.number_type === 'integer'
-              ? unified.value_integer!
-              : unified.number_type === 'decimal'
-                ? Number.parseFloat(unified.value_decimal!)
-                : unified.number_type === 'float'
-                  ? unified.value_float!
-                  : Number.parseInt(unified.value_bigint!),
+            field_type: row.number_type as 'float' | 'integer' | 'decimal',
+            number_type: row.number_type,
+            value_integer: row.value_integer,
+            value_decimal: row.value_decimal,
+            value_float: row.value_float,
           };
+
+        // case 'numeric':
+        //   return {
+        //     ...baseValue,
+        //     field_type: row.number_type as 'float' | 'integer' | 'decimal',
+        //     value: row.number_type === 'integer'
+        //       ? row.value_integer
+        //       : row.number_type === 'decimal'
+        //         ? Number.parseFloat(row.value_decimal as string)
+        //         : row.number_type
+        //   };
+
+        // case 'number':
+        // case 'integer':
+        // case 'bigint':
+        // case 'decimal': {
+        //   return {
+        //     ...baseValue,
+        //     field_type: unified.field_type,
+        //     value_integer: unified.value_integer,
+        //     value_decimal: unified.value_decimal,
+        //     value_float: unified.value_float,
+        //     value_bigint: unified.value_bigint
+        //   };
+        // }
 
         case 'boolean':
           return {
             ...baseValue,
             field_type: 'boolean' as const,
-            value: unified.boolean_value!,
+            value: row.boolean_value,
           };
 
         case 'datetime':
           return {
             ...baseValue,
             field_type: 'datetime' as const,
-            date_type: unified.date_type as any,
-            value_time: unified.value_time!,
-            value_date: unified.value_date!,
-            value_timestamp: unified.value_timestamp!,
-            value_timestamp_tz: unified.value_timestamp_tz!,
+            date_type: row.date_type,
+            value_time: row.value_time,
+            value_date: row.value_date,
+            value_timestamp: row.value_timestamp,
+            value_timestamp_tz: row.value_timestamp_tz,
           };
 
         case 'file':
           return {
             ...baseValue,
             field_type: 'file' as const,
-            file_id: unified.file_id!,
-            filename: unified.filename!,
-            original_filename: unified.original_filename!,
-            mime_type: unified.mime_type!,
-            file_size: unified.file_size!,
-            storage_provider: unified.storage_provider!,
-            storage_path: unified.storage_path!,
-            storage_url: unified.storage_url,
-            file_hash: unified.file_hash,
-            image_width: unified.image_width,
-            image_height: unified.image_height,
-            image_format: unified.image_format,
-            processing_status: unified.processing_status,
-            thumbnail_generated: unified.thumbnail_generated,
+            file_id: row.file_id,
+            filename: row.filename,
+            original_filename: row.original_filename,
+            mime_type: row.mime_type,
+            file_size: row.file_size,
+            storage_provider: row.storage_provider,
+            storage_path: row.storage_path,
+            storage_url: row.storage_url,
+            file_hash: row.file_hash,
+            image_width: row.image_width,
+            image_height: row.image_height,
+            image_format: row.image_format,
+            processing_status: row.processing_status,
+            thumbnail_generated: row.thumbnail_generated,
           };
 
         case 'relation':
           return {
             ...baseValue,
             field_type: 'relation' as const,
-            target_document_id: unified.target_document_id!,
-            target_collection_id: unified.target_collection_id!,
-            relationship_type: unified.relationship_type,
-            cascade_delete: unified.cascade_delete,
+            target_document_id: row.target_document_id,
+            target_collection_id: row.target_collection_id,
+            relationship_type: row.relationship_type,
+            cascade_delete: row.cascade_delete,
           };
 
         default:
-          throw new Error(`Unknown field type: ${unified.field_type}`);
+          throw new Error(`Unknown field type: ${row.field_type}`);
       }
     }) as FlattenedFieldValue[];
   }

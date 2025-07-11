@@ -83,10 +83,7 @@ const sampleDocument = {
   //   target_collection_id: "cat-123",
   //   target_document_id: "electronics-audio"
   // },
-  publishedOn: {
-    date_type: "timestamp",
-    value_timestamp: new Date("2024-01-15T10:00:00")
-  },
+  publishedOn: new Date("2024-01-15T10:00:00"),
   content: [
     {
       richTextBlock: [
@@ -126,13 +123,13 @@ const sampleDocument = {
   reviews: [
     {
       reviewItem: [
-        { rating: { value_integer: 5 } },
+        { rating: 5 },
         { comment: { root: { paragraph: 'Some review text here...' } } },
       ]
     },
     {
       reviewItem: [
-        { rating: { value_integer: 3 } },
+        { rating: 3 },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
     }

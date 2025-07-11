@@ -115,10 +115,7 @@ const complexProductDocument = {
   },
   price: 299.99,
   inStock: true,
-  releaseDate: {
-    date_type: "timestamp",
-    value_timestamp: new Date("2024-01-15T10:00:00Z")
-  },
+  releaseDate: new Date("2024-01-15T10:00:00Z"),
   images: [
     {
       imageItem: [
@@ -241,13 +238,13 @@ const complexProductDocument = {
   reviews: [
     {
       reviewItem: [
-        { rating: { value_integer: 5 } },
+        { rating: 5 },
         { comment: { root: { paragraph: 'Some review text here...' } } },
       ]
     },
     {
       reviewItem: [
-        { rating: { value_integer: 6 } },
+        { rating: 6 },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
     }
