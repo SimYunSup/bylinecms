@@ -155,23 +155,17 @@ export class DocumentCommands {
 
       case 'number':
       case 'integer':
-        if (isNumericFieldValue(fieldValue)) {
-          return await tx.insert(fieldValuesNumeric).values({
-            ...baseData,
-            value_integer: fieldValue.value,
-            number_type: 'integer',
-          });
-        }
-        throw new Error(`Invalid numeric field value for ${baseData.field_path}`);
-
       case 'decimal':
+      case 'bigint':
         if (isNumericFieldValue(fieldValue)) {
           return await tx.insert(fieldValuesNumeric).values({
             ...baseData,
-            // TODO: Fix
-            // @ts-ignore
-            value_decimal: fieldValue.value,
-            number_type: 'decimal',
+            value_float: fieldValue.value_float, // For 'number' type
+            value_bigint: fieldValue.value_bigint, // For 'bigint' type
+            value_integer: fieldValue.value_integer,
+            value_decimal: fieldValue.value_decimal,
+
+            number_type: fieldValue.field_type,
           });
         }
         throw new Error(`Invalid numeric field value for ${baseData.field_path}`);

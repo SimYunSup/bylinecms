@@ -30,7 +30,7 @@ export interface CollectionConfig {
 
 export interface FieldConfig {
   name: string;
-  type: 'text' | 'richText' | 'array' | 'number' | 'integer' | 'decimal' | 'boolean' | 'datetime' | 'relation' | 'file' | 'image' | 'json' | 'object';
+  type: 'text' | 'richText' | 'array' | 'number' | 'integer' | 'decimal' | 'bigint' | 'boolean' | 'datetime' | 'relation' | 'file' | 'image' | 'json' | 'object';
   required?: boolean;
   unique?: boolean;
   localized?: boolean;
@@ -53,8 +53,11 @@ export interface TextFieldValue extends BaseFieldValue {
 }
 
 export interface NumericFieldValue extends BaseFieldValue {
-  field_type: 'number' | 'integer' | 'decimal';
-  value: number;
+  field_type: 'number' | 'integer' | 'decimal' | 'bigint';
+  value_integer: number,
+  value_decimal: string
+  value_float: number,
+  value_bigint: bigint,
 }
 
 export interface BooleanFieldValue extends BaseFieldValue {
@@ -134,7 +137,7 @@ export function isJsonFieldValue(fieldValue: FlattenedFieldValue): fieldValue is
 }
 
 export function isNumericFieldValue(fieldValue: FlattenedFieldValue): fieldValue is NumericFieldValue {
-  return ['number', 'integer', 'decimal'].includes(fieldValue.field_type);
+  return ['number', 'integer', 'decimal', 'bigint'].includes(fieldValue.field_type);
 }
 
 export interface ReconstructedFieldValue {

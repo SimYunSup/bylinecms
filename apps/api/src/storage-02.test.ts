@@ -241,13 +241,13 @@ const complexProductDocument = {
   reviews: [
     {
       reviewItem: [
-        { rating: 5 },
+        { rating: { value_integer: 5 } },
         { comment: { root: { paragraph: 'Some review text here...' } } },
       ]
     },
     {
       reviewItem: [
-        { rating: 2 },
+        { rating: { value_integer: 6 } },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
     }

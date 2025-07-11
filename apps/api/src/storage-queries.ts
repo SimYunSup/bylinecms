@@ -702,9 +702,7 @@ export class DocumentQueries {
       ? sql``
       : sql`AND locale = ${locale}`;
 
-    // const documentCondition = sql``
     const documentCondition = sql`document_version_id = ANY(ARRAY[${sql.join(documentVersionIds.map(id => sql`${id}::uuid`), sql`, `)}])`;
-    // const documentCondition = sql`document_id = ANY(ARRAY[${sql.join(documentIds.map(id => sql`${id}`), sql`, `)}])`;
 
     // Use the same UNION ALL query but with IN clause for multiple versions
     const query = sql`

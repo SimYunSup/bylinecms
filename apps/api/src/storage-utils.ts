@@ -27,6 +27,7 @@ import type {
   FileFieldValue,
   FlattenedFieldValue,
   NonArrayFieldType,
+  NumericFieldValue,
   RelationFieldValue,
 } from './@types/index.js';
 
@@ -125,7 +126,8 @@ function createFieldSpecificValue(
     case 'number':
     case 'integer':
     case 'decimal':
-      return { ...baseValue, field_type, value };
+    case 'bigint':
+      return { ...baseValue, field_type, ...value };
 
     case 'datetime':
       return { ...baseValue, field_type, ...value };
@@ -139,11 +141,7 @@ function createFieldSpecificValue(
 
     case 'json':
     case 'object':
-      return {
-        ...baseValue,
-        field_type,
-        ...value,
-      };
+      return { ...baseValue, field_type, ...value };
 
     default:
       throw new Error(`Unsupported field type: ${field_type}`);
@@ -224,13 +222,19 @@ function createReconstructedValue(fieldValue: FlattenedFieldValue): any {
   switch (fieldValue.field_type) {
     case 'text':
     case 'richText':
-    case 'number':
-    case 'integer':
-    case 'decimal':
     case 'boolean':
     case 'json':
     case 'object':
       return (fieldValue as any).value;
+
+    case 'number':
+    case 'integer':
+    case 'bigint':
+    case 'decimal': {
+      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as NumericFieldValue & { value?: any };
+      delete value.value;
+      return value;
+    }
 
     case 'datetime': {
       const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as DateTimeFieldValue & { value?: any };

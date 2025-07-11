@@ -154,13 +154,13 @@ const sampleDocument = {
   reviews: [
     {
       reviewItem: [
-        { rating: 5 },
+        { rating: { value_integer: 6 } },
         { comment: { root: { paragraph: 'Some review text here...' } } },
       ]
     },
     {
       reviewItem: [
-        { rating: 2 },
+        { rating: { value_integer: 2 } },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
     }
@@ -214,12 +214,12 @@ describe('Document Flattening and Reconstruction', () => {
 
     const reconstructed = reconstructDocument(flattened)
     assert(reconstructed, 'Reconstructed document should not be null or undefined')
-    const reconstructedJson = JSON.parse(JSON.stringify(reconstructed, null, 2));
-    console.log('Reconstructed document:', reconstructedJson)
+    const reconstructedJson = JSON.stringify(reconstructed, null, 2);
+    // console.log('Reconstructed document:', reconstructedJson)
 
     // A simplified version of the sample document for deep equality check
-    const sampleDocumentJson = JSON.parse(JSON.stringify(sampleDocument));
+    const sampleDocumentJson = JSON.stringify(sampleDocument, null, 2);
 
-    assert.deepStrictEqual(reconstructedJson, sampleDocumentJson, 'Reconstructed document should match the original structure');
+    assert.deepStrictEqual(JSON.parse(reconstructedJson), JSON.parse(sampleDocumentJson), 'Reconstructed document should match the original structure');
   })
 })
