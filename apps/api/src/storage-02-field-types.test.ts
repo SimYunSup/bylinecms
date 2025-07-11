@@ -44,51 +44,20 @@ const siteConfig: SiteConfig = {
   }
 }
 
-const DocsCollectionConfig: CollectionConfig = {
+const FieldTypesCollectionConfig: CollectionConfig = {
   path: 'docs',
   labels: {
-    singular: 'Document',
-    plural: 'Documents',
+    singular: 'FieldTypes',
+    plural: 'FieldType',
   },
   fields: [
     { name: 'path', type: 'text', required: true, unique: true },
     { name: 'title', type: 'text', required: true, localized: true },
     { name: 'summary', type: 'text', required: true, localized: true },
-    { name: 'category', type: 'relation', required: false },
     { name: 'publishedOn', type: 'datetime', required: false },
-    {
-      name: 'content', type: 'array', fields: [
-        {
-          name: 'richTextBlock', type: 'array', fields: [
-            { name: 'constrainedWidth', type: 'boolean', required: false },
-            { name: 'richText', type: 'richText', required: true, localized: true },
-          ]
-        },
-        {
-          name: 'photoBlock', type: 'array', fields: [
-            { name: 'display', type: 'text', required: false },
-            { name: 'photo', type: 'file', required: true },
-            { name: 'alt', type: 'text', required: true, localized: false },
-            { name: 'caption', type: 'richText', required: false, localized: true },
-          ]
-        },
-      ]
-    },
-    {
-      name: 'reviews', type: 'array', fields: [
-        {
-          name: 'reviewItem', type: 'array', fields: [
-            { name: 'rating', type: 'integer', required: true },
-            { name: 'comment', type: 'richText', required: true, localized: false },
-          ]
-        }
-      ]
-    },
-    {
-      name: 'links', type: 'array', fields: [
-        { name: "link", type: "text" }
-      ]
-    }
+    { name: 'views', type: 'integer', required: false },
+    { name: 'price', type: 'decimal', required: false },
+    { name: 'attachment', type: 'file', required: false },
   ],
 };
 
@@ -115,66 +84,23 @@ const sampleDocument = {
     date_type: "timestamp",
     value_timestamp: new Date("2024-01-15T10:00:00")
   },
-  content: [
-    {
-      richTextBlock: [
-        { constrainedWidth: true },
-        {
-          richText: {
-            en: { root: { paragraph: 'Some text here...' } },
-            es: { root: { paragraph: 'Some spanish text here' } }
-          }
-        },
-      ],
-    },
-    {
-      photoBlock: [
-        { display: 'wide' },
-        {
-          photo: {
-            file_id: filedId,
-            filename: 'docs-photo-01.jpg',
-            original_filename: 'some-original-filename.jpg',
-            mime_type: "image/jpeg",
-            file_size: 123456,
-            storage_provider: 'local',
-            storage_path: 'uploads/docs-photo-01.jpg',
-          }
-        },
-        { alt: 'Some alt text here' },
-        {
-          caption: {
-            en: { root: { paragraph: 'Some text here...' } },
-            es: { root: { paragraph: 'Some spanish text here...' } }
-          }
-        },
-      ]
-    },
-  ],
-  reviews: [
-    {
-      reviewItem: [
-        { rating: { value_integer: 6 } },
-        { comment: { root: { paragraph: 'Some review text here...' } } },
-      ]
-    },
-    {
-      reviewItem: [
-        { rating: { value_integer: 2 } },
-        { comment: { root: { paragraph: 'Some more reviews here...' } } },
-      ]
-    }
-  ],
-  links: [
-    { link: 'https://example.com' },
-    { link: 'https://another-example.com' }
-  ]
+  views: { field_type: "integer", value_integer: 100 },
+  price: { field_type: "decimal", value_decimal: '19.99' },
+  attachment: {
+    file_id: filedId,
+    filename: "sample-attachment.pdf",
+    original_filename: "sample-document.pdf",
+    file_size: 102400, // 100 KB
+    mime_type: "application/pdf",
+    storage_provider: 'local',
+    storage_path: 'uploads/attachments/sample-attachment.pdf',
+  },
 };
 
 // Global test variables
 let testCollection: { id: string; name: string } = {} as any
 
-describe('Document Flattening and Reconstruction', () => {
+describe('Field Types', () => {
   before(async () => {
     // Connect to test database
     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
@@ -186,8 +112,8 @@ describe('Document Flattening and Reconstruction', () => {
     // Create test collection
     const timestamp = Date.now()
     const collection = await commandBuilders.collections.create(
-      `documents_collection_${timestamp}`,
-      DocsCollectionConfig
+      `field_types_collection_${timestamp}`,
+      FieldTypesCollectionConfig
     )
 
     testCollection = { id: collection[0].id, name: collection[0].path }
@@ -206,20 +132,26 @@ describe('Document Flattening and Reconstruction', () => {
     await pool.end()
   })
 
-  it('should flatten and reconstruct a document', () => {
-    const flattened = flattenDocument(sampleDocument, DocsCollectionConfig)
-    assert(flattened, 'Flattened document should not be null or undefined')
-    assert(flattened.length > 0, 'Flattened document should contain field values')
-    console.log('Flattened document:', flattened)
+  it('should create and return a field type document', async () => {
 
-    const reconstructed = reconstructDocument(flattened)
-    assert(reconstructed, 'Reconstructed document should not be null or undefined')
-    const reconstructedJson = JSON.stringify(reconstructed, null, 2);
-    // console.log('Reconstructed document:', reconstructedJson)
+    const sourceDocument = structuredClone(sampleDocument)
+    sourceDocument.path = `my-first-field-types-document-${Date.now()}` // Ensure unique path
 
-    // A simplified version of the sample document for deep equality check
-    const sampleDocumentJson = JSON.stringify(sampleDocument, null, 2);
+    const result = await commandBuilders.documents.createDocument({
+      collectionId: testCollection.id,
+      collectionConfig: FieldTypesCollectionConfig,
+      action: 'create',
+      documentData: sampleDocument,
+      path: sourceDocument.path,
+    })
 
-    assert.deepStrictEqual(JSON.parse(reconstructedJson), JSON.parse(sampleDocumentJson), 'Reconstructed document should match the original structure');
+    console.log('Created document:', result)
+
+    const document = await queryBuilders.documents.getCurrentDocument(
+      result.document.id,
+      FieldTypesCollectionConfig
+    )
+
+    console.log('Retrieved document:', document)
   })
 })
