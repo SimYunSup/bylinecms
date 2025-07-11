@@ -58,26 +58,36 @@ const VersionsCollectionConfig: CollectionConfig = {
     { name: 'category', type: 'relation', required: false },
     {
       name: 'images', type: 'array', fields: [
-        { name: 'url', type: 'file', required: true },
-        { name: 'alt', type: 'text', required: true, localized: true },
-        { name: 'caption', type: 'text', required: false, localized: true },
+        {
+          name: 'imageItem', type: 'array', fields: [
+            { name: 'image', type: 'file', required: true },
+            { name: 'alt', type: 'text', required: true, localized: true },
+            { name: 'caption', type: 'text', required: false, localized: true },
+          ]
+        }
       ]
     },
     {
       name: 'specifications', type: 'array', fields: [
-        { name: 'key', type: 'text', required: true, localized: true },
-        { name: 'value', type: 'text', required: true, localized: true },
-        { name: 'unit', type: 'text', required: false },
+        {
+          name: 'specificationItem', type: 'array', fields: [
+            { name: 'key', type: 'text', required: true, localized: true },
+            { name: 'value', type: 'text', required: true, localized: true },
+            { name: 'unit', type: 'text', required: false },
+          ]
+        }
       ]
     },
     {
       name: 'reviews', type: 'array', fields: [
-        { name: 'rating', type: 'integer', required: true },
-        { name: 'comment', type: 'richText', required: true },
-        { name: 'author', type: 'relation', required: false },
-        { name: 'verified', type: 'boolean', required: true },
+        {
+          name: 'reviewItem', type: 'array', fields: [
+            { name: 'rating', type: 'integer', required: true },
+            { name: 'comment', type: 'richText', required: true, localized: false },
+          ]
+        }
       ]
-    }
+    },
   ],
 };
 
@@ -109,128 +119,139 @@ const complexProductDocument = {
     date_type: "timestamp",
     value_timestamp: new Date("2024-01-15T10:00:00Z")
   },
-  // category: {
-  //   target_collection_id: "cat-123",
-  //   target_document_id: "electronics-audio"
-  // },
   images: [
     {
-      url: {
-        file_id: "018dd0b2-9a2a-7f01-b8b2-a0c719d0f5b3",
-        filename: "headphones-main.jpg",
-        original_filename: "wireless-headphones.jpg",
-        mime_type: "image/jpeg",
-        file_size: 2048000,
-        storage_provider: "s3",
-        storage_path: "/products/img-001.jpg"
-      },
-      alt: {
-        en: "Premium wireless headphones front view",
-        es: "Vista frontal de auriculares inalámbricos premium",
-        fr: "Vue de face du casque sans fil premium"
-      },
-      caption: {
-        en: "Sleek design with premium materials",
-        es: "Diseño elegante con materiales premium",
-        fr: "Design élégant avec des matériaux premium"
-      }
+      imageItem: [
+        {
+          image: {
+            file_id: "018dd0b2-9a2a-7f01-b8b2-a0c719d0f5b3",
+            filename: "headphones-main.jpg",
+            original_filename: "wireless-headphones.jpg",
+            mime_type: "image/jpeg",
+            file_size: 2048000,
+            storage_provider: "s3",
+            storage_path: "/products/img-001.jpg"
+          }
+        }, {
+          alt: {
+            en: "Premium wireless headphones front view",
+            es: "Vista frontal de auriculares inalámbricos premium",
+            fr: "Vue de face du casque sans fil premium"
+          }
+        }, {
+          caption: {
+            en: "Sleek design with premium materials",
+            es: "Diseño elegante con materiales premium",
+            fr: "Design élégant avec des matériaux premium"
+          }
+        }
+      ]
     },
     {
-      url: {
-        file_id: "018dd0b2-9a2a-7f02-8e73-f4c5a9e3d6b8",
-        filename: "headphones-side.jpg",
-        original_filename: "side-view.jpg",
-        mime_type: "image/jpeg",
-        file_size: 1536000,
-        storage_provider: "s3",
-        storage_path: "/products/img-002.jpg"
-      },
-      alt: {
-        en: "Side view showing comfort padding",
-        es: "Vista lateral mostrando acolchado cómodo",
-        fr: "Vue de côté montrant le rembourrage confortable"
-      }
+      imageItem: [
+        {
+          image: {
+            file_id: "018dd0b2-9a2a-7f02-8e73-f4c5a9e3d6b8",
+            filename: "headphones-side.jpg",
+            original_filename: "side-view.jpg",
+            mime_type: "image/jpeg",
+            file_size: 1536000,
+            storage_provider: "s3",
+            storage_path: "/products/img-002.jpg"
+          }
+        }, {
+          alt: {
+            en: "Side view showing comfort padding",
+            es: "Vista lateral mostrando acolchado cómodo",
+            fr: "Vue de côté montrant le rembourrage confortable"
+          }
+        }, {
+          caption: {
+            en: "Side view showing comfort padding",
+            es: "Vista lateral mostrando acolchado cómodo",
+            fr: "Vue de côté montrant le rembourrage confortable"
+          }
+        }
+      ]
     }
   ],
   specifications: [
     {
-      key: {
-        en: "Battery Life",
-        es: "Duración de la Batería",
-        fr: "Autonomie de la Batterie"
-      },
-      value: {
-        en: "30 hours",
-        es: "30 horas",
-        fr: "30 heures"
-      },
-      unit: "hours"
+      specificationItem: [
+        {
+          key: {
+            en: "Battery Life",
+            es: "Duración de la Batería",
+            fr: "Autonomie de la Batterie"
+          },
+        },
+        {
+          value: {
+            en: "30 hours",
+            es: "30 horas",
+            fr: "30 heures"
+          },
+        },
+        {
+          unit: "hours"
+        }
+      ]
     },
     {
-      key: {
-        en: "Weight",
-        es: "Peso",
-        fr: "Poids"
-      },
-      value: {
-        en: "250g",
-        es: "250g",
-        fr: "250g"
-      },
-      unit: "grams"
+      specificationItem: [
+        {
+          key: {
+            en: "Weight",
+            es: "Peso",
+            fr: "Poids"
+          },
+        }, {
+          value: {
+            en: "250g",
+            es: "250g",
+            fr: "250g"
+          },
+        },
+        {
+          unit: "grams"
+        },
+      ]
     },
     {
-      key: {
-        en: "Driver Size",
-        es: "Tamaño del Driver",
-        fr: "Taille du Haut-parleur"
-      },
-      value: {
-        en: "40mm",
-        es: "40mm",
-        fr: "40mm"
-      },
-      unit: "mm"
+      specificationItem: [
+        {
+          key: {
+            en: "Driver Size",
+            es: "Tamaño del Driver",
+            fr: "Taille du Haut-parleur"
+          }
+        },
+        {
+          value: {
+            en: "40mm",
+            es: "40mm",
+            fr: "40mm"
+          },
+        }, {
+          unit: "mm"
+        }
+      ]
     }
   ],
   reviews: [
     {
-      rating: 5,
-      comment: {
-        type: "paragraph",
-        content: [{ type: "text", text: "Amazing sound quality and comfort!" }]
-      },
-      // author: {
-      //   target_collection_id: "users-123",
-      //   target_document_id: "user-456"
-      // },
-      verified: true
+      reviewItem: [
+        { rating: 5 },
+        { comment: { root: { paragraph: 'Some review text here...' } } },
+      ]
     },
     {
-      rating: 4,
-      comment: {
-        type: "paragraph",
-        content: [{ type: "text", text: "Great headphones, but could be lighter." }]
-      },
-      // author: {
-      //   target_collection_id: "users-123",
-      //   target_document_id: "user-789"
-      // },
-      verified: true
-    },
-    {
-      rating: 5,
-      comment: {
-        type: "paragraph",
-        content: [{ type: "text", text: "Perfect for long listening sessions." }]
-      },
-      // author: {
-      //   target_collection_id: "users-123",
-      //   target_document_id: "user-101"
-      // },
-      verified: false
+      reviewItem: [
+        { rating: 2 },
+        { comment: { root: { paragraph: 'Some more reviews here...' } } },
+      ]
     }
-  ]
+  ],
 };
 
 // Global test variables

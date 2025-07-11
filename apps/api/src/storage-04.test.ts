@@ -20,6 +20,10 @@
  *
  */
 
+
+// IMPORTANT NOTE!: depends on seed-bulk-documents.ts to have run 
+// first to create the bulk collection and documents.
+
 import { after, before, describe, it } from 'node:test'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import pg from 'pg'

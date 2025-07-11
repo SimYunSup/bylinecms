@@ -22,7 +22,6 @@
 
 import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
-import { uuid } from 'drizzle-orm/gel-core';
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
@@ -196,7 +195,7 @@ describe('Document Flattening and Reconstruction', () => {
   })
 
   after(async () => {
-    // Clean up test collection (cascades to documents)
+    // Clean up test collection (cascades to documents and fields)
     try {
       await commandBuilders.collections.delete(testCollection.id)
       console.log('Test collection and documents cleaned up')
