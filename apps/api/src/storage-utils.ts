@@ -21,13 +21,13 @@
 
 import type {
   CollectionConfig,
-  DateTimeFieldValue,
+  DateTimeStore,
   FieldConfig,
-  FileFieldValue,
-  FlattenedFieldValue,
+  FileStore,
+  FlattenedStore,
   NonArrayFieldType,
-  NumericFieldValue,
-  RelationFieldValue,
+  NumericStore,
+  RelationStore,
 } from './@types/index.js';
 
 
@@ -35,8 +35,8 @@ export function flattenDocument(
   documentData: any,
   collectionConfig: CollectionConfig,
   locale = 'default'
-): FlattenedFieldValue[] {
-  const flattenedFields: FlattenedFieldValue[] = [];
+): FlattenedStore[] {
+  const flattenedFields: FlattenedStore[] = [];
 
   function getParentPath(path: string): string | undefined {
     const parts = path.split('.');
@@ -69,7 +69,7 @@ export function flattenDocument(
         for (const [localeKey, localizedValue] of Object.entries(value)) {
           if (localizedValue !== undefined && localizedValue !== null) {
             flattenedFields.push(
-              createFlattenedFieldValue(
+              createFlattenedStore(
                 currentPath,
                 fieldConfig.name,
                 fieldConfig.type as NonArrayFieldType,
@@ -82,7 +82,7 @@ export function flattenDocument(
         }
       } else {
         flattenedFields.push(
-          createFlattenedFieldValue(
+          createFlattenedStore(
             currentPath,
             fieldConfig.name,
             fieldConfig.type as NonArrayFieldType,
@@ -99,14 +99,14 @@ export function flattenDocument(
   return flattenedFields;
 }
 
-function createFlattenedFieldValue(
+function createFlattenedStore(
   field_path: string,
   field_name: string,
   field_type: NonArrayFieldType,
   value: any,
   locale: string,
   parent_path?: string
-): FlattenedFieldValue {
+): FlattenedStore {
   const baseValue = {
     field_path,
     field_name,
@@ -162,7 +162,7 @@ function createFlattenedFieldValue(
 }
 
 export function reconstructDocument(
-  fieldValues: FlattenedFieldValue[],
+  fieldValues: FlattenedStore[],
   locale = 'default'
 ): any {
   const document: any = {};
@@ -204,7 +204,7 @@ export function reconstructDocument(
     }
   };
 
-  const fieldValuesByPath: Record<string, FlattenedFieldValue[]> = {};
+  const fieldValuesByPath: Record<string, FlattenedStore[]> = {};
   for (const fv of fieldValues) {
     if (!fieldValuesByPath[fv.field_path]) {
       fieldValuesByPath[fv.field_path] = [];
@@ -231,7 +231,7 @@ export function reconstructDocument(
   return document;
 }
 
-function createReconstructedValue(fieldValue: FlattenedFieldValue): any {
+function createReconstructedValue(fieldValue: FlattenedStore): any {
   switch (fieldValue.field_type) {
     case 'text':
     case 'richText':
@@ -243,7 +243,7 @@ function createReconstructedValue(fieldValue: FlattenedFieldValue): any {
     case 'float':
     case 'integer':
     case 'decimal': {
-      const value = fieldValue as NumericFieldValue;
+      const value = fieldValue as NumericStore;
       if (fieldValue.field_type === 'float') {
         return value.value_float
       }
@@ -258,19 +258,19 @@ function createReconstructedValue(fieldValue: FlattenedFieldValue): any {
 
     case 'datetime': {
       // TODO: Implement date, time, timestamp reconstruction
-      const value = fieldValue as DateTimeFieldValue;
+      const value = fieldValue as DateTimeStore;
       return value.value_timestamp_tz;
     }
 
     case 'file':
     case 'image': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as FileFieldValue & { value?: any };
+      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as FileStore & { value?: any };
       delete value.value;
       return value;
     }
 
     case 'relation': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as RelationFieldValue & { value?: any };
+      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as RelationStore & { value?: any };
       delete value.value;
       return value;
     }

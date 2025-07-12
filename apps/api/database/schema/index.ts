@@ -79,7 +79,7 @@ export const currentDocumentsView = pgView("current_documents").as((qb) => {
 });
 
 // Base field values structure
-const baseFieldValueColumns = {
+const baseStoreColumns = {
   id: uuid('id').primaryKey(),
   document_version_id: uuid('document_version_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(), // References the version ID
   collection_id: uuid('collection_id').references(() => collections.id, { onDelete: 'cascade' }).notNull(), // For cross-collection queries
@@ -92,8 +92,8 @@ const baseFieldValueColumns = {
 };
 
 // 1. TEXT FIELDS TABLE
-export const fieldValuesText = pgTable('field_values_text', {
-  ...baseFieldValueColumns,
+export const textStore = pgTable('text_store', {
+  ...baseStoreColumns,
 
   value: text('value').notNull(),
   word_count: integer('word_count'), // Pre-computed for analytics
@@ -109,8 +109,8 @@ export const fieldValuesText = pgTable('field_values_text', {
 ]));
 
 // 2. NUMERIC FIELDS TABLE  
-export const fieldValuesNumeric = pgTable('field_values_numeric', {
-  ...baseFieldValueColumns,
+export const numericStore = pgTable('numeric_store', {
+  ...baseStoreColumns,
 
   // Store the original number type for reconstruction
   number_type: varchar('number_type', { length: 20 }).notNull(), // 'integer', 'decimal', 'float'
@@ -133,8 +133,8 @@ export const fieldValuesNumeric = pgTable('field_values_numeric', {
 ]));
 
 // 3. BOOLEAN FIELDS TABLE
-export const fieldValuesBoolean = pgTable('field_values_boolean', {
-  ...baseFieldValueColumns,
+export const booleanStore = pgTable('boolean_store', {
+  ...baseStoreColumns,
 
   value: boolean('value').notNull(),
 
@@ -147,8 +147,8 @@ export const fieldValuesBoolean = pgTable('field_values_boolean', {
 ]));
 
 // 4. DATE/TIME FIELDS TABLE
-export const fieldValuesDatetime = pgTable('field_values_datetime', {
-  ...baseFieldValueColumns,
+export const datetimeStore = pgTable('datetime_store', {
+  ...baseStoreColumns,
 
   // Store the original date type for reconstruction
   date_type: varchar('date_type', { length: 20 }).notNull(), // 'date', 'time', 'timestamp', 'timestamptz'
@@ -169,8 +169,8 @@ export const fieldValuesDatetime = pgTable('field_values_datetime', {
 ]));
 
 // 5. RELATION FIELDS TABLE
-export const fieldValuesRelation = pgTable('field_values_relation', {
-  ...baseFieldValueColumns,
+export const relationStore = pgTable('relation_store', {
+  ...baseStoreColumns,
 
   // target_document_id: uuid('target_document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
   target_document_id: uuid('target_document_id').references(() => documents.id, { onDelete: 'restrict' }).notNull(),
@@ -196,8 +196,8 @@ export const fieldValuesRelation = pgTable('field_values_relation', {
 ]));
 
 // 6. FILE FIELDS TABLE (Your composite type example)
-export const fieldValuesFile = pgTable('field_values_file', {
-  ...baseFieldValueColumns,
+export const fileStore = pgTable('file_store', {
+  ...baseStoreColumns,
 
   // File identity
   file_id: uuid('file_id').notNull(), // Reference to file storage system
@@ -241,8 +241,8 @@ export const fieldValuesFile = pgTable('field_values_file', {
 ]));
 
 // 7. JSON/STRUCTURED DATA FIELDS TABLE
-export const fieldValuesJson = pgTable('field_values_json', {
-  ...baseFieldValueColumns,
+export const jsonStore = pgTable('json_store', {
+  ...baseStoreColumns,
 
   value: jsonb('value').notNull(),
   // JSON metadata for optimization
@@ -263,7 +263,7 @@ export const fieldValuesJson = pgTable('field_values_json', {
 
 export const collections_relations = relations(collections, ({ many }) => ({
   documents: many(documents),
-  field_values: many(fieldValuesText), // All field tables reference collections
+  field_values: many(textStore), // All field tables reference collections
 }));
 
 export const documents_relations = relations(documents, ({ one, many }) => ({
@@ -271,97 +271,97 @@ export const documents_relations = relations(documents, ({ one, many }) => ({
     fields: [documents.collection_id],
     references: [collections.id],
   }),
-  text_values: many(fieldValuesText),
-  numeric_values: many(fieldValuesNumeric),
-  boolean_values: many(fieldValuesBoolean),
-  datetime_values: many(fieldValuesDatetime),
-  relation_values: many(fieldValuesRelation),
-  file_values: many(fieldValuesFile),
-  json_values: many(fieldValuesJson),
+  text_values: many(textStore),
+  numeric_values: many(numericStore),
+  boolean_values: many(booleanStore),
+  datetime_values: many(datetimeStore),
+  relation_values: many(relationStore),
+  file_values: many(fileStore),
+  json_values: many(jsonStore),
 }));
 
 // Field value relations
-export const field_values_text_relations = relations(fieldValuesText, ({ one }) => ({
+export const text_store_relations = relations(textStore, ({ one }) => ({
   document: one(documents, {
-    fields: [fieldValuesText.document_version_id],
+    fields: [textStore.document_version_id],
     references: [documents.id],
   }),
   collection: one(collections, {
-    fields: [fieldValuesText.collection_id],
+    fields: [textStore.collection_id],
     references: [collections.id],
   }),
 }));
 
-export const field_values_numeric_relations = relations(fieldValuesNumeric, ({ one }) => ({
+export const numeric_store_relations = relations(numericStore, ({ one }) => ({
   document: one(documents, {
-    fields: [fieldValuesNumeric.document_version_id],
+    fields: [numericStore.document_version_id],
     references: [documents.id],
   }),
   collection: one(collections, {
-    fields: [fieldValuesNumeric.collection_id],
+    fields: [numericStore.collection_id],
     references: [collections.id],
   }),
 }));
 
-export const field_values_boolean_relations = relations(fieldValuesBoolean, ({ one }) => ({
+export const boolean_store_relations = relations(booleanStore, ({ one }) => ({
   document: one(documents, {
-    fields: [fieldValuesBoolean.document_version_id],
+    fields: [booleanStore.document_version_id],
     references: [documents.id],
   }),
   collection: one(collections, {
-    fields: [fieldValuesBoolean.collection_id],
+    fields: [booleanStore.collection_id],
     references: [collections.id],
   }),
 }));
 
-export const field_values_datetime_relations = relations(fieldValuesDatetime, ({ one }) => ({
+export const datetime_store_relations = relations(datetimeStore, ({ one }) => ({
   document: one(documents, {
-    fields: [fieldValuesDatetime.document_version_id],
+    fields: [datetimeStore.document_version_id],
     references: [documents.id],
   }),
   collection: one(collections, {
-    fields: [fieldValuesDatetime.collection_id],
+    fields: [datetimeStore.collection_id],
     references: [collections.id],
   }),
 }));
 
-export const field_values_relation_relations = relations(fieldValuesRelation, ({ one }) => ({
+export const relation_store_relations = relations(relationStore, ({ one }) => ({
   document: one(documents, {
-    fields: [fieldValuesRelation.document_version_id],
+    fields: [relationStore.document_version_id],
     references: [documents.id],
   }),
   collection: one(collections, {
-    fields: [fieldValuesRelation.collection_id],
+    fields: [relationStore.collection_id],
     references: [collections.id],
   }),
   target_document: one(documents, {
-    fields: [fieldValuesRelation.target_document_id],
+    fields: [relationStore.target_document_id],
     references: [documents.id],
   }),
   target_collection: one(collections, {
-    fields: [fieldValuesRelation.target_collection_id],
+    fields: [relationStore.target_collection_id],
     references: [collections.id],
   }),
 }));
 
-export const field_values_file_relations = relations(fieldValuesFile, ({ one }) => ({
+export const file_store_relations = relations(fileStore, ({ one }) => ({
   document: one(documents, {
-    fields: [fieldValuesFile.document_version_id],
+    fields: [fileStore.document_version_id],
     references: [documents.id],
   }),
   collection: one(collections, {
-    fields: [fieldValuesFile.collection_id],
+    fields: [fileStore.collection_id],
     references: [collections.id],
   }),
 }));
 
-export const field_values_json_relations = relations(fieldValuesJson, ({ one }) => ({
+export const json_store_relations = relations(jsonStore, ({ one }) => ({
   document: one(documents, {
-    fields: [fieldValuesJson.document_version_id],
+    fields: [jsonStore.document_version_id],
     references: [documents.id],
   }),
   collection: one(collections, {
-    fields: [fieldValuesJson.collection_id],
+    fields: [jsonStore.collection_id],
     references: [collections.id],
   }),
 }));

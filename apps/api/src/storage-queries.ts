@@ -24,12 +24,13 @@
 
 
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { collections, currentDocumentsView as documents } from '../database/schema/index.js';
 
+type DatabaseConnection = NodePgDatabase<any>;
+
 import type {
-  CollectionConfig,
-  DatabaseConnection,
-  FlattenedFieldValue,
+  FlattenedStore,
   SiteConfig,
   UnionRowValue
 } from './@types/index.js'
@@ -42,7 +43,7 @@ import {
   numericFields,
   relationFields,
   textFields
-} from './@types/template-queries.js';
+} from './storage-template-queries.js';
 
 import { reconstructDocument } from './storage-utils.js';
 
@@ -124,49 +125,49 @@ export class DocumentQueries {
       -- Text fields
       SELECT 
         ${textFields}
-      FROM field_values_text
+      FROM text_store
 
       UNION ALL
 
       -- Numeric fields
       SELECT 
         ${numericFields}
-      FROM field_values_numeric
+      FROM numeric_store
 
       UNION ALL
 
       -- Boolean fields
       SELECT 
         ${booleanFields}
-      FROM field_values_boolean
+      FROM boolean_store
 
       UNION ALL
 
       -- DateTime fields
       SELECT 
         ${datetimeFields}
-      FROM field_values_datetime
+      FROM datetime_store
 
       UNION ALL
 
       -- JSON fields
       SELECT 
         ${jsonFields}
-      FROM field_values_json
+      FROM json_store
 
       UNION ALL
 
       -- Relation fields
       SELECT 
         ${relationFields}
-      FROM field_values_relation
+      FROM relation_store
 
       UNION ALL
 
       -- File fields
       SELECT 
         ${fileFields}
-      FROM field_values_file
+      FROM file_store
     ) fv ON d.id = fv.document_version_id AND ${localeCondition}
     WHERE d.collection_id = ${collectionId}
     ORDER BY d.id, fv.field_path NULLS LAST, fv.locale
@@ -308,8 +309,8 @@ export class DocumentQueries {
       'all' // or pass locale parameter
     );
 
-    // 3. Convert unified values back to FlattenedFieldValue format
-    const fieldValues = this.convertUnionRowToFlattenedFieldValues(unifiedFieldValues);
+    // 3. Convert unified values back to FlattenedStore format
+    const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
 
     // 4. Reconstruct the document
     const reconstructedDocument = reconstructDocument(
@@ -349,8 +350,8 @@ export class DocumentQueries {
       locale
     );
 
-    // 3. Convert unified values back to FlattenedFieldValue format
-    const fieldValues = this.convertUnionRowToFlattenedFieldValues(unifiedFieldValues);
+    // 3. Convert unified values back to FlattenedStore format
+    const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
 
     // 4. Reconstruct the document
     return reconstructDocument(
@@ -401,7 +402,7 @@ export class DocumentQueries {
     const result: any[] = [];
     for (const doc of docs) {
       const versionFieldValues = fieldValuesByVersion.get(doc.document_version_id) || [];
-      const flattenedFieldValues = this.convertUnionRowToFlattenedFieldValues(versionFieldValues);
+      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(versionFieldValues);
 
       const reconstructedDocument = reconstructDocument(
         flattenedFieldValues,
@@ -531,7 +532,7 @@ export class DocumentQueries {
     const result: any[] = [];
 
     for (const [documentId, group] of documentGroups) {
-      const flattenedFieldValues = this.convertUnionRowToFlattenedFieldValues(group.fieldValues);
+      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(group.fieldValues);
 
       const head = {
         document_version_id: group.document.document_version_id,
@@ -567,7 +568,7 @@ export class DocumentQueries {
       -- Text fields (41 columns total)
       SELECT 
         ${textFields}
-      FROM field_values_text 
+      FROM text_store 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -575,7 +576,7 @@ export class DocumentQueries {
       -- Numeric fields (41 columns total - SAME ORDER)
       SELECT 
         ${numericFields}
-      FROM field_values_numeric 
+      FROM numeric_store 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -583,7 +584,7 @@ export class DocumentQueries {
       -- Boolean fields (41 columns total - SAME ORDER)
       SELECT 
         ${booleanFields}
-      FROM field_values_boolean 
+      FROM boolean_store 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -591,7 +592,7 @@ export class DocumentQueries {
       -- DateTime fields (41 columns total - SAME ORDER)
       SELECT 
         ${datetimeFields}
-      FROM field_values_datetime 
+      FROM datetime_store 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -599,7 +600,7 @@ export class DocumentQueries {
       -- JSON fields (41 columns total - SAME ORDER)
       SELECT 
        ${jsonFields}
-      FROM field_values_json 
+      FROM json_store 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -607,7 +608,7 @@ export class DocumentQueries {
       -- Relation fields (41 columns total - SAME ORDER)
       SELECT 
         ${relationFields}
-      FROM field_values_relation 
+      FROM relation_store 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -615,7 +616,7 @@ export class DocumentQueries {
       -- File fields (41 columns total - SAME ORDER)
       SELECT 
         ${fileFields}
-      FROM field_values_file 
+      FROM file_store 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       ORDER BY field_path, locale
@@ -645,7 +646,7 @@ export class DocumentQueries {
       -- Text fields (41 columns total)
       SELECT 
          ${textFields}
-      FROM field_values_text 
+      FROM text_store 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -653,7 +654,7 @@ export class DocumentQueries {
       -- Numeric fields (41 columns total - SAME ORDER)
       SELECT 
          ${numericFields}
-      FROM field_values_numeric 
+      FROM numeric_store 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -661,7 +662,7 @@ export class DocumentQueries {
       -- Boolean fields (41 columns total - SAME ORDER)
       SELECT 
         ${booleanFields}
-      FROM field_values_boolean 
+      FROM boolean_store 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -669,7 +670,7 @@ export class DocumentQueries {
       -- DateTime fields (41 columns total - SAME ORDER)
       SELECT 
         ${datetimeFields}
-      FROM field_values_datetime 
+      FROM datetime_store 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -677,7 +678,7 @@ export class DocumentQueries {
      -- JSON fields (41 columns total - SAME ORDER)
       SELECT 
         ${jsonFields}
-      FROM field_values_json 
+      FROM json_store 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -685,7 +686,7 @@ export class DocumentQueries {
       -- Relation fields (41 columns total - SAME ORDER)
       SELECT 
         ${relationFields}
-      FROM field_values_relation 
+      FROM relation_store 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -693,7 +694,7 @@ export class DocumentQueries {
       -- File fields (41 columns total - SAME ORDER)
       SELECT 
         ${fileFields}
-      FROM field_values_file 
+      FROM file_store 
       WHERE ${documentCondition} ${localeCondition}
 
       ORDER BY document_version_id, field_path, locale
@@ -704,12 +705,12 @@ export class DocumentQueries {
   }
 
   /**
-   * Converts a union field row - back into an array of FlattenedFieldValue
+   * Converts a union field row - back into an array of FlattenedStore
    * that the reconstruction utilities expect
    */
-  private convertUnionRowToFlattenedFieldValues(
+  private convertUnionRowToFlattenedStores(
     unionRowValues: UnionRowValue[]
-  ): FlattenedFieldValue[] {
+  ): FlattenedStore[] {
     return unionRowValues.map(row => {
       const baseValue = {
         field_path: row.field_path,
@@ -819,7 +820,7 @@ export class DocumentQueries {
         default:
           throw new Error(`Unknown field type: ${row.field_type}`);
       }
-    }) as FlattenedFieldValue[];
+    }) as FlattenedStore[];
   }
 }
 

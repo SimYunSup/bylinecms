@@ -23,7 +23,7 @@
 import type {
   CollectionConfig,
   FieldConfig,
-  FlattenedFieldValue,
+  FlattenedStore,
   NonArrayFieldType,
 } from './@types/index.js';
 
@@ -32,8 +32,8 @@ export function flattenDocument(
   documentData: any,
   collectionConfig: CollectionConfig,
   locale = 'default'
-): FlattenedFieldValue[] {
-  const flattenedFields: FlattenedFieldValue[] = [];
+): FlattenedStore[] {
+  const flattenedFields: FlattenedStore[] = [];
 
   function getParentPath(path: string): string | undefined {
     const parts = path.split('.');
@@ -66,7 +66,7 @@ export function flattenDocument(
         for (const [localeKey, localizedValue] of Object.entries(value)) {
           if (localizedValue !== undefined && localizedValue !== null) {
             flattenedFields.push(
-              createFlattenedFieldValue(
+              createFlattenedStore(
                 currentPath,
                 fieldConfig.name,
                 fieldConfig.type as NonArrayFieldType,
@@ -79,7 +79,7 @@ export function flattenDocument(
         }
       } else {
         flattenedFields.push(
-          createFlattenedFieldValue(
+          createFlattenedStore(
             currentPath,
             fieldConfig.name,
             fieldConfig.type as NonArrayFieldType,
@@ -97,7 +97,7 @@ export function flattenDocument(
 }
 
 export function reconstructDocument(
-  fieldValues: FlattenedFieldValue[],
+  fieldValues: FlattenedStore[],
   locale = 'default'
 ): any {
   const document: any = {};
@@ -139,7 +139,7 @@ export function reconstructDocument(
     }
   };
 
-  const fieldValuesByPath: Record<string, FlattenedFieldValue[]> = {};
+  const fieldValuesByPath: Record<string, FlattenedStore[]> = {};
   for (const fv of fieldValues) {
     if (!fieldValuesByPath[fv.field_path]) {
       fieldValuesByPath[fv.field_path] = [];
@@ -154,12 +154,12 @@ export function reconstructDocument(
     if (values.length > 1 && values.some(v => v.locale !== 'default')) { // Localized
       const localizedObject: Record<string, any> = {};
       values.forEach(v => {
-        const val = createFlattenedFieldValue(v.field_path, v.field_name, v.field_type as NonArrayFieldType, v, v.locale);
+        const val = createFlattenedStore(v.field_path, v.field_name, v.field_type as NonArrayFieldType, v, v.locale);
         localizedObject[v.locale] = (val as any).value || val;
       });
       setValue(document, path, localizedObject);
     } else if (preferredValue) {
-      const reconstructedValue = createFlattenedFieldValue(
+      const reconstructedValue = createFlattenedStore(
         preferredValue.field_path,
         preferredValue.field_name,
         preferredValue.field_type as NonArrayFieldType,
@@ -174,14 +174,14 @@ export function reconstructDocument(
   return document;
 }
 
-function createFlattenedFieldValue(
+function createFlattenedStore(
   field_path: string,
   field_name: string,
   field_type: NonArrayFieldType,
   value: any,
   locale: string,
   parent_path?: string
-): FlattenedFieldValue {
+): FlattenedStore {
   const baseValue = {
     field_path,
     field_name,

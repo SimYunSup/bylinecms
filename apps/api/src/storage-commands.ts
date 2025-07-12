@@ -25,15 +25,15 @@
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { v7 as uuidv7 } from 'uuid'
 import {
+  booleanStore,
   collections,
+  datetimeStore,
   documents,
-  fieldValuesBoolean,
-  fieldValuesDatetime,
-  fieldValuesFile,
-  fieldValuesJson,
-  fieldValuesNumeric,
-  fieldValuesRelation,
-  fieldValuesText
+  fileStore,
+  jsonStore,
+  numericStore,
+  relationStore,
+  textStore
 } from '../database/schema/index.js';
 
 import type { SiteConfig } from './@types/index.js';
@@ -42,7 +42,7 @@ type DatabaseConnection = NodePgDatabase<any>;
 
 import { eq } from "drizzle-orm";
 import type { CollectionConfig } from './@types/index.js'
-import { isFileFieldValue, isJsonFieldValue, isNumericFieldValue, isRelationFieldValue } from './@types/index.js'
+import { isFileStore, isJsonStore, isNumericStore, isRelationStore } from './@types/index.js'
 import { flattenDocument } from './storage-utils.js';
 
 
@@ -144,11 +144,11 @@ export class DocumentCommands {
               value: localizedValue as string,
             })
           }
-          return await tx.insert(fieldValuesText).values(values);
+          return await tx.insert(textStore).values(values);
         }
 
         // Simple string value
-        return await tx.insert(fieldValuesText).values({
+        return await tx.insert(textStore).values({
           ...baseData,
           value: fieldValue.value as string,
         });
@@ -156,8 +156,8 @@ export class DocumentCommands {
       case 'float':
       case 'integer':
       case 'decimal':
-        if (isNumericFieldValue(fieldValue)) {
-          return await tx.insert(fieldValuesNumeric).values({
+        if (isNumericStore(fieldValue)) {
+          return await tx.insert(numericStore).values({
             ...baseData,
             number_type: fieldValue.number_type,
             value_float: fieldValue.value_float, // For 'number' type
@@ -168,14 +168,14 @@ export class DocumentCommands {
         throw new Error(`Invalid numeric field value for ${baseData.field_path}`);
 
       case 'boolean':
-        return await tx.insert(fieldValuesBoolean).values({
+        return await tx.insert(booleanStore).values({
           ...baseData,
           value: fieldValue.value,
         });
 
       // TODO: Implement date, time, and explicit timestamp support
       case 'datetime':
-        return await tx.insert(fieldValuesDatetime).values({
+        return await tx.insert(datetimeStore).values({
           ...baseData,
           date_type: fieldValue.date_type || 'timestamp',
           value_time: fieldValue.value_time,
@@ -186,8 +186,8 @@ export class DocumentCommands {
 
       case 'file':
       case 'image':
-        if (isFileFieldValue(fieldValue)) {
-          return await tx.insert(fieldValuesFile).values({
+        if (isFileStore(fieldValue)) {
+          return await tx.insert(fileStore).values({
             ...baseData,
             file_id: fieldValue.file_id,
             filename: fieldValue.filename,
@@ -208,8 +208,8 @@ export class DocumentCommands {
         throw new Error(`Invalid file field value for ${baseData.field_path}`);
 
       case 'relation':
-        if (isRelationFieldValue(fieldValue)) {
-          return await tx.insert(fieldValuesRelation).values({
+        if (isRelationStore(fieldValue)) {
+          return await tx.insert(relationStore).values({
             ...baseData,
             target_document_id: fieldValue.target_document_id,
             target_collection_id: fieldValue.target_collection_id,
@@ -234,17 +234,17 @@ export class DocumentCommands {
         //       value: localizedValue as string,
         //     })
         //   }
-        //   return await tx.insert(fieldValuesJson).values(values);
+        //   return await tx.insert(jsonStore).values(values);
         // }
         // If not a localized object, treat as regular rich text content
-        return await tx.insert(fieldValuesJson).values({
+        return await tx.insert(jsonStore).values({
           ...baseData,
           value: fieldValue.value,
         });
 
       case 'json':
       case 'object':
-        if (isJsonFieldValue(fieldValue)) {
+        if (isJsonStore(fieldValue)) {
           // Handle localized JSON/object fields
           if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
             const values: any[] = [];
@@ -257,10 +257,10 @@ export class DocumentCommands {
                 value: localizedValue as string,
               })
             }
-            return await tx.insert(fieldValuesJson).values(values);
+            return await tx.insert(jsonStore).values(values);
           }
           // If not a localized object, treat as regular JSON content
-          return await tx.insert(fieldValuesJson).values({
+          return await tx.insert(jsonStore).values({
             ...baseData,
             value: fieldValue.value,
             json_schema: fieldValue.json_schema,

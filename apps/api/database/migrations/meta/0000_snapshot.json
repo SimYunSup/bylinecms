@@ -1,9 +1,186 @@
 {
-  "id": "d6cf1306-123f-4653-b9b5-3753030d030a",
+  "id": "c35d9b65-9d96-4786-b5b5-60127812cf88",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.boolean_store": {
+      "name": "boolean_store",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "document_version_id": {
+          "name": "document_version_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "collection_id": {
+          "name": "collection_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "field_path": {
+          "name": "field_path",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "field_name": {
+          "name": "field_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "locale": {
+          "name": "locale",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'default'"
+        },
+        "parent_path": {
+          "name": "parent_path",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "value": {
+          "name": "value",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "idx_boolean_value": {
+          "name": "idx_boolean_value",
+          "columns": [
+            {
+              "expression": "value",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_boolean_path_value": {
+          "name": "idx_boolean_path_value",
+          "columns": [
+            {
+              "expression": "field_path",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "value",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_boolean_collection_value": {
+          "name": "idx_boolean_collection_value",
+          "columns": [
+            {
+              "expression": "collection_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "field_path",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "value",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "boolean_store_document_version_id_documents_id_fk": {
+          "name": "boolean_store_document_version_id_documents_id_fk",
+          "tableFrom": "boolean_store",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "document_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "boolean_store_collection_id_collections_id_fk": {
+          "name": "boolean_store_collection_id_collections_id_fk",
+          "tableFrom": "boolean_store",
+          "tableTo": "collections",
+          "columnsFrom": [
+            "collection_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_boolean_field": {
+          "name": "unique_boolean_field",
+          "nullsNotDistinct": false,
+          "columns": [
+            "document_version_id",
+            "field_path",
+            "locale"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.collections": {
       "name": "collections",
       "schema": "",
@@ -50,6 +227,231 @@
           "nullsNotDistinct": false,
           "columns": [
             "path"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.datetime_store": {
+      "name": "datetime_store",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "document_version_id": {
+          "name": "document_version_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "collection_id": {
+          "name": "collection_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "field_path": {
+          "name": "field_path",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "field_name": {
+          "name": "field_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "locale": {
+          "name": "locale",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'default'"
+        },
+        "parent_path": {
+          "name": "parent_path",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "date_type": {
+          "name": "date_type",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "value_date": {
+          "name": "value_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "value_time": {
+          "name": "value_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "value_timestamp": {
+          "name": "value_timestamp",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "value_timestamp_tz": {
+          "name": "value_timestamp_tz",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_datetime_date": {
+          "name": "idx_datetime_date",
+          "columns": [
+            {
+              "expression": "value_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_datetime_timestamp": {
+          "name": "idx_datetime_timestamp",
+          "columns": [
+            {
+              "expression": "value_timestamp",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_datetime_timestamp_tz": {
+          "name": "idx_datetime_timestamp_tz",
+          "columns": [
+            {
+              "expression": "value_timestamp_tz",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_datetime_path_date": {
+          "name": "idx_datetime_path_date",
+          "columns": [
+            {
+              "expression": "field_path",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "value_timestamp",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_datetime_collection_date": {
+          "name": "idx_datetime_collection_date",
+          "columns": [
+            {
+              "expression": "collection_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "value_timestamp",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "datetime_store_document_version_id_documents_id_fk": {
+          "name": "datetime_store_document_version_id_documents_id_fk",
+          "tableFrom": "datetime_store",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "document_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "datetime_store_collection_id_collections_id_fk": {
+          "name": "datetime_store_collection_id_collections_id_fk",
+          "tableFrom": "datetime_store",
+          "tableTo": "collections",
+          "columnsFrom": [
+            "collection_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_datetime_field": {
+          "name": "unique_datetime_field",
+          "nullsNotDistinct": false,
+          "columns": [
+            "document_version_id",
+            "field_path",
+            "locale"
           ]
         }
       },
@@ -315,410 +717,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.field_values_boolean": {
-      "name": "field_values_boolean",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "document_version_id": {
-          "name": "document_version_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "collection_id": {
-          "name": "collection_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "field_path": {
-          "name": "field_path",
-          "type": "varchar(500)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "field_name": {
-          "name": "field_name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "locale": {
-          "name": "locale",
-          "type": "varchar(10)",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'default'"
-        },
-        "parent_path": {
-          "name": "parent_path",
-          "type": "varchar(500)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "value": {
-          "name": "value",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "idx_boolean_value": {
-          "name": "idx_boolean_value",
-          "columns": [
-            {
-              "expression": "value",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_boolean_path_value": {
-          "name": "idx_boolean_path_value",
-          "columns": [
-            {
-              "expression": "field_path",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "value",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_boolean_collection_value": {
-          "name": "idx_boolean_collection_value",
-          "columns": [
-            {
-              "expression": "collection_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "field_path",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "value",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "field_values_boolean_document_version_id_documents_id_fk": {
-          "name": "field_values_boolean_document_version_id_documents_id_fk",
-          "tableFrom": "field_values_boolean",
-          "tableTo": "documents",
-          "columnsFrom": [
-            "document_version_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "field_values_boolean_collection_id_collections_id_fk": {
-          "name": "field_values_boolean_collection_id_collections_id_fk",
-          "tableFrom": "field_values_boolean",
-          "tableTo": "collections",
-          "columnsFrom": [
-            "collection_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "unique_boolean_field": {
-          "name": "unique_boolean_field",
-          "nullsNotDistinct": false,
-          "columns": [
-            "document_version_id",
-            "field_path",
-            "locale"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.field_values_datetime": {
-      "name": "field_values_datetime",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "document_version_id": {
-          "name": "document_version_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "collection_id": {
-          "name": "collection_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "field_path": {
-          "name": "field_path",
-          "type": "varchar(500)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "field_name": {
-          "name": "field_name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "locale": {
-          "name": "locale",
-          "type": "varchar(10)",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'default'"
-        },
-        "parent_path": {
-          "name": "parent_path",
-          "type": "varchar(500)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "date_type": {
-          "name": "date_type",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "value_date": {
-          "name": "value_date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value_time": {
-          "name": "value_time",
-          "type": "time",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value_timestamp": {
-          "name": "value_timestamp",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value_timestamp_tz": {
-          "name": "value_timestamp_tz",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "idx_datetime_date": {
-          "name": "idx_datetime_date",
-          "columns": [
-            {
-              "expression": "value_date",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_datetime_timestamp": {
-          "name": "idx_datetime_timestamp",
-          "columns": [
-            {
-              "expression": "value_timestamp",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_datetime_timestamp_tz": {
-          "name": "idx_datetime_timestamp_tz",
-          "columns": [
-            {
-              "expression": "value_timestamp_tz",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_datetime_path_date": {
-          "name": "idx_datetime_path_date",
-          "columns": [
-            {
-              "expression": "field_path",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "value_timestamp",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_datetime_collection_date": {
-          "name": "idx_datetime_collection_date",
-          "columns": [
-            {
-              "expression": "collection_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "value_timestamp",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "field_values_datetime_document_version_id_documents_id_fk": {
-          "name": "field_values_datetime_document_version_id_documents_id_fk",
-          "tableFrom": "field_values_datetime",
-          "tableTo": "documents",
-          "columnsFrom": [
-            "document_version_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "field_values_datetime_collection_id_collections_id_fk": {
-          "name": "field_values_datetime_collection_id_collections_id_fk",
-          "tableFrom": "field_values_datetime",
-          "tableTo": "collections",
-          "columnsFrom": [
-            "collection_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "unique_datetime_field": {
-          "name": "unique_datetime_field",
-          "nullsNotDistinct": false,
-          "columns": [
-            "document_version_id",
-            "field_path",
-            "locale"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.field_values_file": {
-      "name": "field_values_file",
+    "public.file_store": {
+      "name": "file_store",
       "schema": "",
       "columns": {
         "id": {
@@ -979,9 +979,9 @@
         }
       },
       "foreignKeys": {
-        "field_values_file_document_version_id_documents_id_fk": {
-          "name": "field_values_file_document_version_id_documents_id_fk",
-          "tableFrom": "field_values_file",
+        "file_store_document_version_id_documents_id_fk": {
+          "name": "file_store_document_version_id_documents_id_fk",
+          "tableFrom": "file_store",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -992,9 +992,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "field_values_file_collection_id_collections_id_fk": {
-          "name": "field_values_file_collection_id_collections_id_fk",
-          "tableFrom": "field_values_file",
+        "file_store_collection_id_collections_id_fk": {
+          "name": "file_store_collection_id_collections_id_fk",
+          "tableFrom": "file_store",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -1022,8 +1022,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.field_values_json": {
-      "name": "field_values_json",
+    "public.json_store": {
+      "name": "json_store",
       "schema": "",
       "columns": {
         "id": {
@@ -1150,9 +1150,9 @@
         }
       },
       "foreignKeys": {
-        "field_values_json_document_version_id_documents_id_fk": {
-          "name": "field_values_json_document_version_id_documents_id_fk",
-          "tableFrom": "field_values_json",
+        "json_store_document_version_id_documents_id_fk": {
+          "name": "json_store_document_version_id_documents_id_fk",
+          "tableFrom": "json_store",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -1163,9 +1163,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "field_values_json_collection_id_collections_id_fk": {
-          "name": "field_values_json_collection_id_collections_id_fk",
-          "tableFrom": "field_values_json",
+        "json_store_collection_id_collections_id_fk": {
+          "name": "json_store_collection_id_collections_id_fk",
+          "tableFrom": "json_store",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -1193,8 +1193,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.field_values_numeric": {
-      "name": "field_values_numeric",
+    "public.numeric_store": {
+      "name": "numeric_store",
       "schema": "",
       "columns": {
         "id": {
@@ -1369,9 +1369,9 @@
         }
       },
       "foreignKeys": {
-        "field_values_numeric_document_version_id_documents_id_fk": {
-          "name": "field_values_numeric_document_version_id_documents_id_fk",
-          "tableFrom": "field_values_numeric",
+        "numeric_store_document_version_id_documents_id_fk": {
+          "name": "numeric_store_document_version_id_documents_id_fk",
+          "tableFrom": "numeric_store",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -1382,9 +1382,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "field_values_numeric_collection_id_collections_id_fk": {
-          "name": "field_values_numeric_collection_id_collections_id_fk",
-          "tableFrom": "field_values_numeric",
+        "numeric_store_collection_id_collections_id_fk": {
+          "name": "numeric_store_collection_id_collections_id_fk",
+          "tableFrom": "numeric_store",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -1412,8 +1412,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.field_values_relation": {
-      "name": "field_values_relation",
+    "public.relation_store": {
+      "name": "relation_store",
       "schema": "",
       "columns": {
         "id": {
@@ -1590,9 +1590,9 @@
         }
       },
       "foreignKeys": {
-        "field_values_relation_document_version_id_documents_id_fk": {
-          "name": "field_values_relation_document_version_id_documents_id_fk",
-          "tableFrom": "field_values_relation",
+        "relation_store_document_version_id_documents_id_fk": {
+          "name": "relation_store_document_version_id_documents_id_fk",
+          "tableFrom": "relation_store",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -1603,9 +1603,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "field_values_relation_collection_id_collections_id_fk": {
-          "name": "field_values_relation_collection_id_collections_id_fk",
-          "tableFrom": "field_values_relation",
+        "relation_store_collection_id_collections_id_fk": {
+          "name": "relation_store_collection_id_collections_id_fk",
+          "tableFrom": "relation_store",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -1616,9 +1616,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "field_values_relation_target_document_id_documents_id_fk": {
-          "name": "field_values_relation_target_document_id_documents_id_fk",
-          "tableFrom": "field_values_relation",
+        "relation_store_target_document_id_documents_id_fk": {
+          "name": "relation_store_target_document_id_documents_id_fk",
+          "tableFrom": "relation_store",
           "tableTo": "documents",
           "columnsFrom": [
             "target_document_id"
@@ -1629,9 +1629,9 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "field_values_relation_target_collection_id_collections_id_fk": {
-          "name": "field_values_relation_target_collection_id_collections_id_fk",
-          "tableFrom": "field_values_relation",
+        "relation_store_target_collection_id_collections_id_fk": {
+          "name": "relation_store_target_collection_id_collections_id_fk",
+          "tableFrom": "relation_store",
           "tableTo": "collections",
           "columnsFrom": [
             "target_collection_id"
@@ -1659,8 +1659,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.field_values_text": {
-      "name": "field_values_text",
+    "public.text_store": {
+      "name": "text_store",
       "schema": "",
       "columns": {
         "id": {
@@ -1808,9 +1808,9 @@
         }
       },
       "foreignKeys": {
-        "field_values_text_document_version_id_documents_id_fk": {
-          "name": "field_values_text_document_version_id_documents_id_fk",
-          "tableFrom": "field_values_text",
+        "text_store_document_version_id_documents_id_fk": {
+          "name": "text_store_document_version_id_documents_id_fk",
+          "tableFrom": "text_store",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -1821,9 +1821,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "field_values_text_collection_id_collections_id_fk": {
-          "name": "field_values_text_collection_id_collections_id_fk",
-          "tableFrom": "field_values_text",
+        "text_store_collection_id_collections_id_fk": {
+          "name": "text_store_collection_id_collections_id_fk",
+          "tableFrom": "text_store",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
