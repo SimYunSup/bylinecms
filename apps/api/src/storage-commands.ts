@@ -22,8 +22,11 @@
 // ENHANCED STORAGE COMMANDS WITH ARRAY SUPPORT
 // ============================================
 
+
+import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { v7 as uuidv7 } from 'uuid'
+import type * as schema from '../database/schema/index.js'
 import {
   booleanStore,
   collections,
@@ -35,15 +38,11 @@ import {
   relationStore,
   textStore
 } from '../database/schema/index.js';
-
-import type { SiteConfig } from './@types/index.js';
-
-type DatabaseConnection = NodePgDatabase<any>;
-
-import { eq } from "drizzle-orm";
-import type { CollectionConfig } from './@types/index.js'
+import type { CollectionConfig, SiteConfig } from './@types/index.js'
 import { isFileStore, isJsonStore, isNumericStore, isRelationStore } from './@types/index.js'
 import { flattenDocument } from './storage-utils.js';
+
+type DatabaseConnection = NodePgDatabase<typeof schema>;
 
 
 export class CollectionCommands {

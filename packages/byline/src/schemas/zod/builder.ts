@@ -171,7 +171,7 @@ export const createCollectionSchemas = (collection: CollectionDefinition) => {
     fields: fieldsSchema,
     full: fullSchema,
     list: z.object({
-      records: z.array(fullSchema),
+      documents: z.array(fullSchema),
       meta: createListMetaSchema(),
       included: z.object({
         collection: createCollectionMetaSchema(collection),

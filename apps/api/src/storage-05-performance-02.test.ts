@@ -25,7 +25,7 @@
 // first to create the bulk collection and documents.
 
 import { after, before, describe, it } from 'node:test'
-import { drizzle } from 'drizzle-orm/node-postgres'
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import pg from 'pg'
 import * as schema from '../database/schema/index.js'
 import type { SiteConfig } from './@types/index.js'
@@ -33,7 +33,7 @@ import { createQueryBuilders } from './storage-queries.js'
 
 // Test database setup
 let pool: pg.Pool
-let db: ReturnType<typeof drizzle>
+let db: NodePgDatabase<typeof schema>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
 
 const siteConfig: SiteConfig = {
@@ -99,10 +99,10 @@ describe('Bulk Document Operations', () => {
         bulkCollection.id,
         {
           locale: 'all',
-          limit: 50,
-          offset: 0,
-          orderBy: 'created_at',
-          orderDirection: 'desc'
+          page: 1,
+          page_size: 50,
+          order: 'created_at',
+          desc: true
         }
       )
 

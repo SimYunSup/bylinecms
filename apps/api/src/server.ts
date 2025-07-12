@@ -84,30 +84,6 @@ async function storeDocumentFields(
   return results
 }
 
-// Helper function to update document fields
-async function updateDocumentFields(
-  document_version_id: string,
-  collectionDefinition: any,
-  data: Record<string, any>
-) {
-  const results: any[] = []
-
-  // for (const field of collectionDefinition.fields) {
-  //   const fieldValue = data[field.name]
-  //   if (fieldValue !== undefined) {
-  //     const result = await commandBuilders.fieldValues.updateFieldValue(
-  //       document_version_id,
-  //       field.name,
-  //       field.type === 'richtext' ? 'richText' : field.type,
-  //       fieldValue
-  //     )
-  //     results.push(result)
-  //   }
-  // }
-
-  return results
-}
-
 // Generic collection routes
 server.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
@@ -119,30 +95,26 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
 
   try {
     // Find the collection in our database
-    const collectionRecords = await queryBuilders.collections.findByPath(path)
-    if (collectionRecords.length === 0) {
+    let collectionResult = await queryBuilders.collections.findByPath(path)
+    if (collectionResult.length === 0) {
       // Collection doesn't exist in database yet, create it
-      await commandBuilders.collections.create(collection.path, collection)
+      collectionResult = await commandBuilders.collections.create(collection.path, collection)
     }
-    const collectionRecord = collectionRecords[0]
 
-    // // Get all documents for this collection
-    // const documents = await queryBuilders.documents.getAllCurrentDocumentsForCollection(collectionRecord.id)
+    const collectionRecord = collectionResult[0]
 
-    // return {
-    //   documents: reconstructedDocuments,
-    //   meta: {
-    //     page: 1,
-    //     page_size: 10,
-    //     total: reconstructedDocuments.length,
-    //     total_pages: 1,
-    //   },
-    //   included: {
-    //     collection: {
-    //       path: collection.path,
-    //     }
-    //   }
-    // }
+    // Get all documents for this collection
+    const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(collectionRecord.id,
+      {
+        locale: 'en',
+        page: 1,
+        page_size: 20,
+        order: 'created_at',
+        desc: true
+      }
+    )
+
+    return result
   } catch (error) {
     server.log.error(error)
     reply.code(500).send({ error: 'Internal server error' })

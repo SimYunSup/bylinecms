@@ -25,16 +25,18 @@
 
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type * as schema from '../database/schema/index.js'
 import { collections, currentDocumentsView as documents } from '../database/schema/index.js';
 
-type DatabaseConnection = NodePgDatabase<any>;
+type DatabaseConnection = NodePgDatabase<typeof schema>;
+
+import type { CollectionDefinition } from "@byline/byline/@types/index";
 
 import type {
   FlattenedStore,
   SiteConfig,
   UnionRowValue
 } from './@types/index.js'
-
 import {
   booleanFields,
   datetimeFields,
@@ -44,7 +46,6 @@ import {
   relationFields,
   textFields
 } from './storage-template-queries.js';
-
 import { reconstructDocument } from './storage-utils.js';
 
 export class CollectionQueries {
@@ -221,27 +222,46 @@ export class DocumentQueries {
     collectionId: string,
     options: {
       locale?: string;
-      limit?: number;
-      offset?: number;
-      orderBy?: string;
-      orderDirection?: 'asc' | 'desc';
+      page?: number;
+      page_size?: number;
+      order?: string;
+      desc?: boolean;
     } = {}
   ): Promise<{
     documents: any[];
-    pagination: {
+    meta: {
       total: number;
-      limit: number;
-      offset: number;
-      hasMore: boolean;
+      page: number;
+      page_size: number;
+      total_pages: number;
+      order: string;
+      desc: boolean;
     };
+    included: {
+      collection: {
+        id: string;
+        name: string;
+      }
+    }
   }> {
     const {
       locale = 'all',
-      limit = 50,
-      offset = 0,
-      orderBy = 'created_at',
-      orderDirection = 'desc'
+      page = 1,
+      page_size = 20,
+      order = 'created_at',
+      desc = true
     } = options;
+
+    const collection = await this.db.query.collections.findFirst({
+      where: eq(collections.id, collectionId)
+    });
+
+    if (collection == null || collection.config == null
+    ) {
+      throw new Error(`Collection with ID ${collectionId} not found or missing collection config.`);
+    }
+
+    const config = collection.config as CollectionDefinition;
 
     // First get total count
     const totalResult = await this.db.select({
@@ -256,13 +276,22 @@ export class DocumentQueries {
     if (total === 0) {
       return {
         documents: [],
-        pagination: { total: 0, limit, offset, hasMore: false }
+        meta: { total: 0, page, page_size, total_pages: 0, order, desc },
+        included: {
+          collection: {
+            id: collection.id,
+            name: config.name || collection.path,
+          }
+        }
       };
     }
 
+    const total_pages = Math.ceil(total / page_size);
+    const offset = (page - 1) * page_size;
+
     // Get paginated document IDs
-    const orderColumn = orderBy === 'path' ? documents.path : documents.created_at;
-    const orderFunc = orderDirection === 'asc' ? sql`ASC` : sql`DESC`;
+    const orderColumn = order === 'path' ? documents.path : documents.created_at;
+    const orderFunc = desc === true ? sql`DESC` : sql`ASC`;
 
     const paginatedDocs = await this.db.select({
       id: documents.id,
@@ -271,7 +300,7 @@ export class DocumentQueries {
       .where(eq(documents.collection_id, collectionId),
       )
       .orderBy(sql`${orderColumn} ${orderFunc}`)
-      .limit(limit)
+      .limit(page_size)
       .offset(offset);
 
     const documentVersionIds = paginatedDocs.map(doc => doc.id);
@@ -279,11 +308,12 @@ export class DocumentQueries {
 
     return {
       documents: documentsData,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + limit < total
+      meta: { total, page, page_size, total_pages, order, desc },
+      included: {
+        collection: {
+          id: collection.id,
+          name: config.name || collection.path,
+        }
       }
     };
   }
