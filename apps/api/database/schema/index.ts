@@ -15,6 +15,8 @@ import { bigint, boolean, date, decimal, index, integer, jsonb, pgTable, pgView,
 export const collections = pgTable('collections', {
   id: uuid('id').primaryKey(),
   path: varchar('path', { length: 255 }).unique().notNull(),
+  singular: text('singular').notNull(), // Singular label for the collection
+  plural: text('plural').notNull(), // Plural label for the collection
   config: jsonb('config').notNull(), // Store CollectionConfig
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),

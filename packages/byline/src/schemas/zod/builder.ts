@@ -89,7 +89,7 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
       break
     }
 
-    case 'richtext': {
+    case 'richText': {
       let richTextSchema = z.any()
       // TODO: Implement rich text validation if needed
       // if (field.validation?.minLength || field.validation?.maxLength) {
@@ -144,7 +144,10 @@ export const createListMetaSchema = () => z.object({
 
 // Create collection metadata schema
 export const createCollectionMetaSchema = (collection: CollectionDefinition) => z.object({
-  name: z.literal(collection.name),
+  labels: z.object({
+    singular: z.string(),
+    plural: z.string(),
+  }),
   path: z.literal(collection.path),
 })
 

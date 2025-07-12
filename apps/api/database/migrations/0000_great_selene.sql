@@ -15,6 +15,8 @@ CREATE TABLE "boolean_store" (
 CREATE TABLE "collections" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"path" varchar(255) NOT NULL,
+	"singular" text NOT NULL,
+	"plural" text NOT NULL,
 	"config" jsonb NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),

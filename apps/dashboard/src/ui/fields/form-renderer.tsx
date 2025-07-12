@@ -22,11 +22,11 @@
 // NOTE: Before you dunk on this, this is a totally naïve  and "weekend hack"
 // implementation of a form renderer used only for prototype development.
 
+import type { Field, ValueField } from '@byline/byline/@types/index'
 import { Button } from '@byline/uikit/react'
 import { formatDateTime } from '../../utils/utils.general'
 import { FieldRenderer } from '../fields/field-renderer'
 import { FormProvider, useFormContext } from '../fields/form-context'
-import type { Field } from './@types'
 
 const FormStatusDisplay = ({ initialData }: { initialData?: Record<string, any> }) => (
   <div className="form-status text-sm flex flex-col sm:flex-row sm:items-center sm:gap-2">

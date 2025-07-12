@@ -23,6 +23,7 @@
 // implementation of our API and used only for prototype development.
 // We'll extract a 'proper' API server into a separate app folder soon.
 
+import type { SiteConfig } from '@byline/byline/@types/index'
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
 import cors from '@fastify/cors'
 import { drizzle } from 'drizzle-orm/node-postgres'
@@ -31,7 +32,6 @@ import { Pool } from 'pg'
 // import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
 import * as schema from '../database/schema/index.js'
-import type { SiteConfig } from './@types/index.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
 
@@ -57,34 +57,8 @@ const db = drizzle(pool, { schema })
 const queryBuilders: ReturnType<typeof createQueryBuilders> = createQueryBuilders(siteConfig, db)
 const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
 
-// Helper function to store document fields
-async function storeDocumentFields(
-  document_version_id: string,
-  collection_id: string,
-  collectionDefinition: any,
-  data: Record<string, any>
-) {
-  const results: any[] = []
 
-  // for (const field of collectionDefinition.fields) {
-  //   const fieldValue = data[field.name]
-  //   if (fieldValue !== undefined) {
-  //     const result = await commandBuilders.documents.createDocument(
-  //       document_version_id,
-  //       collection_id,
-  //       field.name, // field_path same as field_name for top-level fields
-  //       field.name,
-  //       field.type === 'richtext' ? 'richText' : field.type,
-  //       fieldValue
-  //     )
-  //     results.push(result)
-  //   }
-  // }
-
-  return results
-}
-
-// Generic collection routes
+// Get collection documents
 server.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
   const collection = getCollectionDefinition(path)
@@ -125,8 +99,8 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
   const { collection: path } = request.params
   const body = request.body
 
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
+  const collectionConfig = getCollectionDefinition(path)
+  if (!collectionConfig) {
     reply.code(404).send({ error: 'Collection not found' })
     return
   }
@@ -135,16 +109,20 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
     // Find or create collection in database
     let collectionRecords = await queryBuilders.collections.findByPath(path)
     if (collectionRecords.length === 0) {
-      collectionRecords = await commandBuilders.collections.create(collection.name, collection)
+      collectionRecords = await commandBuilders.collections.create(collectionConfig.path, collectionConfig)
     }
     const collectionRecord = collectionRecords[0]
 
-    // // Create document
-    // const documentResults = await commandBuilders.documents.create(
-    //   collectionRecord.id,
-    //   body.path,
-    //   body.status || 'draft'
-    // )
+    // Create document
+    // const documentResults = await commandBuilders.documents.createDocument({
+    //   collectionId: collectionRecord.id,
+    //   collectionConfig: collectionConfig,
+    //   action: string,
+    //   documentData: any,
+    //   path: string,
+    //   locale?: string
+    //       status?: 'draft' | 'published' | 'archived'
+    // })
     // const document = documentResults[0]
 
     // // Create initial version

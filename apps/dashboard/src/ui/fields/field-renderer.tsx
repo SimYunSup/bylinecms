@@ -22,12 +22,12 @@
 // NOTE: Before you dunk on this, this is a totally naïve and "weekend hack"
 // implementation of a field renderer used only for prototype development.
 
+import type { Field } from '@byline/byline/@types/index'
 import { CheckboxField } from '../fields/checkbox/checkbox-field'
 import { useFormContext } from '../fields/form-context'
 import { RichTextField } from '../fields/richtext/richtext-lexical/richtext-field'
 import { SelectField } from '../fields/select/select-field'
 import { TextField } from '../fields/text/text-field'
-import type { Field } from './@types'
 import { DateTimeField } from './datetime/datetime-field'
 
 interface FieldRendererProps {
@@ -49,7 +49,7 @@ export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
       return <CheckboxField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'select':
       return <SelectField field={field} initialValue={initialValue} onChange={handleChange} />
-    case 'richtext':
+    case 'richText':
       return <RichTextField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'datetime':
       return <DateTimeField field={field} initialValue={initialValue} onChange={handleChange} />

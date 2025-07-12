@@ -1,25 +1,34 @@
+/**
+ * Performance Comparison Tests - Optimized vs Original Storage Queries
+ *
+ * Copyright © 2025 Anthony Bouch and contributors.
+ *
+ * This file is part of Byline CMS.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ */
 
-import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
+import assert from 'node:assert';
+import { after, before, describe, it } from 'node:test'
+import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { v7 as uuidv7 } from 'uuid'
-import * as schema from '../database/schema/index.js'
-import type { CollectionConfig, SiteConfig } from './@types/index.js'
-import { createCommandBuilders } from './storage-commands.js'
+import { flattenDocument, reconstructDocument } from '../storage-utils.js'
 
-// Test database setup
-let pool: Pool
-let db: ReturnType<typeof drizzle>
-let commandBuilders: ReturnType<typeof createCommandBuilders>
 
-const siteConfig: SiteConfig = {
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'es', 'fr'],
-  }
-}
-
-export const BulkDocsCollectionConfig: CollectionConfig = {
-  path: 'bulk-docs',
+const DocsCollectionConfig: CollectionDefinition = {
+  path: 'docs',
   labels: {
     singular: 'Document',
     plural: 'Documents',
@@ -30,6 +39,8 @@ export const BulkDocsCollectionConfig: CollectionConfig = {
     { name: 'summary', type: 'text', required: true, localized: true },
     { name: 'category', type: 'relation', required: false },
     { name: 'publishedOn', type: 'datetime', required: false },
+    { name: 'views', type: 'integer', required: false },
+    { name: 'price', type: 'decimal', required: false },
     {
       name: 'content', type: 'array', fields: [
         {
@@ -66,9 +77,11 @@ export const BulkDocsCollectionConfig: CollectionConfig = {
   ],
 };
 
+let filedId = uuidv7()
+
 // Complex test document with many fields and arrays
 const sampleDocument = {
-  path: "my-first-bulk-document",
+  path: "my-first-document",
   title: {
     en: "My First Document",
     es: "Mi Primer Documento",
@@ -84,6 +97,8 @@ const sampleDocument = {
   //   target_document_id: "electronics-audio"
   // },
   publishedOn: new Date("2024-01-15T10:00:00"),
+  views: 100,
+  price: '19.99',
   content: [
     {
       richTextBlock: [
@@ -101,7 +116,7 @@ const sampleDocument = {
         { display: 'wide' },
         {
           photo: {
-            file_id: uuidv7(),
+            file_id: filedId,
             filename: 'docs-photo-01.jpg',
             original_filename: 'some-original-filename.jpg',
             mime_type: "image/jpeg",
@@ -123,13 +138,13 @@ const sampleDocument = {
   reviews: [
     {
       reviewItem: [
-        { rating: 5 },
+        { rating: 6 },
         { comment: { root: { paragraph: 'Some review text here...' } } },
       ]
     },
     {
       reviewItem: [
-        { rating: 3 },
+        { rating: 2 },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
     }
@@ -140,35 +155,29 @@ const sampleDocument = {
   ]
 };
 
-async function run() {
-  // Connect to test database
-  pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
-  db = drizzle(pool, { schema })
+describe('Document Flattening and Reconstruction', () => {
+  before(async () => {
 
-  commandBuilders = createCommandBuilders(siteConfig, db)
+  })
 
-  // Create bulk documents to populate the database.
-  const bulkDocsCollectionResult = await commandBuilders.collections.create(
-    'bulk',
-    BulkDocsCollectionConfig
-  )
+  after(async () => {
 
-  const bulkDocsCollection = { id: bulkDocsCollectionResult[0].id, name: bulkDocsCollectionResult[0].path }
+  })
 
-  console.log(`Created Bulk Docs Collection ${bulkDocsCollection}`)
+  it('should flatten and reconstruct a document', () => {
+    const flattened = flattenDocument(sampleDocument, DocsCollectionConfig)
+    assert(flattened, 'Flattened document should not be null or undefined')
+    assert(flattened.length > 0, 'Flattened document should contain field values')
+    console.log('Flattened document:', flattened)
 
-  for (let i = 0; i < 1000; i++) {
-    const docData = structuredClone(sampleDocument)
-    docData.path = `my-first-bulk-document-${12345 + i}`
-    docData.title.en = `A bulk created document. ${i + 1}` // Ensure unique names  
-    await commandBuilders.documents.createDocument({
-      collectionId: bulkDocsCollection.id,
-      collectionConfig: BulkDocsCollectionConfig,
-      action: 'create',
-      documentData: docData,
-      path: docData.path,
-    })
-  }
-}
+    const reconstructed = reconstructDocument(flattened)
+    assert(reconstructed, 'Reconstructed document should not be null or undefined')
+    const reconstructedJson = JSON.stringify(reconstructed, null, 2);
+    // console.log('Reconstructed document:', reconstructedJson)
 
-run()
+    // A simplified version of the sample document for deep equality check
+    const sampleDocumentJson = JSON.stringify(sampleDocument, null, 2);
+
+    assert.deepStrictEqual(JSON.parse(reconstructedJson), JSON.parse(sampleDocumentJson), 'Reconstructed document should match the original structure');
+  })
+})

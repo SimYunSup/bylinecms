@@ -22,17 +22,17 @@
 
 import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
-import { drizzle } from 'drizzle-orm/node-postgres'
+import type { CollectionDefinition, SiteConfig } from '@byline/byline/@types/index'
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
-import * as schema from '../database/schema/index.js'
-import type { CollectionConfig, SiteConfig } from './@types/index.js'
-import { createCommandBuilders } from './storage-commands.js'
-import { createQueryBuilders } from './storage-queries.js'
+import * as schema from '../../database/schema/index.js'
+import { createCommandBuilders } from '../storage-commands.js'
+import { createQueryBuilders } from '../storage-queries.js'
 
 // Test database setup
 let pool: Pool
-let db: ReturnType<typeof drizzle>
+let db: NodePgDatabase<typeof schema>
 let commandBuilders: ReturnType<typeof createCommandBuilders>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
 
@@ -43,7 +43,7 @@ const siteConfig: SiteConfig = {
   }
 }
 
-const FieldTypesCollectionConfig: CollectionConfig = {
+const FieldTypesCollectionConfig: CollectionDefinition = {
   path: 'docs-field-types',
   labels: {
     singular: 'FieldTypes',

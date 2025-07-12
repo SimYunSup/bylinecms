@@ -20,17 +20,13 @@
  */
 
 
-import type {
-  CollectionConfig,
-  FieldConfig,
-  FlattenedStore,
-  NonArrayFieldType,
-} from './@types/index.js';
+import type { CollectionDefinition, Field, ValueField } from '@byline/byline/@types/index'
+import type { FlattenedStore } from './@types/index.js';
 
 
 export function flattenDocument(
   documentData: any,
-  collectionConfig: CollectionConfig,
+  collectionConfig: CollectionDefinition,
   locale = 'default'
 ): FlattenedStore[] {
   const flattenedFields: FlattenedStore[] = [];
@@ -42,7 +38,7 @@ export function flattenDocument(
     return parts.join('.');
   }
 
-  function flatten(obj: any, fieldConfigs: FieldConfig[], basePath = '') {
+  function flatten(obj: any, fieldConfigs: Field[], basePath = '') {
     for (const fieldConfig of fieldConfigs) {
       const currentPath = basePath ? `${basePath}.${fieldConfig.name}` : fieldConfig.name;
       const value = obj[fieldConfig.name];
@@ -56,9 +52,9 @@ export function flattenDocument(
             // The item is an object with a single key, which is the field name.
             const fieldName = Object.keys(item)[0];
             const fieldValue = item[fieldName];
-            const subFieldConfig = fieldConfig.fields.find(f => f.name === fieldName);
-            if (subFieldConfig) {
-              flatten({ [fieldName]: fieldValue }, [subFieldConfig], arrayElementPath);
+            const subField = fieldConfig.fields.find(f => f.name === fieldName);
+            if (subField) {
+              flatten({ [fieldName]: fieldValue }, [subField], arrayElementPath);
             }
           }
         });
@@ -69,7 +65,7 @@ export function flattenDocument(
               createFlattenedStore(
                 currentPath,
                 fieldConfig.name,
-                fieldConfig.type as NonArrayFieldType,
+                fieldConfig.type as ValueField['type'],
                 localizedValue,
                 localeKey,
                 getParentPath(currentPath)
@@ -82,7 +78,7 @@ export function flattenDocument(
           createFlattenedStore(
             currentPath,
             fieldConfig.name,
-            fieldConfig.type as NonArrayFieldType,
+            fieldConfig.type as ValueField['type'],
             value,
             locale,
             getParentPath(currentPath)
@@ -154,7 +150,7 @@ export function reconstructDocument(
     if (values.length > 1 && values.some(v => v.locale !== 'default')) { // Localized
       const localizedObject: Record<string, any> = {};
       values.forEach(v => {
-        const val = createFlattenedStore(v.field_path, v.field_name, v.field_type as NonArrayFieldType, v, v.locale);
+        const val = createFlattenedStore(v.field_path, v.field_name, v.field_type as ValueField['type'], v, v.locale);
         localizedObject[v.locale] = (val as any).value || val;
       });
       setValue(document, path, localizedObject);
@@ -162,7 +158,7 @@ export function reconstructDocument(
       const reconstructedValue = createFlattenedStore(
         preferredValue.field_path,
         preferredValue.field_name,
-        preferredValue.field_type as NonArrayFieldType,
+        preferredValue.field_type as ValueField['type'],
         preferredValue,
         preferredValue.locale
       );
@@ -177,7 +173,7 @@ export function reconstructDocument(
 function createFlattenedStore(
   field_path: string,
   field_name: string,
-  field_type: NonArrayFieldType,
+  field_type: ValueField['type'],
   value: any,
   locale: string,
   parent_path?: string

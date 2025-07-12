@@ -50,14 +50,17 @@ const newsColumns: ColumnDefinition[] = [
 ]
 
 export const News: CollectionDefinition = {
-  name: 'News',
   path: 'news',
+  labels: {
+    singular: 'News',
+    plural: 'News',
+  },
   fields: [
     { name: 'title', label: 'Title', type: 'text', required: true },
     {
       name: 'content',
       label: 'Content',
-      type: 'richtext',
+      type: 'richText',
       helpText: 'Enter the main content for this page.',
       required: true,
     },

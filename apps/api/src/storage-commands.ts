@@ -23,6 +23,7 @@
 // ============================================
 
 
+import type { CollectionDefinition, SiteConfig } from '@byline/byline/@types/index'
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { v7 as uuidv7 } from 'uuid'
@@ -38,7 +39,6 @@ import {
   relationStore,
   textStore
 } from '../database/schema/index.js';
-import type { CollectionConfig, SiteConfig } from './@types/index.js'
 import { isFileStore, isJsonStore, isNumericStore, isRelationStore } from './@types/index.js'
 import { flattenDocument } from './storage-utils.js';
 
@@ -52,6 +52,8 @@ export class CollectionCommands {
     return await this.db.insert(collections).values({
       id: uuidv7(),
       path,
+      singular: config.singular || path, // Default to path if singular not provided
+      plural: config.plural || `${path}s`, // Default to pluralized path if not
       config,
     }).returning();
   }
@@ -70,7 +72,7 @@ export class DocumentCommands {
   async createDocument(options: {
     documentId?: string, // Optional logical document ID when creating a new version for the same logical document
     collectionId: string,
-    collectionConfig: CollectionConfig,
+    collectionConfig: CollectionDefinition,
     action: string,
     documentData: any,
     path: string,

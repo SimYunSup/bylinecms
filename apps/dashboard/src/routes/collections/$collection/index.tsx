@@ -59,7 +59,9 @@ function RouteComponent() {
   return (
     <>
       <BreadcrumbsClient
-        breadcrumbs={[{ label: data.included.collection.name, href: `/collections/${collection}` }]}
+        breadcrumbs={[
+          { label: data.included.collection.labels.plural, href: `/collections/${collection}` },
+        ]}
       />
       <ListView data={data} columns={columns} />
     </>

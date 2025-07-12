@@ -30,11 +30,9 @@ import { collections, currentDocumentsView as documents } from '../database/sche
 
 type DatabaseConnection = NodePgDatabase<typeof schema>;
 
-import type { CollectionDefinition } from "@byline/byline/@types/index";
-
+import type { CollectionDefinition, SiteConfig } from "@byline/byline/@types/index";
 import type {
   FlattenedStore,
-  SiteConfig,
   UnionRowValue
 } from './@types/index.js'
 import {
@@ -240,7 +238,10 @@ export class DocumentQueries {
     included: {
       collection: {
         id: string;
-        name: string;
+        labels: {
+          singular: string;
+          plural: string;
+        }
       }
     }
   }> {
@@ -280,7 +281,10 @@ export class DocumentQueries {
         included: {
           collection: {
             id: collection.id,
-            name: config.name || collection.path,
+            labels: {
+              singular: config.labels.singular || collection.path,
+              plural: config.labels.plural || collection.path,
+            }
           }
         }
       };
@@ -312,7 +316,10 @@ export class DocumentQueries {
       included: {
         collection: {
           id: collection.id,
-          name: config.name || collection.path,
+          labels: {
+            singular: config.labels.singular || collection.path,
+            plural: config.labels.plural || collection.path,
+          }
         }
       }
     };

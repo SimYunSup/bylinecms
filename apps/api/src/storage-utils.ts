@@ -19,13 +19,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { CollectionDefinition, Field, ValueField } from '@byline/byline/@types/index'
+
 import type {
-  CollectionConfig,
   DateTimeStore,
-  FieldConfig,
   FileStore,
   FlattenedStore,
-  NonArrayFieldType,
   NumericStore,
   RelationStore,
 } from './@types/index.js';
@@ -33,7 +32,7 @@ import type {
 
 export function flattenDocument(
   documentData: any,
-  collectionConfig: CollectionConfig,
+  collectionConfig: CollectionDefinition,
   locale = 'default'
 ): FlattenedStore[] {
   const flattenedFields: FlattenedStore[] = [];
@@ -45,7 +44,7 @@ export function flattenDocument(
     return parts.join('.');
   }
 
-  function flatten(obj: any, fieldConfigs: FieldConfig[], basePath = '') {
+  function flatten(obj: any, fieldConfigs: Field[], basePath = '') {
     for (const fieldConfig of fieldConfigs) {
       const currentPath = basePath ? `${basePath}.${fieldConfig.name}` : fieldConfig.name;
       const value = obj[fieldConfig.name];
@@ -59,9 +58,9 @@ export function flattenDocument(
             // The item is an object with a single key, which is the field name.
             const fieldName = Object.keys(item)[0];
             const fieldValue = item[fieldName];
-            const subFieldConfig = fieldConfig.fields.find(f => f.name === fieldName);
-            if (subFieldConfig) {
-              flatten({ [fieldName]: fieldValue }, [subFieldConfig], arrayElementPath);
+            const subField = fieldConfig.fields.find(f => f.name === fieldName);
+            if (subField) {
+              flatten({ [fieldName]: fieldValue }, [subField], arrayElementPath);
             }
           }
         });
@@ -72,7 +71,7 @@ export function flattenDocument(
               createFlattenedStore(
                 currentPath,
                 fieldConfig.name,
-                fieldConfig.type as NonArrayFieldType,
+                fieldConfig.type as ValueField['type'],
                 localizedValue,
                 localeKey,
                 getParentPath(currentPath)
@@ -85,7 +84,7 @@ export function flattenDocument(
           createFlattenedStore(
             currentPath,
             fieldConfig.name,
-            fieldConfig.type as NonArrayFieldType,
+            fieldConfig.type as ValueField['type'],
             value,
             locale,
             getParentPath(currentPath)
@@ -102,7 +101,7 @@ export function flattenDocument(
 function createFlattenedStore(
   field_path: string,
   field_name: string,
-  field_type: NonArrayFieldType,
+  field_type: ValueField['type'],
   value: any,
   locale: string,
   parent_path?: string

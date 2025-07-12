@@ -22,12 +22,13 @@
 
 import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
+import type { CollectionDefinition, SiteConfig } from '@byline/byline/@types/index'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
-import * as schema from '../database/schema/index.js'
-import type { CollectionConfig, SiteConfig } from './@types/index.js'
-import { createCommandBuilders } from './storage-commands.js'
-import { createQueryBuilders } from './storage-queries.js'
+import { v7 as uuidv7 } from 'uuid'
+import * as schema from '../../database/schema/index.js'
+import { createCommandBuilders } from '../storage-commands.js'
+import { createQueryBuilders } from '../storage-queries.js'
 
 // Test database setup
 let pool: Pool
@@ -42,11 +43,12 @@ const siteConfig: SiteConfig = {
   }
 }
 
-const VersionsCollectionConfig: CollectionConfig = {
-  path: 'versioning',
+// Complex test collection configuration
+const ComplexCollectionConfig: CollectionDefinition = {
+  path: 'products',
   labels: {
-    singular: 'Version',
-    plural: 'Versions',
+    singular: 'Product',
+    plural: 'Products',
   },
   fields: [
     { name: 'sku', type: 'text', required: true, unique: true },
@@ -60,7 +62,7 @@ const VersionsCollectionConfig: CollectionConfig = {
       name: 'images', type: 'array', fields: [
         {
           name: 'imageItem', type: 'array', fields: [
-            { name: 'image', type: 'file', required: true },
+            { name: 'url', type: 'file', required: true },
             { name: 'alt', type: 'text', required: true, localized: true },
             { name: 'caption', type: 'text', required: false, localized: true },
           ]
@@ -93,7 +95,7 @@ const VersionsCollectionConfig: CollectionConfig = {
 
 // Complex test document with many fields and arrays
 const complexProductDocument = {
-  sku: "FOO-12345",
+  sku: "PROD-12345",
   name: {
     en: "Premium Wireless Headphones",
     es: "Auriculares Inalámbricos Premium",
@@ -244,7 +246,7 @@ const complexProductDocument = {
     },
     {
       reviewItem: [
-        { rating: 6 },
+        { rating: 3 },
         { comment: { root: { paragraph: 'Some more reviews here...' } } },
       ]
     }
@@ -253,8 +255,9 @@ const complexProductDocument = {
 
 // Global test variables
 let testCollection: { id: string; name: string } = {} as any
+let testDocuments: string[] = []
 
-describe('Document Creation and Versioning', () => {
+describe('Performance Analysis', () => {
   before(async () => {
     // Connect to test database
     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
@@ -266,12 +269,29 @@ describe('Document Creation and Versioning', () => {
     // Create test collection
     const timestamp = Date.now()
     const collection = await commandBuilders.collections.create(
-      `versions_collection_${timestamp}`,
-      VersionsCollectionConfig
+      `products_collection_${timestamp}`,
+      ComplexCollectionConfig
     )
 
     testCollection = { id: collection[0].id, name: collection[0].path }
-    console.log('Test collection created:', testCollection)
+    console.log('Test product collection created:', testCollection)
+
+    // Create multiple test documents for batch testing
+    for (let i = 0; i < 10; i++) {
+      const docData = structuredClone(complexProductDocument)
+      docData.sku = `PROD-${12345 + i}`
+      docData.name.en = `Product ${i + 1}`
+
+      const result = await commandBuilders.documents.createDocument({
+        collectionId: testCollection.id,
+        collectionConfig: ComplexCollectionConfig,
+        action: 'create',
+        documentData: docData,
+        path: docData.sku
+      })
+
+      testDocuments.push(result.document.id)
+    }
   })
 
   after(async () => {
@@ -286,116 +306,146 @@ describe('Document Creation and Versioning', () => {
     await pool.end()
   })
 
-  describe('Should create documents and document versions', () => {
+  describe('Single Document Retrieval Performance', () => {
 
-    it('should create a document', async () => {
-      const timestamp = Date.now()
+    it('should retrieve document using optimized approach', async () => {
+      const startTime = performance.now()
 
-      const docData = structuredClone(complexProductDocument)
-      docData.sku = `PROD-${timestamp}`
-      docData.name.en = `Product ${timestamp}`
-
-      const result = await commandBuilders.documents.createDocument({
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'create',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      console.log('Document created:', result)
-
-      assert.notStrictEqual(result.document.document_id, null, 'Document creation failed');
-    })
-
-    it('should create a document and document version with the same path', async () => {
-      const timestamp = Date.now()
-
-      const docData = structuredClone(complexProductDocument)
-      docData.sku = `PROD-${timestamp}`
-      docData.name.en = `Product ${timestamp}`
-
-      const firstVersion = await commandBuilders.documents.createDocument({
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'create',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      console.log('firstVersion created:', firstVersion)
-
-      assert.notStrictEqual(firstVersion.document.document_id, null, 'Document creation failed');
-
-      const secondVersion = await commandBuilders.documents.createDocument({
-        documentId: firstVersion.document.document_id,
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'update',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      console.log('secondVersion created:', secondVersion)
-    })
-
-    it('should create multiple versions of a document and return a version history', async () => {
-      const timestamp = Date.now()
-
-      const docData = structuredClone(complexProductDocument)
-      docData.sku = `PROD-${timestamp}`
-      docData.name.en = `Product ${timestamp}`
-
-      const firstVersion = await commandBuilders.documents.createDocument({
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'create',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      assert.notStrictEqual(firstVersion.document.document_id, null, 'Document creation failed');
-
-      const secondVersion = await commandBuilders.documents.createDocument({
-        documentId: firstVersion.document.document_id,
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'update',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      assert.notStrictEqual(secondVersion.document.document_id, null, 'Document creation failed');
-
-      const thirdVersion = await commandBuilders.documents.createDocument({
-        documentId: firstVersion.document.document_id,
-        collectionId: testCollection.id,
-        collectionConfig: VersionsCollectionConfig,
-        action: 'update',
-        documentData: docData,
-        path: docData.sku,
-        locale: 'all',
-        status: 'draft',
-      })
-
-      assert.notStrictEqual(thirdVersion.document.document_id, null, 'Document creation failed');
-
-      const versionHistory = await queryBuilders.documents.getDocumentHistory(
-        firstVersion.document.document_id,
-        testCollection.id,
+      const document = await queryBuilders.documents.getCurrentDocument(
+        testDocuments[0],
+        'all'
       )
 
-      console.log('Version history:', versionHistory)
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      console.log(`Optimized approach: ${duration.toFixed(2)}ms`)
+      console.log('Document structure:', Object.keys(document))
+      console.log('Images array length:', document.images?.length)
+      console.log('Specifications array length:', document.specifications?.length)
+      console.log('Reviews array length:', document.reviews?.length)
+
+      // Verify we got the complete document
+      console.log('Sample name localization:', document.name)
+      console.log('Sample specification:', document.specifications?.[0])
+    })
+
+    it('should compare single document performance over multiple runs', async () => {
+      const runs = 5
+      let optimizedTotal = 0
+
+      console.log(`\nRunning ${runs} performance tests...`)
+
+      for (let i = 0; i < runs; i++) {
+        // Test optimized approach
+        const optimizedStart = performance.now()
+        await queryBuilders.documents.getCurrentDocument(
+          testDocuments[i % testDocuments.length],
+          'all'
+        )
+        const optimizedEnd = performance.now()
+        optimizedTotal += (optimizedEnd - optimizedStart)
+      }
+
+      const optimizedAvg = optimizedTotal / runs
+
+      console.log(`\nPerformance Results (${runs} runs):`)
+      console.log(`Optimized average: ${optimizedAvg.toFixed(2)}ms`)
+    })
+  })
+
+  describe('Batch Document Retrieval Performance', () => {
+
+    it('should retrieve multiple documents using optimized batch approach', async () => {
+      const batchSize = 5
+      const documentIds = testDocuments.slice(0, batchSize)
+
+      const startTime = performance.now()
+
+      const documents = await queryBuilders.documents.getCurrentDocuments(
+        documentIds,
+        'all'
+      )
+
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      console.log(`Optimized batch (${batchSize} docs): ${duration.toFixed(2)}ms`)
+      console.log(`Average per document: ${(duration / batchSize).toFixed(2)}ms`)
+      console.log('Retrieved documents:', Object.keys(documents).length)
+
+      assert.strictEqual(documents.length, batchSize, 'Batch retrieval should return correct number of documents')
+    })
+
+    it('should compare batch retrieval performance', async () => {
+      const batchSizes = [3, 5, 10]
+
+      console.log('\nBatch Performance Comparison:')
+      console.log('Batch Size | Performance')
+      console.log('-----------|----------')
+
+      for (const batchSize of batchSizes) {
+        const documentIds = testDocuments.slice(0, Math.min(batchSize, testDocuments.length))
+
+        // Optimized approach (batch)
+        const optimizedStart = performance.now()
+        await queryBuilders.documents.getCurrentDocuments(
+          documentIds,
+          'all'
+        )
+        const optimizedEnd = performance.now()
+        const optimizedDuration = optimizedEnd - optimizedStart
+
+        console.log(`${batchSize.toString().padStart(10)} | ${optimizedDuration.toFixed(0).padStart(9)}ms`)
+      }
+    })
+  })
+
+  describe('Locale-Specific Retrieval Performance', () => {
+    it('should test locale-specific retrieval performance', async () => {
+      const locales = ['en', 'es', 'fr', 'all']
+
+      console.log('\nLocale Performance Comparison:')
+      console.log('Locale | Performance')
+      console.log('-------|----------')
+
+      for (const locale of locales) {
+
+        // Optimized approach
+        const optimizedStart = performance.now()
+        await queryBuilders.documents.getCurrentDocument(
+          testDocuments[0],
+          locale
+        )
+        const optimizedEnd = performance.now()
+        const optimizedDuration = optimizedEnd - optimizedStart
+
+        console.log(`${locale.padStart(6)} | ${optimizedDuration.toFixed(0).padStart(9)}ms`)
+      }
+    })
+  })
+
+  describe('Memory Usage and Result Verification', () => {
+
+    it('should estimate memory usage difference', async () => {
+      const memBefore = process.memoryUsage()
+
+      // Load multiple documents to see memory impact
+      const documents: any[] = []
+      for (let i = 0; i < 5; i++) {
+        const doc = await queryBuilders.documents.getCurrentDocument(
+          testDocuments[i],
+          'all'
+        )
+        documents.push(doc)
+      }
+
+      const memAfter = process.memoryUsage()
+
+      console.log('Memory usage for 5 complex documents:')
+      console.log(`Heap used: ${((memAfter.heapUsed - memBefore.heapUsed) / 1024 / 1024).toFixed(2)} MB`)
+      console.log(`External: ${((memAfter.external - memBefore.external) / 1024 / 1024).toFixed(2)} MB`)
+      console.log(`Approx per document: ${((memAfter.heapUsed - memBefore.heapUsed) / 1024 / 1024 / 5).toFixed(2)} MB`)
     })
   })
 })

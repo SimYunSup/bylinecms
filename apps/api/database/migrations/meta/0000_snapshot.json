@@ -1,5 +1,5 @@
 {
-  "id": "c35d9b65-9d96-4786-b5b5-60127812cf88",
+  "id": "41bc4e92-4f95-41c0-9da6-eb286a31a9bc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -194,6 +194,18 @@
         "path": {
           "name": "path",
           "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "singular": {
+          "name": "singular",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plural": {
+          "name": "plural",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },

@@ -33,7 +33,7 @@ export const EditView = ({
   initialData: AnyCollectionSchemaTypes['UpdateType']
 }) => {
   const navigate = useNavigate()
-  const { name, path, fields } = collectionDefinition
+  const { labels, path, fields } = collectionDefinition
 
   const handleSubmit = async (data: any) => {
     try {
@@ -63,7 +63,7 @@ export const EditView = ({
     <Section>
       <Container>
         <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between">
-          <h2 className="mb-2">Edit {name}</h2>
+          <h2 className="mb-2">Edit {labels.singular}</h2>
           <div className="flex items-center gap-2">
             <Button
               size="sm"
