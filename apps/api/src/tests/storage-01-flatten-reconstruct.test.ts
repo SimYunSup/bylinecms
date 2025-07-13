@@ -38,9 +38,11 @@ const DocsCollectionConfig: CollectionDefinition = {
     { name: 'title', type: 'text', required: true, localized: true },
     { name: 'summary', type: 'text', required: true, localized: true },
     { name: 'category', type: 'relation', required: false },
-    { name: 'publishedOn', type: 'datetime', required: false },
+    { name: 'publishedOn', type: 'datetime', required: false, admin: { position: 'sidebar' } },
+    { name: 'featured', label: 'Featured', type: 'checkbox', helpText: 'Is this page featured on the home page?', admin: { position: 'sidebar' } },
     { name: 'views', type: 'integer', required: false },
-    { name: 'price', type: 'decimal', required: false },
+    { name: 'price', label: 'Price', type: 'decimal', required: false },
+
     {
       name: 'content', type: 'array', fields: [
         {
@@ -97,6 +99,7 @@ const sampleDocument = {
   //   target_document_id: "electronics-audio"
   // },
   publishedOn: new Date("2024-01-15T10:00:00"),
+  featured: true,
   views: 100,
   price: '19.99',
   content: [

@@ -72,7 +72,7 @@ export class DocumentQueries {
   ): Promise<any[]> {
     const localeCondition = locale === 'all'
       ? sql`TRUE`
-      : sql`fv.locale = ${locale}`;
+      : sql`(fv.locale = ${locale} OR fv.locale = 'all')`;
 
     // Optimized single query with direct JOINs
     const query = sql`
@@ -596,7 +596,7 @@ export class DocumentQueries {
   ): Promise<UnionRowValue[]> {
     const localeCondition = locale === 'all'
       ? sql``
-      : sql`AND locale = ${locale}`;
+      : sql`AND (locale = ${locale} OR locale = 'all')`;
 
     const query = sql`
       -- Text fields (41 columns total)
@@ -671,7 +671,7 @@ export class DocumentQueries {
 
     const localeCondition = locale === 'all'
       ? sql``
-      : sql`AND locale = ${locale}`;
+      : sql`AND (locale = ${locale} OR locale = 'all')`;
 
     const documentCondition = sql`document_version_id = ANY(ARRAY[${sql.join(documentVersionIds.map(id => sql`${id}::uuid`), sql`, `)}])`;
 

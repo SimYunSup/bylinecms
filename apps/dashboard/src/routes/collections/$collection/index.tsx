@@ -23,11 +23,30 @@ import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
 import { getCollectionSchemasForPath } from '@byline/byline/schemas/zod/cache'
 import { createFileRoute, notFound } from '@tanstack/react-router'
+import { z } from 'zod'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { ListView } from '@/modules/collections/list'
 
+const searchSchema = z.object({
+  page: z.coerce.number().min(1).optional(),
+  page_size: z.coerce.number().min(1).max(100).optional(),
+  order: z.string().optional(),
+  desc: z.boolean().optional(),
+  query: z.string().optional(),
+  locale: z.string().optional(),
+})
+
 export const Route = createFileRoute('/collections/$collection/')({
-  loader: async ({ params }) => {
+  validateSearch: searchSchema,
+  loaderDeps: ({ search: { page, page_size, order, desc, query, locale } }) => ({
+    page,
+    page_size,
+    order,
+    desc,
+    query,
+    locale,
+  }),
+  loader: async ({ params, deps: { page, page_size, order, desc, query, locale } }) => {
     const collectionDef = getCollectionDefinition(params.collection)
     if (!collectionDef) {
       throw notFound()
@@ -36,7 +55,32 @@ export const Route = createFileRoute('/collections/$collection/')({
     // Get typed schemas for better type inference
     const { list } = getCollectionSchemasForPath(params.collection)
 
-    const response = await fetch(`http://localhost:3001/api/${params.collection}`)
+    // // Parse search parameters from location
+    const searchParams = new URLSearchParams()
+
+    if (page) {
+      searchParams.set('page', page.toString())
+    }
+    if (page_size) {
+      searchParams.set('page_size', page_size.toString())
+    }
+    if (order) {
+      searchParams.set('order', order)
+    }
+    if (desc) {
+      searchParams.set('desc', desc ? 'true' : 'false')
+    }
+    if (query) {
+      searchParams.set('query', query)
+    }
+    if (locale) {
+      searchParams.set('locale', locale)
+    }
+
+    const queryString = searchParams.toString()
+    const url = `http://localhost:3001/api/${params.collection}${queryString ? `?${queryString}` : ''}`
+
+    const response = await fetch(url)
     if (!response.ok) {
       throw new Error('Failed to fetch collection')
     }

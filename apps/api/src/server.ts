@@ -57,10 +57,19 @@ const db = drizzle(pool, { schema })
 const queryBuilders: ReturnType<typeof createQueryBuilders> = createQueryBuilders(siteConfig, db)
 const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
 
+const searchSchema = z.object({
+  page: z.coerce.number().min(1).optional(),
+  page_size: z.coerce.number().min(1).max(100).optional(),
+  order: z.string().optional(),
+  desc: z.boolean().optional(),
+  query: z.string().optional(),
+  locale: z.string().optional(),
+})
 
 // Get collection documents
 server.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
+  const search = request.query as Record<string, any>
   const collectionDefinition = getCollectionDefinition(path)
   if (collectionDefinition == null) {
     reply.code(404).send({ error: 'Collection definition not found in collection registry.' })
@@ -81,15 +90,11 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
       return
     }
 
+    const searchParams = searchSchema.safeParse(search)
+
     // Get all documents for this collection
     const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(collection.id,
-      {
-        locale: 'en',
-        page: 1,
-        page_size: 20,
-        order: 'created_at',
-        desc: true
-      }
+      { ...searchParams.data, locale: 'en' }, // Default to 'en' locale if not provided
     )
 
     return result

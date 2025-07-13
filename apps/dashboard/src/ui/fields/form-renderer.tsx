@@ -33,7 +33,7 @@ const FormStatusDisplay = ({ initialData }: { initialData?: Record<string, any> 
     <div className="published flex items-center gap-1 min-w-0">
       <span className="muted shrink-0">Status:</span>
       <span className="truncate overflow-hidden">
-        {initialData?.published === true ? 'Published' : 'Unpublished'}
+        {initialData?.status === 'published' ? 'Published' : 'Unpublished'}
       </span>
     </div>
 

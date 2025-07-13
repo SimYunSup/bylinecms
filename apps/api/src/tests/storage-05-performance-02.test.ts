@@ -115,7 +115,7 @@ describe('Bulk Document Operations', () => {
       const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(
         collection.id,
         {
-          locale: 'all',
+          locale: 'en',
           page: 1,
           page_size: 50,
           order: 'created_at',
@@ -128,7 +128,7 @@ describe('Bulk Document Operations', () => {
 
       console.log(`All documents for collection by page: ${duration.toFixed(2)}ms`)
       console.log('Retrieved documents:', result.documents.length)
-      console.log('Sample document:', result.documents[0])
+      console.log('Sample document:', JSON.stringify(result.documents[0], null, 2))
     })
   })
 })
