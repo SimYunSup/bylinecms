@@ -63,7 +63,7 @@ export const Docs: CollectionDefinition = {
     plural: 'Documents',
   },
   fields: [
-    { name: 'path', type: 'text', required: true, },
+    { name: 'path', label: "Path", type: 'text', required: true, admin: { position: 'sidebar' } },
     { name: 'title', label: 'Title', type: 'text', required: true, },
     { name: 'summary', label: 'Summary', type: 'text', required: true, localized: true },
     { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', required: true, admin: { position: 'sidebar' } },

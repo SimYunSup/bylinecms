@@ -81,38 +81,40 @@ export const ListView = ({
 }) => {
   const navigate = useNavigate()
   const location = useRouterState({ select: (s) => s.location })
-  const searchParams = new URLSearchParams(location.search)
 
   const handleOnSearch = (query: string): void => {
     if (query != null && query.length > 0) {
-      searchParams.delete('page')
-      searchParams.set('query', query)
+      const params = structuredClone(location.search)
+      delete params.page
+      params.query = query
       navigate({
         to: '/collections/$collection',
         params: { collection: data.included.collection.path },
-        search: Object.fromEntries(searchParams.entries()),
+        search: params,
       })
     }
   }
 
   const handleOnClear = (): void => {
-    searchParams.delete('page')
-    searchParams.delete('query')
+    const params = structuredClone(location.search)
+    delete params.page
+    delete params.query
     navigate({
       to: '/collections/$collection',
       params: { collection: data.included.collection.path },
-      search: Object.fromEntries(searchParams.entries()),
+      search: params,
     })
   }
 
   function handleOnPageSizeChange(value: string): void {
     if (value != null && value.length > 0) {
-      searchParams.delete('page')
-      searchParams.set('page_size', value)
+      const params = structuredClone(location.search)
+      delete params.page
+      params.page_size = Number.parseInt(value)
       navigate({
         to: '/collections/$collection',
         params: { collection: data.included.collection.path },
-        search: Object.fromEntries(searchParams.entries()),
+        search: params,
       })
     }
   }

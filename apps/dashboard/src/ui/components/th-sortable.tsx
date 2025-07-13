@@ -25,7 +25,7 @@ import { Table } from '@byline/uikit/react'
 import { useNavigate, useRouterState } from '@tanstack/react-router'
 import cx from 'classnames'
 import type React from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   SortAscendingIcon,
   SortDescendingIcon,
@@ -57,33 +57,34 @@ export function TableHeadingCellSortable({
 }) {
   const navigate = useNavigate()
   const location = useRouterState({ select: (s) => s.location })
-  const searchParams = useMemo(() => {
-    return new URLSearchParams(location.search)
-  }, [location])
 
   const [desc, setDesc] = useState<boolean | null>(null)
 
   const handleOnSort = (descending: boolean) => (): void => {
     if (fieldName != null) {
-      searchParams.delete('page')
-      searchParams.set('order', fieldName)
-      searchParams.set('desc', descending ? 'true' : 'false')
+      const params = structuredClone(location.search)
+      delete params.page
+      params.order = fieldName
+      params.desc = descending
       setDesc(descending)
-      navigate({ to: `${location.pathname}?${searchParams?.toString()}` as string })
+      navigate({
+        to: location.pathname,
+        search: params,
+      })
     }
   }
 
   useEffect(() => {
     if (fieldName != null) {
-      const order = searchParams.get('order')
-      const desc = searchParams.get('desc')
+      const order = location.search.order
+      const desc = location.search.desc
       if (order === fieldName) {
-        setDesc(desc === 'true')
+        setDesc(desc ?? false)
       } else {
         setDesc(null)
       }
     }
-  }, [fieldName, searchParams])
+  }, [fieldName, location.search.order, location.search.desc])
 
   if (sortable === false) {
     return (
