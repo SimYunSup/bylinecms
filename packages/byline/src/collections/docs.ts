@@ -79,7 +79,7 @@ export const Docs: CollectionDefinition = {
         {
           name: 'photoBlock', type: 'array', fields: [
             { name: 'display', type: 'text', required: false },
-            { name: 'photo', type: 'file', required: true },
+            { name: 'photo', type: 'image', required: true },
             { name: 'alt', type: 'text', required: true, localized: false },
             { name: 'caption', type: 'richText', required: false, localized: true },
           ]
