@@ -205,16 +205,19 @@ function createFlattenedStore(
         value_integer: field_type === 'integer' ? value : undefined,
       };
 
+    case 'time':
+    case 'date':
     case 'datetime':
-      return {
-        ...baseValue,
-        field_type,
-        date_type: 'timestampTz', // Default to timestamp, can be extended later
-        value_time: undefined,
-        value_date: undefined,
-        value_timestamp: undefined,
-        value_timestamp_tz: value ?? undefined,
-      };
+      {
+        return {
+          ...baseValue,
+          field_type,
+          date_type: field_type,
+          value_time: field_type === 'time' ? value : undefined,
+          value_date: field_type === 'date' ? value : undefined,
+          value_timestamp_tz: field_type === 'datetime' ? value : undefined,
+        }
+      }
 
     case 'file':
     case 'image':

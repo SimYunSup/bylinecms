@@ -38,7 +38,7 @@ const DocsCollectionConfig: CollectionDefinition = {
     { name: 'title', type: 'text', required: true, localized: true },
     { name: 'summary', type: 'text', required: true, localized: true },
     { name: 'category', type: 'relation', required: false },
-    { name: 'publishedOn', type: 'datetime', required: false, admin: { position: 'sidebar' } },
+    { name: 'publishedOn', type: 'datetime', mode: "datetime", required: false, admin: { position: 'sidebar' } },
     { name: 'featured', label: 'Featured', type: 'checkbox', helpText: 'Is this page featured on the home page?', admin: { position: 'sidebar' } },
     { name: 'views', type: 'integer', required: false },
     { name: 'price', label: 'Price', type: 'decimal', required: false },

@@ -36,7 +36,6 @@ CREATE TABLE "datetime_store" (
 	"date_type" varchar(20) NOT NULL,
 	"value_date" date,
 	"value_time" time,
-	"value_timestamp" timestamp,
 	"value_timestamp_tz" timestamp with time zone,
 	CONSTRAINT "unique_datetime_field" UNIQUE("document_version_id","field_path","locale")
 );
@@ -169,10 +168,9 @@ CREATE INDEX "idx_boolean_value" ON "boolean_store" USING btree ("value");--> st
 CREATE INDEX "idx_boolean_path_value" ON "boolean_store" USING btree ("field_path","value");--> statement-breakpoint
 CREATE INDEX "idx_boolean_collection_value" ON "boolean_store" USING btree ("collection_id","field_path","value");--> statement-breakpoint
 CREATE INDEX "idx_datetime_date" ON "datetime_store" USING btree ("value_date");--> statement-breakpoint
-CREATE INDEX "idx_datetime_timestamp" ON "datetime_store" USING btree ("value_timestamp");--> statement-breakpoint
 CREATE INDEX "idx_datetime_timestamp_tz" ON "datetime_store" USING btree ("value_timestamp_tz");--> statement-breakpoint
-CREATE INDEX "idx_datetime_path_date" ON "datetime_store" USING btree ("field_path","value_timestamp");--> statement-breakpoint
-CREATE INDEX "idx_datetime_collection_date" ON "datetime_store" USING btree ("collection_id","value_timestamp");--> statement-breakpoint
+CREATE INDEX "idx_datetime_path_date" ON "datetime_store" USING btree ("field_path","value_timestamp_tz");--> statement-breakpoint
+CREATE INDEX "idx_datetime_collection_date" ON "datetime_store" USING btree ("collection_id","value_timestamp_tz");--> statement-breakpoint
 CREATE INDEX "idx_documents_document_id" ON "documents" USING btree ("document_id");--> statement-breakpoint
 CREATE INDEX "idx_documents_collection_path_deleted" ON "documents" USING btree ("collection_id","path","is_deleted");--> statement-breakpoint
 CREATE INDEX "idx_documents_collection_document_deleted" ON "documents" USING btree ("collection_id","document_id","is_deleted");--> statement-breakpoint

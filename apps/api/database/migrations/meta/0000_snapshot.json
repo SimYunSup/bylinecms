@@ -1,5 +1,5 @@
 {
-  "id": "41bc4e92-4f95-41c0-9da6-eb286a31a9bc",
+  "id": "bf296f73-2b6a-48a9-b4b0-c46a690e7fd2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -325,12 +325,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "value_timestamp": {
-          "name": "value_timestamp",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
         "value_timestamp_tz": {
           "name": "value_timestamp_tz",
           "type": "timestamp with time zone",
@@ -344,21 +338,6 @@
           "columns": [
             {
               "expression": "value_date",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_datetime_timestamp": {
-          "name": "idx_datetime_timestamp",
-          "columns": [
-            {
-              "expression": "value_timestamp",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -394,7 +373,7 @@
               "nulls": "last"
             },
             {
-              "expression": "value_timestamp",
+              "expression": "value_timestamp_tz",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -415,7 +394,7 @@
               "nulls": "last"
             },
             {
-              "expression": "value_timestamp",
+              "expression": "value_timestamp_tz",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

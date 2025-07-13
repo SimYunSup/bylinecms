@@ -117,6 +117,7 @@ function createFlattenedStore(
     case 'text':
     case 'boolean':
     case 'checkbox':
+    case 'select':
       return { ...baseValue, field_type, value };
 
     case 'richText':
@@ -125,37 +126,67 @@ function createFlattenedStore(
     case 'float':
     case 'integer':
     case 'decimal':
-      return {
-        ...baseValue,
-        field_type,
-        number_type: field_type,
-        value_float: field_type === 'float' ? value : undefined,
-        value_decimal: field_type === 'decimal' ? value : undefined,
-        value_integer: field_type === 'integer' ? value : undefined,
-      };
+      {
+        return {
+          ...baseValue,
+          field_type,
+          number_type: field_type,
+          value_float: field_type === 'float' ? value : undefined,
+          value_decimal: field_type === 'decimal' ? value : undefined,
+          value_integer: field_type === 'integer' ? value : undefined,
+        };
+      }
 
+    case 'time':
+    case 'date':
     case 'datetime':
-      return {
-        ...baseValue,
-        field_type,
-        date_type: 'timestampTz', // Default to timestamp, can be extended later
-        value_time: undefined,
-        value_date: undefined,
-        value_timestamp: undefined,
-        value_timestamp_tz: value ?? undefined,
-      };
+      {
+        return {
+          ...baseValue,
+          field_type,
+          date_type: field_type,
+          value_time: field_type === 'time' ? value : undefined,
+          value_date: field_type === 'date' ? value : undefined,
+          value_timestamp_tz: field_type === 'datetime' ? value : undefined,
+        }
+      }
 
     case 'file':
     case 'image':
-      return { ...baseValue, field_type, ...value };
+      {
+        const v = value as FileStore;
+        return {
+          ...baseValue,
+          field_type,
+          file_id: v.file_id,
+          filename: v.filename,
+          original_filename: v.original_filename,
+          mime_type: v.mime_type,
+          file_size: v.file_size,
+          storage_provider: v.storage_provider,
+          storage_path: v.storage_path,
+          storage_url: v.storage_url,
+          file_hash: v.file_hash,
+          image_width: v.image_width,
+          image_height: v.image_height,
+          image_format: v.image_format,
+          processing_status: v.processing_status,
+          thumbnail_generated: v.thumbnail_generated,
+        };
+      }
 
     case 'relation':
       return { ...baseValue, field_type, ...value };
 
     case 'json':
     case 'object':
-      return { ...baseValue, field_type, ...value };
-
+      return {
+        ...baseValue,
+        field_type,
+        value: value.value,
+        json_schema: value.json_schema,
+        object_keys: value.object_keys, // Assuming object_keys is part of the value;
+      }
     default:
       throw new Error(`Unsupported field type: ${field_type}`);
   }
@@ -234,7 +265,9 @@ export function reconstructDocument(
 function createReconstructedValue(fieldValue: FlattenedStore): any {
   switch (fieldValue.field_type) {
     case 'text':
+    case 'select':
     case 'richText':
+    case 'checkbox':
     case 'boolean':
     case 'json':
     case 'object':
@@ -256,23 +289,52 @@ function createReconstructedValue(fieldValue: FlattenedStore): any {
       return undefined;
     }
 
+    case 'time':
+    case 'date':
     case 'datetime': {
-      // TODO: Implement date, time, timestamp reconstruction
-      const value = fieldValue as DateTimeStore;
-      return value.value_timestamp_tz;
+      const value = fieldValue as DateTimeStore
+      if (value.date_type === 'time') {
+        return value.value_time;
+      }
+      if (value.date_type === 'date') {
+        return value.value_date;
+      }
+      // Assuming timestamp_tz is the default for datetime
+      if (value.date_type === 'datetime') {
+        return value.value_timestamp_tz;
+      }
+      return undefined;
     }
 
     case 'file':
     case 'image': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as FileStore & { value?: any };
-      delete value.value;
-      return value;
+      const fileValue = fieldValue as FileStore;
+      return {
+        file_id: fileValue.file_id,
+        filename: fileValue.filename,
+        original_filename: fileValue.original_filename,
+        mime_type: fileValue.mime_type,
+        file_size: fileValue.file_size,
+        storage_provider: fileValue.storage_provider,
+        storage_path: fileValue.storage_path,
+        storage_url: fileValue.storage_url,
+        file_hash: fileValue.file_hash,
+        image_width: fileValue.image_width,
+        image_height: fileValue.image_height,
+        image_format: fileValue.image_format,
+        processing_status: fileValue.processing_status,
+        thumbnail_generated: fileValue.thumbnail_generated,
+      };
     }
 
     case 'relation': {
-      const { field_path, field_name, locale, parent_path, field_type, ...value } = fieldValue as RelationStore & { value?: any };
-      delete value.value;
-      return value;
+      const relationValue = fieldValue as RelationStore;
+      return {
+        target_document_id: relationValue.target_document_id,
+        target_collection_id: relationValue.target_collection_id,
+        relationship_type: relationValue.relationship_type,
+        cascade_delete: relationValue.cascade_delete,
+      };
     }
 
     default:

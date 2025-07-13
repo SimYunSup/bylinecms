@@ -153,20 +153,18 @@ export const datetimeStore = pgTable('datetime_store', {
   ...baseStoreColumns,
 
   // Store the original date type for reconstruction
-  date_type: varchar('date_type', { length: 20 }).notNull(), // 'date', 'time', 'timestamp', 'timestamptz'
+  date_type: varchar('date_type', { length: 20 }).notNull(), // 'date', 'time', 'timestamptz'
 
   value_date: date('value_date'),
   value_time: time('value_time'),
-  value_timestamp: timestamp('value_timestamp'),
   value_timestamp_tz: timestamp('value_timestamp_tz', { withTimezone: true }),
 }, (table) => ([
   // Optimized for date range queries
   index('idx_datetime_date').on(table.value_date),
-  index('idx_datetime_timestamp').on(table.value_timestamp),
   index('idx_datetime_timestamp_tz').on(table.value_timestamp_tz),
   // Common date query patterns
-  index('idx_datetime_path_date').on(table.field_path, table.value_timestamp),
-  index('idx_datetime_collection_date').on(table.collection_id, table.value_timestamp),
+  index('idx_datetime_path_date').on(table.field_path, table.value_timestamp_tz),
+  index('idx_datetime_collection_date').on(table.collection_id, table.value_timestamp_tz),
   unique('unique_datetime_field').on(table.document_version_id, table.field_path, table.locale),
 ]));
 

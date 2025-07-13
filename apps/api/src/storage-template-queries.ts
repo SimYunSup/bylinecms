@@ -15,7 +15,6 @@ export const textFields = sql`
   NULL::varchar as "date_type",
   NULL::date as "value_date",
   NULL::time as "value_time",
-  NULL::timestamp as "value_timestamp",
   NULL::timestamp as "value_timestamp_tz",
   NULL::uuid as "file_id",
   NULL::varchar as "filename",
@@ -58,7 +57,6 @@ export const numericFields = sql`
   NULL,  -- date_type
   NULL,  -- value_date
   NULL,  -- value_time
-  NULL,  -- value_timestamp
   NULL,  -- value_timestamp_tz
   NULL,  -- file_id
   NULL,  -- filename
@@ -101,7 +99,6 @@ export const booleanFields = sql`
   NULL,  -- date_type
   NULL,  -- value_date
   NULL,  -- value_time
-  NULL,  -- value_timestamp
   NULL,  -- value_timestamp_tz
   NULL,  -- file_id
   NULL,  -- filename
@@ -144,7 +141,6 @@ export const datetimeFields = sql`
   date_type,  -- date_type
   value_date, -- value_date
   value_time, -- value_time
-  value_timestamp, -- value_timestamp
   value_timestamp_tz, -- value_timestamp_tz
   NULL,  -- file_id
   NULL,  -- filename
@@ -187,7 +183,6 @@ export const jsonFields = sql`
   NULL,  -- date_type
   NULL,  -- value_date
   NULL,  -- value_time
-  NULL,  -- value_timestamp
   NULL,  -- value_timestamp_tz
   NULL,  -- file_id
   NULL,  -- filename
@@ -230,7 +225,6 @@ export const relationFields = sql`
   NULL,  -- date_type
   NULL,  -- value_date
   NULL,  -- value_time
-  NULL,  -- value_timestamp
   NULL,  -- value_timestamp_tz
   NULL,  -- file_id
   NULL,  -- filename
@@ -272,7 +266,6 @@ export const fileFields = sql`
   NULL,  -- date_type
   NULL,  -- value_date
   NULL,  -- value_time
-  NULL,  -- value_timestamp
   NULL,  -- value_timestamp_tz
   file_id,           -- file_id
   filename,          -- filename

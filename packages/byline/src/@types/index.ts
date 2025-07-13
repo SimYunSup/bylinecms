@@ -46,7 +46,7 @@ export interface CollectionDefinition {
   columns?: ColumnDefinition[]
 }
 
-export type FieldType = 'array' | 'group' | 'row' | 'block' | 'text' | 'checkbox' | 'boolean' | 'select' | 'richText' | 'datetime' | 'file' | 'image' | 'float' | 'integer' | 'decimal' | 'relation' | 'json' | 'object';
+export type FieldType = 'array' | 'group' | 'row' | 'block' | 'text' | 'checkbox' | 'boolean' | 'select' | 'richText' | 'datetime' | 'date' | 'time' | 'file' | 'image' | 'float' | 'integer' | 'decimal' | 'relation' | 'json' | 'object';
 
 // Utility type to identify presentational field types
 export type PresentationalFieldType = 'array' | 'group' | 'row' | 'block';
@@ -135,6 +135,16 @@ export interface RichTextField extends BaseValueField {
   }
 }
 
+export interface TimeField extends BaseValueField {
+  type: 'time'
+  initialValue?: '00:00' | string // Default to midnight
+}
+
+export interface DateField extends BaseValueField {
+  type: 'date'
+  initialValue?: Date
+}
+
 export interface DateTimeField extends BaseValueField {
   type: 'datetime'
   mode?: 'date' | 'datetime'
@@ -179,7 +189,7 @@ export interface ObjectField extends BaseValueField {
 export type PresentationalField = ArrayField | GroupField | RowField | BlockField
 
 // Union of all value fields
-export type ValueField = TextField | CheckboxField | BooleanField | SelectField | RichTextField | DateTimeField | FileField | ImageField | FloatField | IntegerField | DecimalField | RelationField | JsonField | ObjectField
+export type ValueField = TextField | CheckboxField | BooleanField | SelectField | RichTextField | DateTimeField | DateField | TimeField | FileField | ImageField | FloatField | IntegerField | DecimalField | RelationField | JsonField | ObjectField
 
 // Main Field union type
 export type Field = PresentationalField | ValueField

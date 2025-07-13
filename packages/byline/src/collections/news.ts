@@ -65,7 +65,7 @@ export const News: CollectionDefinition = {
       helpText: 'Enter the main content for this page.',
       required: true,
     },
-    { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', admin: { position: 'sidebar' } },
+    { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', required: true, admin: { position: 'sidebar' } },
   ],
   columns: newsColumns,
 }

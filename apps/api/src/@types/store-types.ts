@@ -9,7 +9,7 @@ export interface BaseStore {
 }
 
 export interface TextStore extends BaseStore {
-  field_type: 'text';
+  field_type: 'text' | 'select';
   value: string; // Should only be string after flattening
 }
 
@@ -28,11 +28,10 @@ export interface BooleanStore extends BaseStore {
 }
 
 export interface DateTimeStore extends BaseStore {
-  field_type: 'datetime';
-  date_type: 'timestamp' | 'timestampTz' | 'date' | 'time';
+  field_type: 'datetime' | 'date' | 'time';
+  date_type: 'datetime' | 'date' | 'time';
   value_time?: string;
   value_date?: Date;
-  value_timestamp?: Date,
   value_timestamp_tz?: Date,
 }
 
@@ -102,6 +101,10 @@ export function isNumericStore(fieldValue: FlattenedStore): fieldValue is Numeri
   return ['float', 'integer', 'decimal'].includes(fieldValue.field_type);
 }
 
+export function isDateTimeStore(fieldValue: FlattenedStore): fieldValue is DateTimeStore {
+  return ['datetime', 'date', 'time'].includes(fieldValue.field_type);
+}
+
 
 // Standardized field value structure for unified processing
 export interface UnionRowValue {
@@ -123,10 +126,9 @@ export interface UnionRowValue {
   date_type: string | null;
   value_date: Date | null;
   value_time: string | null;
-  value_timestamp: Date | null;
   value_timestamp_tz: Date | null;
 
-  // File fields
+  // File or Image fields
   file_id: string | null;
   filename: string | null;
   original_filename: string | null;

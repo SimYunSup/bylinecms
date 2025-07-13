@@ -94,7 +94,6 @@ export class DocumentQueries {
       fv.date_type,
       fv.value_date,
       fv.value_time,
-      fv.value_timestamp,
       fv.value_timestamp_tz,
       fv.file_id,
       fv.filename,
@@ -530,7 +529,6 @@ export class DocumentQueries {
           date_type: row.date_type as string | null,
           value_date: row.value_date as Date | null,
           value_time: row.value_time as string | null,
-          value_timestamp: row.value_timestamp as Date | null,
           value_timestamp_tz: row.value_timestamp_tz as Date | null,
           file_id: row.file_id as string | null,
           filename: row.filename as string | null,
@@ -810,21 +808,23 @@ export class DocumentQueries {
             value: row.boolean_value,
           };
 
+        case 'time':
+        case 'date':
         case 'datetime':
           return {
             ...baseValue,
-            field_type: 'datetime' as const,
+            field_type: row.date_type as 'time' | 'date' | 'datetime',
             date_type: row.date_type,
             value_time: row.value_time,
             value_date: row.value_date,
-            value_timestamp: row.value_timestamp,
             value_timestamp_tz: row.value_timestamp_tz,
           };
 
+        case 'image':
         case 'file':
           return {
             ...baseValue,
-            field_type: 'file' as const,
+            field_type: row.field_type as 'image' | 'file',
             file_id: row.file_id,
             filename: row.filename,
             original_filename: row.original_filename,

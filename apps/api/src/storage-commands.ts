@@ -175,14 +175,14 @@ export class DocumentCommands {
           value: fieldValue.value,
         });
 
-      // TODO: Implement date, time, and explicit timestamp support
+      case 'time':
+      case 'date':
       case 'datetime':
         return await tx.insert(datetimeStore).values({
           ...baseData,
-          date_type: fieldValue.date_type || 'timestamp',
+          date_type: fieldValue.date_type || 'datetime',
           value_time: fieldValue.value_time,
           value_date: fieldValue.value_date,
-          value_timestamp: fieldValue.value_timestamp,
           value_timestamp_tz: fieldValue.value_timestamp_tz,
         });
 
