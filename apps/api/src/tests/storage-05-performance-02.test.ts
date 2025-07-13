@@ -44,7 +44,15 @@ const siteConfig: SiteConfig = {
 }
 
 // Global test variables
-let bulkCollection: { id: string; name: string } = {} as any
+let collection: {
+  id: string;
+  path: string;
+  singular: string;
+  plural: string;
+  config: unknown;
+  created_at: Date | null;
+  updated_at: Date | null;
+} | undefined
 
 describe('Bulk Document Operations', () => {
   before(async () => {
@@ -62,9 +70,11 @@ describe('Bulk Document Operations', () => {
     queryBuilders = createQueryBuilders(siteConfig, db)
 
     // Get bulk collection
-    const collection = await queryBuilders.collections.findByPath('bulk')
-    bulkCollection = { id: collection[0].id, name: collection[0].path }
-    console.log('Bulk collection retrieved:', bulkCollection)
+    collection = await queryBuilders.collections.findByPath('docs')
+    if (collection == null) {
+      throw new Error('Bulk collection not found. Please run seed-bulk-documents.ts first.')
+    }
+    console.log('Bulk collection retrieved:', collection)
   })
 
   after(async () => {
@@ -76,12 +86,15 @@ describe('Bulk Document Operations', () => {
 
   describe('Get Documents for Collection', () => {
     it('get all documents for collection', async () => {
+      if (collection == null) {
+        throw new Error('Collection is not defined. Please run seed-bulk-documents.ts first.')
+      }
 
       const startTime = performance.now()
 
       const documents = await queryBuilders.documents.getAllCurrentDocumentsForCollection
         (
-          bulkCollection.id,
+          collection.id,
           'all'
         )
 
@@ -93,10 +106,14 @@ describe('Bulk Document Operations', () => {
       console.log('Sample document:', documents[0])
     })
     it('get all documents for collection by page', async () => {
+      if (collection == null) {
+        throw new Error('Collection is not defined. Please run seed-bulk-documents.ts first.')
+      }
+
       const startTime = performance.now()
 
       const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(
-        bulkCollection.id,
+        collection.id,
         {
           locale: 'all',
           page: 1,

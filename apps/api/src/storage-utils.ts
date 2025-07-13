@@ -116,6 +116,7 @@ function createFlattenedStore(
   switch (field_type) {
     case 'text':
     case 'boolean':
+    case 'checkbox':
       return { ...baseValue, field_type, value };
 
     case 'richText':

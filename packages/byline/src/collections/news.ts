@@ -33,7 +33,7 @@ const newsColumns: ColumnDefinition[] = [
     className: 'w-[25%]',
   },
   {
-    fieldName: 'published',
+    fieldName: 'status',
     label: 'Status',
     align: 'center',
     className: 'w-[15%]',

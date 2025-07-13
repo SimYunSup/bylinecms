@@ -50,7 +50,7 @@ export class CollectionQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   async findByPath(path: string) {
-    return await this.db.select().from(collections).where(eq(collections.path, path)).limit(1);
+    return this.db.query.collections.findFirst({ where: eq(collections.path, path) });
   }
 
   async getAll() {

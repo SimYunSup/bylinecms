@@ -1,5 +1,6 @@
 
-import type { CollectionDefinition, SiteConfig } from '@byline/byline/@types/index'
+import type { SiteConfig } from '@byline/byline/@types/index'
+import { getCollectionDefinition } from '@byline/byline/collections/registry'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
@@ -18,53 +19,53 @@ const siteConfig: SiteConfig = {
   }
 }
 
-export const BulkDocsCollectionConfig: CollectionDefinition = {
-  path: 'bulk-docs',
-  labels: {
-    singular: 'Document',
-    plural: 'Documents',
-  },
-  fields: [
-    { name: 'path', type: 'text', required: true },
-    { name: 'title', type: 'text', required: true, localized: true },
-    { name: 'summary', type: 'text', required: true, localized: true },
-    { name: 'category', type: 'relation', required: false },
-    { name: 'publishedOn', type: 'datetime', required: false },
-    {
-      name: 'content', type: 'array', fields: [
-        {
-          name: 'richTextBlock', type: 'array', fields: [
-            { name: 'constrainedWidth', type: 'boolean', required: false },
-            { name: 'richText', type: 'richText', required: true, localized: true },
-          ]
-        },
-        {
-          name: 'photoBlock', type: 'array', fields: [
-            { name: 'display', type: 'text', required: false },
-            { name: 'photo', type: 'file', required: true },
-            { name: 'alt', type: 'text', required: true, localized: false },
-            { name: 'caption', type: 'richText', required: false, localized: true },
-          ]
-        },
-      ]
-    },
-    {
-      name: 'reviews', type: 'array', fields: [
-        {
-          name: 'reviewItem', type: 'array', fields: [
-            { name: 'rating', type: 'integer', required: true },
-            { name: 'comment', type: 'richText', required: true, localized: false },
-          ]
-        }
-      ]
-    },
-    {
-      name: 'links', type: 'array', fields: [
-        { name: "link", type: "text" }
-      ]
-    }
-  ],
-};
+// export const BulkDocsCollectionConfig: CollectionDefinition = {
+//   path: 'bulk-docs',
+//   labels: {
+//     singular: 'Document',
+//     plural: 'Documents',
+//   },
+//   fields: [
+//     { name: 'path', type: 'text', required: true },
+//     { name: 'title', type: 'text', required: true, localized: true },
+//     { name: 'summary', type: 'text', required: true, localized: true },
+//     { name: 'category', type: 'relation', required: false },
+//     { name: 'publishedOn', type: 'datetime', required: false },
+//     {
+//       name: 'content', type: 'array', fields: [
+//         {
+//           name: 'richTextBlock', type: 'array', fields: [
+//             { name: 'constrainedWidth', type: 'boolean', required: false },
+//             { name: 'richText', type: 'richText', required: true, localized: true },
+//           ]
+//         },
+//         {
+//           name: 'photoBlock', type: 'array', fields: [
+//             { name: 'display', type: 'text', required: false },
+//             { name: 'photo', type: 'file', required: true },
+//             { name: 'alt', type: 'text', required: true, localized: false },
+//             { name: 'caption', type: 'richText', required: false, localized: true },
+//           ]
+//         },
+//       ]
+//     },
+//     {
+//       name: 'reviews', type: 'array', fields: [
+//         {
+//           name: 'reviewItem', type: 'array', fields: [
+//             { name: 'rating', type: 'integer', required: true },
+//             { name: 'comment', type: 'richText', required: true, localized: false },
+//           ]
+//         }
+//       ]
+//     },
+//     {
+//       name: 'links', type: 'array', fields: [
+//         { name: "link", type: "text" }
+//       ]
+//     }
+//   ],
+// };
 
 // Complex test document with many fields and arrays
 const sampleDocument = {
@@ -83,6 +84,7 @@ const sampleDocument = {
   //   target_collection_id: "cat-123",
   //   target_document_id: "electronics-audio"
   // },
+  featured: false,
   publishedOn: new Date("2024-01-15T10:00:00"),
   content: [
     {
@@ -145,12 +147,18 @@ async function run() {
   pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
   db = drizzle(pool, { schema })
 
+  const collectionDefinition = getCollectionDefinition('docs')
   commandBuilders = createCommandBuilders(siteConfig, db)
+
+  if (!collectionDefinition) {
+    console.error('Collection definition not found for "docs"')
+    return
+  }
 
   // Create bulk documents to populate the database.
   const bulkDocsCollectionResult = await commandBuilders.collections.create(
-    'bulk',
-    BulkDocsCollectionConfig
+    'docs',
+    collectionDefinition
   )
 
   const bulkDocsCollection = { id: bulkDocsCollectionResult[0].id, name: bulkDocsCollectionResult[0].path }
@@ -163,7 +171,7 @@ async function run() {
     docData.title.en = `A bulk created document. ${i + 1}` // Ensure unique names  
     await commandBuilders.documents.createDocument({
       collectionId: bulkDocsCollection.id,
-      collectionConfig: BulkDocsCollectionConfig,
+      collectionConfig: collectionDefinition,
       action: 'create',
       documentData: docData,
       path: docData.path,

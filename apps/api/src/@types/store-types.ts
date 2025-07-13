@@ -23,7 +23,7 @@ export interface NumericStore extends BaseStore {
 }
 
 export interface BooleanStore extends BaseStore {
-  field_type: 'boolean';
+  field_type: 'boolean' | 'checkbox';
   value: boolean;
 }
 

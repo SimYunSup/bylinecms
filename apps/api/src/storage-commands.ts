@@ -48,12 +48,12 @@ type DatabaseConnection = NodePgDatabase<typeof schema>;
 export class CollectionCommands {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async create(path: string, config: any) {
+  async create(path: string, config: CollectionDefinition) {
     return await this.db.insert(collections).values({
       id: uuidv7(),
       path,
-      singular: config.singular || path, // Default to path if singular not provided
-      plural: config.plural || `${path}s`, // Default to pluralized path if not
+      singular: config.labels.singular || path, // Default to path if singular not provided
+      plural: config.labels.plural || `${path}s`, // Default to pluralized path if not
       config,
     }).returning();
   }
@@ -168,6 +168,7 @@ export class DocumentCommands {
         }
         throw new Error(`Invalid numeric field value for ${baseData.field_path}`);
 
+      case 'checkbox':
       case 'boolean':
         return await tx.insert(booleanStore).values({
           ...baseData,

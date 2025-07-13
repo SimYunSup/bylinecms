@@ -61,24 +61,28 @@ const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandB
 // Get collection documents
 server.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
-    reply.code(404).send({ error: 'Collection not found' })
+  const collectionDefinition = getCollectionDefinition(path)
+  if (collectionDefinition == null) {
+    reply.code(404).send({ error: 'Collection definition not found in collection registry.' })
     return
   }
 
   try {
     // Find the collection in our database
-    let collectionResult = await queryBuilders.collections.findByPath(path)
-    if (collectionResult.length === 0) {
+    let collection = await queryBuilders.collections.findByPath(collectionDefinition.path)
+    if (collection == null) {
       // Collection doesn't exist in database yet, create it
-      collectionResult = await commandBuilders.collections.create(collection.path, collection)
+      await commandBuilders.collections.create(collectionDefinition.path, collectionDefinition)
+      collection = await queryBuilders.collections.findByPath(collectionDefinition.path)
     }
 
-    const collectionRecord = collectionResult[0]
+    if (collection == null) {
+      reply.code(404).send({ error: 'Collection not found in database' })
+      return
+    }
 
     // Get all documents for this collection
-    const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(collectionRecord.id,
+    const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(collection.id,
       {
         locale: 'en',
         page: 1,
@@ -98,20 +102,25 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
 server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
   const body = request.body
-
-  const collectionConfig = getCollectionDefinition(path)
-  if (!collectionConfig) {
-    reply.code(404).send({ error: 'Collection not found' })
+  const collectionDefinition = getCollectionDefinition(path)
+  if (collectionDefinition == null) {
+    reply.code(404).send({ error: 'Collection definition not found in collection registry.' })
     return
   }
 
   try {
-    // Find or create collection in database
-    let collectionRecords = await queryBuilders.collections.findByPath(path)
-    if (collectionRecords.length === 0) {
-      collectionRecords = await commandBuilders.collections.create(collectionConfig.path, collectionConfig)
+    // Find the collection in our database
+    let collection = await queryBuilders.collections.findByPath(collectionDefinition.path)
+    if (collection == null) {
+      // Collection doesn't exist in database yet, create it
+      await commandBuilders.collections.create(collectionDefinition.path, collectionDefinition)
+      collection = await queryBuilders.collections.findByPath(collectionDefinition.path)
     }
-    const collectionRecord = collectionRecords[0]
+
+    if (collection == null) {
+      reply.code(404).send({ error: 'Collection not found in database' })
+      return
+    }
 
     // Create document
     // const documentResults = await commandBuilders.documents.createDocument({
@@ -165,9 +174,9 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
 server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
 
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
-    reply.code(404).send({ error: 'Collection not found' })
+  const collectionDefinition = getCollectionDefinition(path)
+  if (collectionDefinition == null) {
+    reply.code(404).send({ error: 'Collection definition not found in collection registry.' })
     return
   }
 
@@ -210,9 +219,9 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
   const { collection: path, id } = request.params
   const body = request.body
 
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
-    reply.code(404).send({ error: 'Collection not found' })
+  const collectionDefinition = getCollectionDefinition(path)
+  if (collectionDefinition == null) {
+    reply.code(404).send({ error: 'Collection definition not found in collection registry.' })
     return
   }
 
