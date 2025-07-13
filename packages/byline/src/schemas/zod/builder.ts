@@ -145,7 +145,7 @@ export const createListMetaSchema = () => z.object({
   page: z.number().int().positive(),
   page_size: z.number().int().positive(),
   total: z.number().int().nonnegative(),
-  total_pages: z.number().int().positive(),
+  total_pages: z.number().int().nonnegative(),
   order: z.string().optional(),
   desc: z.boolean().optional(),
 })

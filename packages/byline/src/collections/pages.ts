@@ -63,6 +63,7 @@ export const Pages: CollectionDefinition = {
     plural: 'Pages',
   },
   fields: [
+    { name: 'path', label: "Path", type: 'text', required: true, admin: { position: 'sidebar' } },
     { name: 'title', label: 'Title', type: 'text', required: true },
     {
       name: 'category',

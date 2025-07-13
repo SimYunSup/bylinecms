@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "chokidar 'src/collections/**/*' -c 'npm-run-all byline:generate build'",
+    "dev": "chokidar 'src/collections/**/*' -c 'npm-run-all build'",
     "build": "tsc -p tsconfig.json",
     "skip": "tsx ./scripts/task-watch.js",
     "byline:generate": "tsx scripts/generate.ts",

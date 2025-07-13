@@ -56,6 +56,7 @@ export const News: CollectionDefinition = {
     plural: 'News',
   },
   fields: [
+    { name: 'path', label: "Path", type: 'text', required: true, admin: { position: 'sidebar' } },
     { name: 'title', label: 'Title', type: 'text', required: true },
     {
       name: 'content',

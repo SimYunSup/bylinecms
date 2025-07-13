@@ -29,7 +29,7 @@ import { ListView } from '@/modules/collections/list'
 
 const searchSchema = z.object({
   page: z.coerce.number().min(1).optional(),
-  page_size: z.coerce.number().min(1).max(100).optional(),
+  page_size: z.coerce.number().max(100).optional(),
   order: z.string().optional(),
   desc: z.boolean().optional(),
   query: z.string().optional(),
