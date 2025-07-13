@@ -174,7 +174,7 @@ export const ListView = ({
             <Table.Body>
               {data?.documents?.map((document) => {
                 return (
-                  <Table.Row key={document.id}>
+                  <Table.Row key={document.document_id}>
                     {columns.map((column) => (
                       <Table.Cell
                         key={String(column.fieldName)}
@@ -191,7 +191,7 @@ export const ListView = ({
                             to="/collections/$collection/$id"
                             params={{
                               collection: data.included.collection.path,
-                              id: document.id,
+                              id: document.document_id,
                             }}
                           >
                             {column.formatter

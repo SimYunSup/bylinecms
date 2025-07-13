@@ -31,6 +31,7 @@ import { collections, currentDocumentsView as documents } from '../database/sche
 type DatabaseConnection = NodePgDatabase<typeof schema>;
 
 import type { CollectionDefinition, SiteConfig } from "@byline/byline/@types/index";
+import { create } from "domain";
 import type {
   FlattenedStore,
   UnionRowValue
@@ -238,6 +239,7 @@ export class DocumentQueries {
     included: {
       collection: {
         id: string;
+        path: string,
         labels: {
           singular: string;
           plural: string;
@@ -272,23 +274,13 @@ export class DocumentQueries {
       .where(eq(documents.collection_id, collectionId)
       );
 
-    const total = totalResult[0]?.count || 0;
+    // Most robust - handles strings, nulls, undefined, etc.
+    const total = Number(totalResult[0]?.count) || 0;
 
-    if (total === 0) {
-      return {
-        documents: [],
-        meta: { total: 0, page, page_size, total_pages: 0, order, desc },
-        included: {
-          collection: {
-            id: collection.id,
-            labels: {
-              singular: config.labels.singular || collection.path,
-              plural: config.labels.plural || collection.path,
-            }
-          }
-        }
-      };
-    }
+    // Alternative approaches:
+    // const total = parseInt(String(totalResult[0]?.count || 0), 10);
+    // const total = Math.max(0, Number(totalResult[0]?.count) || 0); // ensures non-negative
+    // const total = +(totalResult[0]?.count || 0); // unary plus operator
 
     const total_pages = Math.ceil(total / page_size);
     const offset = (page - 1) * page_size;
@@ -316,6 +308,7 @@ export class DocumentQueries {
       included: {
         collection: {
           id: collection.id,
+          path: collection.path,
           labels: {
             singular: config.labels.singular || collection.path,
             plural: config.labels.plural || collection.path,
@@ -410,8 +403,10 @@ export class DocumentQueries {
     const docs = await this.db.select({
       document_version_id: documents.id,
       document_id: documents.document_id,
-      document_path: documents.path,
-      document_status: documents.status,
+      path: documents.path,
+      status: documents.status,
+      created_at: documents.created_at,
+      updated_at: documents.updated_at,
     })
       .from(documents)
       .where(inArray(documents.id, documentVersionIds));
@@ -450,8 +445,10 @@ export class DocumentQueries {
       const documentWithMetadata = {
         document_version_id: doc.document_version_id,
         document_id: doc.document_id,
-        path: doc.document_path,
-        status: doc.document_status,
+        path: doc.path,
+        status: doc.status,
+        created_at: doc.created_at,
+        updated_at: doc.updated_at,
         ...reconstructedDocument
       };
 

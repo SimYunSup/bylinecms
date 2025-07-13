@@ -42,6 +42,7 @@ export const Route = createFileRoute('/collections/$collection/')({
     }
 
     const rawData = await response.json()
+    console.log('Raw data:', rawData)
     // Validate with schema for runtime type safety
     const data = list.parse(rawData)
 

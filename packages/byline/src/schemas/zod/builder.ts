@@ -1,4 +1,6 @@
 // TODO: complete the migration to Zod v4 and remove this comment
+
+import { desc } from 'drizzle-orm'
 import type { ZodDate, ZodEffects } from 'zod/'
 import { z } from 'zod/v4'
 import type { CollectionDefinition, DateTimeField, Field, TextField, ValidationRule } from '../../@types/index.js'
@@ -53,6 +55,10 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
   let schema: z.ZodType
 
   switch (field.type) {
+    case 'array':
+      schema = z.any().array()
+      break
+
     case 'text': {
       let textSchema = z.string()
       textSchema = applyTextValidation(textSchema, field)
@@ -65,6 +71,7 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
       break
     }
 
+    case 'boolean':
     case 'checkbox':
       schema = z.boolean()
       break
@@ -116,8 +123,7 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
 
 // Create the base schema that all collections share
 export const createBaseSchema = () => z.object({
-  id: z.uuid(),
-  vid: z.number().int().positive(),
+  document_id: z.uuid(),
   status: z.enum(['draft', 'published', 'archived']),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
@@ -140,6 +146,8 @@ export const createListMetaSchema = () => z.object({
   page_size: z.number().int().positive(),
   total: z.number().int().nonnegative(),
   total_pages: z.number().int().positive(),
+  order: z.string().optional(),
+  desc: z.boolean().optional(),
 })
 
 // Create collection metadata schema
