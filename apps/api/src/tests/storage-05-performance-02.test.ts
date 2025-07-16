@@ -70,7 +70,7 @@ describe('Bulk Document Operations', () => {
     queryBuilders = createQueryBuilders(siteConfig, db)
 
     // Get bulk collection
-    collection = await queryBuilders.collections.findByPath('docs')
+    collection = await queryBuilders.collections.getCollectionByPath('docs')
     if (collection == null) {
       throw new Error('Bulk collection not found. Please run seed-bulk-documents.ts first.')
     }

@@ -22,7 +22,6 @@
  *
  */
 
-
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from '../database/schema/index.js'
@@ -54,12 +53,33 @@ import { reconstructFields } from './storage-utils.js';
 export class CollectionQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
-  async findByPath(path: string) {
+  /**
+   * getAllCollections
+   * 
+   * @returns 
+   */
+  async getAllCollections() {
+    return await this.db.select().from(collections);
+  }
+
+  /**
+   * getCollectionByPath
+   * 
+   * @param path 
+   * @returns 
+   */
+  async getCollectionByPath(path: string) {
     return this.db.query.collections.findFirst({ where: eq(collections.path, path) });
   }
 
-  async getAll() {
-    return await this.db.select().from(collections);
+  /**
+   * getCollectionById
+   * 
+   * @param id 
+   * @returns 
+   */
+  async getCollectionById(id: string) {
+    return this.db.query.collections.findFirst({ where: eq(collections.id, id) });
   }
 }
 

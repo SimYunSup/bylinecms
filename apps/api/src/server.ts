@@ -78,11 +78,11 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
 
   try {
     // Find the collection in our database
-    let collection = await queryBuilders.collections.findByPath(collectionDefinition.path)
+    let collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
     if (collection == null) {
       // Collection doesn't exist in database yet, create it
       await commandBuilders.collections.create(collectionDefinition.path, collectionDefinition)
-      collection = await queryBuilders.collections.findByPath(collectionDefinition.path)
+      collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
     }
 
     if (collection == null) {
@@ -115,11 +115,11 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
 
   try {
     // Find the collection in our database
-    let collection = await queryBuilders.collections.findByPath(collectionDefinition.path)
+    let collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
     if (collection == null) {
       // Collection doesn't exist in database yet, create it
       await commandBuilders.collections.create(collectionDefinition.path, collectionDefinition)
-      collection = await queryBuilders.collections.findByPath(collectionDefinition.path)
+      collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
     }
 
     if (collection == null) {
