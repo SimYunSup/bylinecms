@@ -31,6 +31,7 @@ import Fastify from 'fastify'
 import { Pool } from 'pg'
 // import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
+import { th } from 'zod/v4/locales'
 import * as schema from '../database/schema/index.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
@@ -66,67 +67,59 @@ const metaSchema = z.object({
   locale: z.string().optional(),
 })
 
-// Get collection documents
+type Collection = typeof schema.collections.$inferSelect
+
+async function ensureCollection(path: string): Promise<Collection | null | undefined> {
+  // 1. Get the collection definition from the registry
+  const collectionDefinition = getCollectionDefinition(path)
+  if (collectionDefinition == null) {
+    return null
+  }
+
+  // 2. Get or create the collection in the database
+  let collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
+  if (collection == null) {
+    // Collection doesn't exist in database yet, create it
+    await commandBuilders.collections.create(collectionDefinition.path, collectionDefinition)
+    collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
+  }
+
+  return collection
+}
+
+// Get documents
 server.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
   const search = request.query as Record<string, any>
-  const collectionDefinition = getCollectionDefinition(path)
-  if (collectionDefinition == null) {
-    reply.code(404).send({ error: 'Collection definition not found in collection registry.' })
+
+  // Ensure we have a collection
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
-  try {
-    // Find the collection in our database
-    let collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
-    if (collection == null) {
-      // Collection doesn't exist in database yet, create it
-      await commandBuilders.collections.create(collectionDefinition.path, collectionDefinition)
-      collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
-    }
+  const searchParams = metaSchema.safeParse(search)
 
-    if (collection == null) {
-      reply.code(404).send({ error: 'Collection not found in database' })
-      return
-    }
+  const result = await queryBuilders.documents.getDocumentsByPage(collection.id,
+    { ...searchParams.data, locale: 'en' }, // Default to 'en' locale if not provided
+  )
 
-    const searchParams = metaSchema.safeParse(search)
-
-    // Get all documents for this collection
-    const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(collection.id,
-      { ...searchParams.data, locale: 'en' }, // Default to 'en' locale if not provided
-    )
-
-    return result
-  } catch (error) {
-    server.log.error(error)
-    reply.code(500).send({ error: 'Internal server error' })
-  }
+  return result
 })
 
 server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
   const body = request.body
-  const collectionDefinition = getCollectionDefinition(path)
-  if (collectionDefinition == null) {
-    reply.code(404).send({ error: 'Collection definition not found in collection registry.' })
+
+  // Ensure we have a collection
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
   try {
-    // Find the collection in our database
-    let collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
-    if (collection == null) {
-      // Collection doesn't exist in database yet, create it
-      await commandBuilders.collections.create(collectionDefinition.path, collectionDefinition)
-      collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
-    }
-
-    if (collection == null) {
-      reply.code(404).send({ error: 'Collection not found in database' })
-      return
-    }
-
     // Create document
     // const documentResults = await commandBuilders.documents.createDocument({
     //   collectionId: collectionRecord.id,
@@ -163,6 +156,7 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
     //     status: document.status
     //   }
     // })
+    // biome-ignore lint/correctness/noUnreachable: <explanation>
   } catch (error) {
     if (error instanceof z.ZodError) {
       reply.code(400).send({
@@ -179,34 +173,31 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
 server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
 
-  const collectionDefinition = getCollectionDefinition(path)
-  if (collectionDefinition == null) {
-    reply.code(404).send({ error: 'Collection definition not found in collection registry.' })
+  // Ensure we have a collection
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
-  try {
-    // Get current version
-    const document = await queryBuilders.documents.getCurrentDocument(id, collectionDefinition.path)
-    if (document == null) {
-      reply.code(404).send({ error: 'Document version not found' })
-      return
-    }
-    reply.code(200).send({ document })
+  // Get current document
+  const document = await queryBuilders.documents.getDocumentById(collection.id, id)
+  if (document == null) {
+    reply.code(404).send({ error: 'Document version not found' })
     return
-  } catch (error) {
-    server.log.error(error)
-    reply.code(500).send({ error: 'Internal server error' })
   }
+  reply.code(200).send({ document })
+  return
 })
 
 server.put<{ Params: { collection: string; id: string }; Body: Record<string, any> }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
   const body = request.body
 
-  const collectionDefinition = getCollectionDefinition(path)
-  if (collectionDefinition == null) {
-    reply.code(404).send({ error: 'Collection definition not found in collection registry.' })
+  // Ensure we have a collection
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
@@ -251,6 +242,13 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
 
 server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
+
+  // Ensure we have a collection
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
+    return
+  }
 
   // const collection = getCollectionDefinition(path)
   // if (!collection) {
