@@ -143,7 +143,7 @@ describe('Field Types', () => {
 
     console.log('Created document:', result)
 
-    const document = await queryBuilders.documents.getCurrentDocument(
+    const document = await queryBuilders.documents.getDocumentByVersion(
       result.document.id,
     )
 

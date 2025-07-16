@@ -44,7 +44,9 @@ import { flattenFields } from './storage-utils.js';
 
 type DatabaseConnection = NodePgDatabase<typeof schema>;
 
-
+/**
+ * CollectionCommands
+ */
 export class CollectionCommands {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
@@ -63,11 +65,19 @@ export class CollectionCommands {
   }
 }
 
+/**
+ * DocumentCommands
+ */
 export class DocumentCommands {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   /**
-   * Creates document with all field values from a document object
+   * createDocument
+   * 
+   * Creates a new document or a new version of an existing document.
+   * 
+   * @param options - Options for creating the document
+   * @returns The created document and the number of field values inserted
    */
   async createDocument(options: {
     documentId?: string, // Optional logical document ID when creating a new version for the same logical document
@@ -115,6 +125,15 @@ export class DocumentCommands {
     });
   }
 
+  /**
+   * insertFieldValueByType
+   * 
+   * @param tx 
+   * @param documentVersionId 
+   * @param collectionId 
+   * @param fieldValue 
+   * @returns 
+   */
   private async insertFieldValueByType(
     tx: DatabaseConnection,
     documentVersionId: string,

@@ -45,8 +45,12 @@ import {
   relationFields,
   textFields
 } from './storage-template-queries.js';
+
 import { reconstructFields } from './storage-utils.js';
 
+/**
+ * CollectionQueries
+ */
 export class CollectionQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
@@ -60,13 +64,22 @@ export class CollectionQueries {
 }
 
 
+/**
+ * DocumentQueries
+ */
 export class DocumentQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
 
   /**
-   * getAllCurrentDocumentsForCollection
+   * getAllDocuments
+   * 
+   * Unlikely to use this. Here mainly for testing.
+   * 
+   * @param collectionId 
+   * @param locale 
+   * @returns 
    */
-  async getAllCurrentDocumentsForCollection(
+  async getAllDocuments(
     collectionId: string,
     locale = 'all'
   ): Promise<any[]> {
@@ -178,14 +191,21 @@ export class DocumentQueries {
   }
 
   /**
-   * getAllCurrentDocumentsForCollectionBatched
+   * getDocumentsByBatch
+   * 
+   * Also unlikely to use often. Mainly for testing and perhaps migration scripts.
+   * 
+   * @param collectionId 
+   * @param locale 
+   * @param batchSize 
+   * @returns 
    */
-  async getAllCurrentDocumentsForCollectionBatched(
+  async getDocumentsByBatch(
     collectionId: string,
     locale = 'all',
     batchSize = 100
   ): Promise<any[]> {
-    // First, get all current document IDs for the collection
+    // First, get all current document version IDs for the collection
     const currentDocuments = await this.db.select({
       document_version_id: currentDocumentsView.id,
       document_id: currentDocumentsView.document_id,
@@ -204,7 +224,7 @@ export class DocumentQueries {
 
     for (let i = 0; i < documentVersionIds.length; i += batchSize) {
       const batch = documentVersionIds.slice(i, i + batchSize);
-      const batchResults = await this.getCurrentDocuments(batch, locale);
+      const batchResults = await this.getDocuments(batch, locale);
 
       // Add batch results to final result array
       result.push(...batchResults);
@@ -214,9 +234,17 @@ export class DocumentQueries {
   }
 
   /**
-   * getCurrentDocumentsForCollectionPaginated
+   * getDocumentsByPage
+   * 
+   * Paginated query to get current documents for a collection
+   * 
+   * TODO: Parameter and return types
+   * 
+   * @param collectionId 
+   * @param options 
+   * @returns 
    */
-  async getCurrentDocumentsForCollectionPaginated(
+  async getDocumentsByPage(
     collectionId: string,
     options: {
       locale?: string;
@@ -273,14 +301,8 @@ export class DocumentQueries {
       .where(eq(currentDocumentsView.collection_id, collectionId)
       );
 
-    // Most robust - handles strings, nulls, undefined, etc.
+
     const total = Number(totalResult[0]?.count) || 0;
-
-    // Alternative approaches:
-    // const total = parseInt(String(totalResult[0]?.count || 0), 10);
-    // const total = Math.max(0, Number(totalResult[0]?.count) || 0); // ensures non-negative
-    // const total = +(totalResult[0]?.count || 0); // unary plus operator
-
     const total_pages = Math.ceil(total / page_size);
     const offset = (page - 1) * page_size;
 
@@ -288,7 +310,7 @@ export class DocumentQueries {
     const orderColumn = order === 'path' ? currentDocumentsView.path : currentDocumentsView.created_at;
     const orderFunc = desc === true ? sql`DESC` : sql`ASC`;
 
-    const paginatedDocs = await this.db.select({
+    const versionIdsPerPage = await this.db.select({
       id: currentDocumentsView.id,
     })
       .from(currentDocumentsView)
@@ -298,11 +320,11 @@ export class DocumentQueries {
       .limit(page_size)
       .offset(offset);
 
-    const documentVersionIds = paginatedDocs.map(doc => doc.id);
-    const documentsData = await this.getCurrentDocuments(documentVersionIds, locale);
+    const documentVersionIds = versionIdsPerPage.map(doc => doc.id);
+    const documents = await this.getDocuments(documentVersionIds, locale);
 
     return {
-      documents: documentsData,
+      documents,
       meta: { total, page, page_size, total_pages, order, desc },
       included: {
         collection: {
@@ -317,9 +339,67 @@ export class DocumentQueries {
     };
   }
 
-  async getCurrentDocumentByPath(collection_id: string, path: string) {
+  /**
+   * getDocumentById
+   * 
+   * Get's the current version of a document by its logical document ID.
+   * 
+   * @param collection_id 
+   * @param document_id 
+   * @returns 
+   */
+  async getDocumentById(collection_id: string, document_id: string) {
     // 1. Get current version
-    const [currentDocument] = await this.db.select()
+    const [document] = await this.db.select()
+      .from(currentDocumentsView)
+      .where(
+        and(
+          eq(currentDocumentsView.collection_id, collection_id),
+          eq(currentDocumentsView.document_id, document_id)
+        )
+      )
+
+    if (document == null) {
+      throw new Error(`Document not found for document_id: ${document_id}`);
+    }
+
+    // 2. Get all field values for this document
+    const unifiedFieldValues = await this.getAllFieldValues(
+      document.id,
+      'all' // or pass locale parameter
+    );
+
+    // 3. Convert unified values back to FlattenedStore format
+    const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
+
+    // 4. Reconstruct field values for document
+    const reconstructedFields = reconstructFields(
+      fieldValues,
+      'all' // or pass locale parameter
+    );
+
+    // 5. Add document level props
+    return {
+      document_version_id: document.id,
+      document_id: document.document_id,
+      path: document.path,
+      status: document.status,
+      created_at: document.created_at,
+      updated_at: document.updated_at,
+      ...reconstructedFields
+    };
+  }
+
+  /**
+   * getDocumentByPath
+   * 
+   * @param collection_id 
+   * @param path 
+   * @returns 
+   */
+  async getDocumentByPath(collection_id: string, path: string) {
+    // 1. Get current version
+    const [document] = await this.db.select()
       .from(currentDocumentsView)
       .where(
         and(
@@ -328,13 +408,13 @@ export class DocumentQueries {
         )
       )
 
-    if (currentDocument == null) {
-      return null; // or throw new Error(`Document not found at path: ${path}`);
+    if (document == null) {
+      throw new Error(`Document not found at path: ${path}`);
     }
 
     // 2. Get all field values for this document
     const unifiedFieldValues = await this.getAllFieldValues(
-      currentDocument.id,
+      document.id,
       'all' // or pass locale parameter
     );
 
@@ -349,12 +429,12 @@ export class DocumentQueries {
 
     // 5. Add document level props
     return {
-      document_version_id: currentDocument.id,
-      document_id: currentDocument.document_id,
-      path: currentDocument.path,
-      status: currentDocument.status,
-      created_at: currentDocument.created_at,
-      updated_at: currentDocument.updated_at,
+      document_version_id: document.id,
+      document_id: document.document_id,
+      path: document.path,
+      status: document.status,
+      created_at: document.created_at,
+      updated_at: document.updated_at,
       ...reconstructedFields
     };
   }
@@ -362,22 +442,24 @@ export class DocumentQueries {
   /**
    * getCurrentDocument
    */
-  async getCurrentDocument(
+  async getDocumentByVersion(
     documentVersionId: string,
     locale = 'all'
   ): Promise<any> {
-    // 1. Get current version
-    const currentDocument = await this.db.query.documents.findFirst({
+    // 1. Get current version. We can query the documents table directly
+    // since its primary key is the document version (no need to use
+    // the currentDocumentsView).
+    const document = await this.db.query.documents.findFirst({
       where: eq(documents.id, documentVersionId)
     });
 
-    if (currentDocument == null) {
+    if (document == null) {
       throw new Error(`No current version found for document ${documentVersionId}`);
     }
 
     // 2. Get all field values in a single query using UNION ALL
     const unifiedFieldValues = await this.getAllFieldValues(
-      currentDocument.id,
+      document.id,
       locale
     );
 
@@ -391,38 +473,49 @@ export class DocumentQueries {
 
     // Add document properties at root level
     const documentWithFields = {
-      document_version_id: currentDocument.id,
-      document_id: currentDocument.document_id,
-      path: currentDocument.path,
-      status: currentDocument.status,
-      created_at: currentDocument.created_at,
-      updated_at: currentDocument.updated_at,
+      document_version_id: document.id,
+      document_id: document.document_id,
+      path: document.path,
+      status: document.status,
+      created_at: document.created_at,
+      updated_at: document.updated_at,
       ...reconstructedFields
     };
 
     return documentWithFields
   }
 
-  /**
-   * getCurrentDocuments (multiple)
+  /** 
+   * getDocuments (multiple)
+   * 
+   * Primary used to get documents that have been selected by page,
+   * batch, or cursor.
+   *
+   * @param documentVersionIds 
+   * @param locale 
+   * @returns 
    */
-  async getCurrentDocuments(
+  async getDocuments(
     documentVersionIds: string[],
     locale = 'all'
   ): Promise<any[]> {
     if (documentVersionIds.length === 0) return [];
 
     // Get current documents
+    // Again here we can use the documents table directly
+    // since its primary key is the document version, and we are 
+    // supplying an array of document version IDs (as opposed to 
+    // logical document IDs).
     const docs = await this.db.select({
-      document_version_id: currentDocumentsView.id,
-      document_id: currentDocumentsView.document_id,
-      path: currentDocumentsView.path,
-      status: currentDocumentsView.status,
-      created_at: currentDocumentsView.created_at,
-      updated_at: currentDocumentsView.updated_at,
+      document_version_id: documents.id,
+      document_id: documents.document_id,
+      path: documents.path,
+      status: documents.status,
+      created_at: documents.created_at,
+      updated_at: documents.updated_at,
     })
-      .from(currentDocumentsView)
-      .where(inArray(currentDocumentsView.id, documentVersionIds));
+      .from(documents)
+      .where(inArray(documents.id, documentVersionIds));
 
     if (docs.length === 0) return [];
 
@@ -443,7 +536,7 @@ export class DocumentQueries {
       fieldValuesByVersion.get(fieldValue.document_version_id)?.push(fieldValue);
     }
 
-    // Reconstruct each document with metadata at root level
+    // Reconstruct each document with document data at root level
     const result: any[] = [];
     for (const doc of docs) {
       const versionFieldValues = fieldValuesByVersion.get(doc.document_version_id) || [];
@@ -454,7 +547,7 @@ export class DocumentQueries {
         locale
       );
 
-      // Add document metadata at root level
+      // Add document data at root level
       const documentWithFields = {
         document_version_id: doc.document_version_id,
         document_id: doc.document_id,
@@ -469,30 +562,42 @@ export class DocumentQueries {
     }
 
     // Sort by document path for consistent ordering
+    // TODO: Is this necessary? We should likely sort by timestamp or
+    // created_at in the document query above.
     return result.sort((a, b) => (a.path || '').localeCompare(b.path || ''));
   }
 
+  /**
+   * getDocumentHistory
+   * 
+   * Gets the history of a document version by its logical document ID.
+   * 
+   * @param documentId 
+   * @param collectionId 
+   * @returns 
+   */
   async getDocumentHistory(
     documentId: string,
     collectionId: string
   ): Promise<any[]> {
     // Get all versions of the document
     const docs = await this.db.select({
-      document_version_id: currentDocumentsView.id,
-      document_id: currentDocumentsView.document_id,
-      action: currentDocumentsView.event_type,
-      is_deleted: currentDocumentsView.is_deleted,
-      path: currentDocumentsView.path,
-      status: currentDocumentsView.status,
-      created_at: currentDocumentsView.created_at,
-      updated_at: currentDocumentsView.updated_at,
-    }).from(currentDocumentsView)
+      document_version_id: documents.id,
+      document_id: documents.document_id,
+      action: documents.event_type,
+      is_deleted: documents.is_deleted,
+      path: documents.path,
+      status: documents.status,
+      created_at: documents.created_at,
+      updated_at: documents.updated_at,
+    }).from(documents)
       .where(
         and(
-          eq(currentDocumentsView.document_id, documentId),
-          eq(currentDocumentsView.collection_id, collectionId)
+          eq(documents.document_id, documentId),
+          eq(documents.collection_id, collectionId)
         )
-      ).orderBy(currentDocumentsView.id);
+      ).orderBy(desc(documents.id));
+    // Since document version ids are UUID7s we can order descending by the ID to get the most recent first
 
     return docs
   }

@@ -255,7 +255,7 @@ const complexProductDocument = {
 
 // Global test variables
 let testCollection: { id: string; name: string } = {} as any
-let testDocuments: string[] = []
+const testDocumentsVersionIds: string[] = []
 
 describe('Performance Analysis', () => {
   before(async () => {
@@ -290,7 +290,7 @@ describe('Performance Analysis', () => {
         path: docData.sku
       })
 
-      testDocuments.push(result.document.id)
+      testDocumentsVersionIds.push(result.document.id)
     }
   })
 
@@ -311,8 +311,8 @@ describe('Performance Analysis', () => {
     it('should retrieve document using optimized approach', async () => {
       const startTime = performance.now()
 
-      const document = await queryBuilders.documents.getCurrentDocument(
-        testDocuments[0],
+      const document = await queryBuilders.documents.getDocumentByVersion(
+        testDocumentsVersionIds[0],
         'all'
       )
 
@@ -339,8 +339,8 @@ describe('Performance Analysis', () => {
       for (let i = 0; i < runs; i++) {
         // Test optimized approach
         const optimizedStart = performance.now()
-        await queryBuilders.documents.getCurrentDocument(
-          testDocuments[i % testDocuments.length],
+        await queryBuilders.documents.getDocumentByVersion(
+          testDocumentsVersionIds[i % testDocumentsVersionIds.length],
           'all'
         )
         const optimizedEnd = performance.now()
@@ -358,12 +358,12 @@ describe('Performance Analysis', () => {
 
     it('should retrieve multiple documents using optimized batch approach', async () => {
       const batchSize = 5
-      const documentIds = testDocuments.slice(0, batchSize)
+      const documentVersionIds = testDocumentsVersionIds.slice(0, batchSize)
 
       const startTime = performance.now()
 
-      const documents = await queryBuilders.documents.getCurrentDocuments(
-        documentIds,
+      const documents = await queryBuilders.documents.getDocuments(
+        documentVersionIds,
         'all'
       )
 
@@ -385,11 +385,11 @@ describe('Performance Analysis', () => {
       console.log('-----------|----------')
 
       for (const batchSize of batchSizes) {
-        const documentIds = testDocuments.slice(0, Math.min(batchSize, testDocuments.length))
+        const documentIds = testDocumentsVersionIds.slice(0, Math.min(batchSize, testDocumentsVersionIds.length))
 
         // Optimized approach (batch)
         const optimizedStart = performance.now()
-        await queryBuilders.documents.getCurrentDocuments(
+        await queryBuilders.documents.getDocuments(
           documentIds,
           'all'
         )
@@ -413,8 +413,8 @@ describe('Performance Analysis', () => {
 
         // Optimized approach
         const optimizedStart = performance.now()
-        await queryBuilders.documents.getCurrentDocument(
-          testDocuments[0],
+        await queryBuilders.documents.getDocumentByVersion(
+          testDocumentsVersionIds[0],
           locale
         )
         const optimizedEnd = performance.now()
@@ -433,8 +433,8 @@ describe('Performance Analysis', () => {
       // Load multiple documents to see memory impact
       const documents: any[] = []
       for (let i = 0; i < 5; i++) {
-        const doc = await queryBuilders.documents.getCurrentDocument(
-          testDocuments[i],
+        const doc = await queryBuilders.documents.getDocumentByVersion(
+          testDocumentsVersionIds[i],
           'all'
         )
         documents.push(doc)

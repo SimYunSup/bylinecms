@@ -92,7 +92,7 @@ describe('Bulk Document Operations', () => {
 
       const startTime = performance.now()
 
-      const documents = await queryBuilders.documents.getAllCurrentDocumentsForCollection
+      const documents = await queryBuilders.documents.getAllDocuments
         (
           collection.id,
           'all'
@@ -112,7 +112,7 @@ describe('Bulk Document Operations', () => {
 
       const startTime = performance.now()
 
-      const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(
+      const result = await queryBuilders.documents.getDocumentsByPage(
         collection.id,
         {
           locale: 'en',
