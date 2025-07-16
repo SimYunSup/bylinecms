@@ -24,7 +24,7 @@ import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
 import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { v7 as uuidv7 } from 'uuid'
-import { flattenDocument, reconstructDocument } from '../storage-utils.js'
+import { flattenFields, reconstructFields } from '../storage-utils.js'
 
 
 const DocsCollectionConfig: CollectionDefinition = {
@@ -168,12 +168,12 @@ describe('Document Flattening and Reconstruction', () => {
   })
 
   it('should flatten and reconstruct a document', () => {
-    const flattened = flattenDocument(sampleDocument, DocsCollectionConfig)
+    const flattened = flattenFields(sampleDocument, DocsCollectionConfig)
     assert(flattened, 'Flattened document should not be null or undefined')
     assert(flattened.length > 0, 'Flattened document should contain field values')
     console.log('Flattened document:', flattened)
 
-    const reconstructed = reconstructDocument(flattened)
+    const reconstructed = reconstructFields(flattened)
     assert(reconstructed, 'Reconstructed document should not be null or undefined')
     const reconstructedJson = JSON.stringify(reconstructed, null, 2);
     // console.log('Reconstructed document:', reconstructedJson)
