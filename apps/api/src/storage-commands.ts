@@ -40,7 +40,7 @@ import {
   textStore
 } from '../database/schema/index.js';
 import { isFileStore, isJsonStore, isNumericStore, isRelationStore } from './@types/index.js'
-import { flattenDocument } from './storage-utils.js';
+import { flattenFields } from './storage-utils.js';
 
 type DatabaseConnection = NodePgDatabase<typeof schema>;
 
@@ -92,7 +92,7 @@ export class DocumentCommands {
       }).returning();
 
       // 2. Flatten the document data to field values
-      const flattenedFields = flattenDocument(
+      const flattenedFields = flattenFields(
         options.documentData,
         options.collectionConfig,
         options.locale ?? 'all'

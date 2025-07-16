@@ -72,6 +72,8 @@ export const currentDocumentsView = pgView("current_documents").as((qb) => {
       change_summary: documents.change_summary,
     })
     .from(documents)
+    // TODO - remove so that we can optionally show deleted documents in history
+    // (as well as offer the option to recover a deleted document)
     .where(eq(documents.is_deleted, false))
     .orderBy(
       documents.collection_id,

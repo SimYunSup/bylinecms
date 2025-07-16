@@ -57,7 +57,7 @@ const db = drizzle(pool, { schema })
 const queryBuilders: ReturnType<typeof createQueryBuilders> = createQueryBuilders(siteConfig, db)
 const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
 
-const searchSchema = z.object({
+const metaSchema = z.object({
   page: z.coerce.number().min(1).optional(),
   page_size: z.coerce.number().min(1).max(100).optional(),
   order: z.string().optional(),
@@ -90,7 +90,7 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
       return
     }
 
-    const searchParams = searchSchema.safeParse(search)
+    const searchParams = metaSchema.safeParse(search)
 
     // Get all documents for this collection
     const result = await queryBuilders.documents.getCurrentDocumentsForCollectionPaginated(collection.id,
@@ -185,39 +185,19 @@ server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id
     return
   }
 
-  // try {
-  //   // Get the document
-  //   const documentRecords = await queryBuilders.documents.findById(id)
-  //   if (documentRecords.length === 0) {
-  //     reply.code(404).send({ error: 'Document not found' })
-  //     return
-  //   }
-  //   const document = documentRecords[0]
-
-  //   // Get current version
-  //   const currentVersions = await queryBuilders.documentVersions.findCurrentVersion(document.id)
-  //   if (currentVersions.length === 0) {
-  //     reply.code(404).send({ error: 'Document version not found' })
-  //     return
-  //   }
-  //   const currentVersion = currentVersions[0]
-
-  //   // Reconstruct document from field values
-  //   const documentData = await reconstructDocument(currentVersion.id)
-
-  //   return {
-  //     id: document.id,
-  //     path: document.path,
-  //     status: document.status,
-  //     created_at: document.created_at,
-  //     updated_at: document.updated_at,
-  //     version: currentVersion.version_number,
-  //     ...documentData
-  //   }
-  // } catch (error) {
-  //   server.log.error(error)
-  //   reply.code(500).send({ error: 'Internal server error' })
-  // }
+  try {
+    // Get current version
+    const document = await queryBuilders.documents.getCurrentDocument(id, collectionDefinition.path)
+    if (document == null) {
+      reply.code(404).send({ error: 'Document version not found' })
+      return
+    }
+    reply.code(200).send({ document })
+    return
+  } catch (error) {
+    server.log.error(error)
+    reply.code(500).send({ error: 'Internal server error' })
+  }
 })
 
 server.put<{ Params: { collection: string; id: string }; Body: Record<string, any> }>('/api/:collection/:id', async (request, reply) => {

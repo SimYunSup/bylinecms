@@ -26,12 +26,12 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from '../database/schema/index.js'
-import { collections, currentDocumentsView as documents } from '../database/schema/index.js';
+import { collections, currentDocumentsView, documents } from '../database/schema/index.js';
 
 type DatabaseConnection = NodePgDatabase<typeof schema>;
 
 import type { CollectionDefinition, SiteConfig } from "@byline/byline/@types/index";
-import { create } from "domain";
+
 import type {
   FlattenedStore,
   UnionRowValue
@@ -45,7 +45,7 @@ import {
   relationFields,
   textFields
 } from './storage-template-queries.js';
-import { reconstructDocument } from './storage-utils.js';
+import { reconstructFields } from './storage-utils.js';
 
 export class CollectionQueries {
   constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
@@ -187,14 +187,14 @@ export class DocumentQueries {
   ): Promise<any[]> {
     // First, get all current document IDs for the collection
     const currentDocuments = await this.db.select({
-      document_version_id: documents.id,
-      document_id: documents.document_id,
-      path: documents.path,
-      status: documents.status,
+      document_version_id: currentDocumentsView.id,
+      document_id: currentDocumentsView.document_id,
+      path: currentDocumentsView.path,
+      status: currentDocumentsView.status,
     })
-      .from(documents)
-      .where(eq(documents.collection_id, collectionId))
-      .orderBy(documents.path); // Add consistent ordering
+      .from(currentDocumentsView)
+      .where(eq(currentDocumentsView.collection_id, collectionId))
+      .orderBy(currentDocumentsView.path); // Add consistent ordering
 
     if (currentDocuments.length === 0) return [];
 
@@ -269,8 +269,8 @@ export class DocumentQueries {
     const totalResult = await this.db.select({
       count: sql<number>`count(*)`,
     })
-      .from(documents)
-      .where(eq(documents.collection_id, collectionId)
+      .from(currentDocumentsView)
+      .where(eq(currentDocumentsView.collection_id, collectionId)
       );
 
     // Most robust - handles strings, nulls, undefined, etc.
@@ -285,14 +285,14 @@ export class DocumentQueries {
     const offset = (page - 1) * page_size;
 
     // Get paginated document IDs
-    const orderColumn = order === 'path' ? documents.path : documents.created_at;
+    const orderColumn = order === 'path' ? currentDocumentsView.path : currentDocumentsView.created_at;
     const orderFunc = desc === true ? sql`DESC` : sql`ASC`;
 
     const paginatedDocs = await this.db.select({
-      id: documents.id,
+      id: currentDocumentsView.id,
     })
-      .from(documents)
-      .where(eq(documents.collection_id, collectionId),
+      .from(currentDocumentsView)
+      .where(eq(currentDocumentsView.collection_id, collectionId),
       )
       .orderBy(sql`${orderColumn} ${orderFunc}`)
       .limit(page_size)
@@ -319,22 +319,22 @@ export class DocumentQueries {
 
   async getCurrentDocumentByPath(collection_id: string, path: string) {
     // 1. Get current version
-    const currentDocument = await this.db.select()
-      .from(documents)
+    const [currentDocument] = await this.db.select()
+      .from(currentDocumentsView)
       .where(
         and(
-          eq(documents.collection_id, collection_id),
-          eq(documents.path, path)
+          eq(currentDocumentsView.collection_id, collection_id),
+          eq(currentDocumentsView.path, path)
         )
       )
 
-    if (!currentDocument[0]) {
+    if (currentDocument == null) {
       return null; // or throw new Error(`Document not found at path: ${path}`);
     }
 
     // 2. Get all field values for this document
     const unifiedFieldValues = await this.getAllFieldValues(
-      currentDocument[0].id,
+      currentDocument.id,
       'all' // or pass locale parameter
     );
 
@@ -342,18 +342,20 @@ export class DocumentQueries {
     const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
 
     // 4. Reconstruct the document
-    const reconstructedDocument = reconstructDocument(
+    const reconstructedFields = reconstructFields(
       fieldValues,
       'all' // or pass locale parameter
     );
 
-    // 5. Add document metadata
+    // 5. Add document level props
     return {
-      document_version_id: currentDocument[0].id,
-      document_id: currentDocument[0].document_id,
-      path: currentDocument[0].path,
-      status: currentDocument[0].status,
-      ...reconstructedDocument
+      document_version_id: currentDocument.id,
+      document_id: currentDocument.document_id,
+      path: currentDocument.path,
+      status: currentDocument.status,
+      created_at: currentDocument.created_at,
+      updated_at: currentDocument.updated_at,
+      ...reconstructedFields
     };
   }
 
@@ -365,28 +367,40 @@ export class DocumentQueries {
     locale = 'all'
   ): Promise<any> {
     // 1. Get current version
-    const currentDocument = await this.db.select()
-      .from(documents)
-      .where(eq(documents.id, documentVersionId))
+    const currentDocument = await this.db.query.documents.findFirst({
+      where: eq(documents.id, documentVersionId)
+    });
 
-    if (!currentDocument[0]) {
+    if (currentDocument == null) {
       throw new Error(`No current version found for document ${documentVersionId}`);
     }
 
     // 2. Get all field values in a single query using UNION ALL
     const unifiedFieldValues = await this.getAllFieldValues(
-      currentDocument[0].id,
+      currentDocument.id,
       locale
     );
 
     // 3. Convert unified values back to FlattenedStore format
     const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
 
-    // 4. Reconstruct the document
-    return reconstructDocument(
+    const reconstructedFields = reconstructFields(
       fieldValues,
       locale
     );
+
+    // Add document properties at root level
+    const documentWithFields = {
+      document_version_id: currentDocument.id,
+      document_id: currentDocument.document_id,
+      path: currentDocument.path,
+      status: currentDocument.status,
+      created_at: currentDocument.created_at,
+      updated_at: currentDocument.updated_at,
+      ...reconstructedFields
+    };
+
+    return documentWithFields
   }
 
   /**
@@ -400,15 +414,15 @@ export class DocumentQueries {
 
     // Get current documents
     const docs = await this.db.select({
-      document_version_id: documents.id,
-      document_id: documents.document_id,
-      path: documents.path,
-      status: documents.status,
-      created_at: documents.created_at,
-      updated_at: documents.updated_at,
+      document_version_id: currentDocumentsView.id,
+      document_id: currentDocumentsView.document_id,
+      path: currentDocumentsView.path,
+      status: currentDocumentsView.status,
+      created_at: currentDocumentsView.created_at,
+      updated_at: currentDocumentsView.updated_at,
     })
-      .from(documents)
-      .where(inArray(documents.id, documentVersionIds));
+      .from(currentDocumentsView)
+      .where(inArray(currentDocumentsView.id, documentVersionIds));
 
     if (docs.length === 0) return [];
 
@@ -435,23 +449,23 @@ export class DocumentQueries {
       const versionFieldValues = fieldValuesByVersion.get(doc.document_version_id) || [];
       const flattenedFieldValues = this.convertUnionRowToFlattenedStores(versionFieldValues);
 
-      const reconstructedDocument = reconstructDocument(
+      const reconstructedFields = reconstructFields(
         flattenedFieldValues,
         locale
       );
 
       // Add document metadata at root level
-      const documentWithMetadata = {
+      const documentWithFields = {
         document_version_id: doc.document_version_id,
         document_id: doc.document_id,
         path: doc.path,
         status: doc.status,
         created_at: doc.created_at,
         updated_at: doc.updated_at,
-        ...reconstructedDocument
+        ...reconstructedFields
       };
 
-      result.push(documentWithMetadata);
+      result.push(documentWithFields);
     }
 
     // Sort by document path for consistent ordering
@@ -464,21 +478,21 @@ export class DocumentQueries {
   ): Promise<any[]> {
     // Get all versions of the document
     const docs = await this.db.select({
-      document_version_id: documents.id,
-      document_id: documents.document_id,
-      action: documents.event_type,
-      is_deleted: documents.is_deleted,
-      path: documents.path,
-      status: documents.status,
-      created_at: documents.created_at,
-      updated_at: documents.updated_at,
-    }).from(documents)
+      document_version_id: currentDocumentsView.id,
+      document_id: currentDocumentsView.document_id,
+      action: currentDocumentsView.event_type,
+      is_deleted: currentDocumentsView.is_deleted,
+      path: currentDocumentsView.path,
+      status: currentDocumentsView.status,
+      created_at: currentDocumentsView.created_at,
+      updated_at: currentDocumentsView.updated_at,
+    }).from(currentDocumentsView)
       .where(
         and(
-          eq(documents.document_id, documentId),
-          eq(documents.collection_id, collectionId)
+          eq(currentDocumentsView.document_id, documentId),
+          eq(currentDocumentsView.collection_id, collectionId)
         )
-      ).orderBy(documents.id);
+      ).orderBy(currentDocumentsView.id);
 
     return docs
   }
@@ -573,7 +587,7 @@ export class DocumentQueries {
         status: group.document.status
       }
 
-      const document = reconstructDocument(
+      const document = reconstructFields(
         flattenedFieldValues,
         locale
       );

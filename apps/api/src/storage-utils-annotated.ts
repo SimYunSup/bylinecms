@@ -24,7 +24,7 @@ import type { CollectionDefinition, Field, ValueField } from '@byline/byline/@ty
 import type { FlattenedStore } from './@types/index.js';
 
 
-export function flattenDocument(
+export function flattenFields(
   documentData: any,
   collectionConfig: CollectionDefinition,
   locale = 'default'
@@ -92,7 +92,7 @@ export function flattenDocument(
   return flattenedFields;
 }
 
-export function reconstructDocument(
+export function reconstructFields(
   fieldValues: FlattenedStore[],
   locale = 'default'
 ): any {

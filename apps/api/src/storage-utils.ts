@@ -30,7 +30,7 @@ import type {
 } from './@types/index.js';
 
 
-export function flattenDocument(
+export function flattenFields(
   documentData: any,
   collectionConfig: CollectionDefinition,
   locale = 'default'
@@ -192,7 +192,7 @@ function createFlattenedStore(
   }
 }
 
-export function reconstructDocument(
+export function reconstructFields(
   fieldValues: FlattenedStore[],
   locale = 'default'
 ): any {
