@@ -380,13 +380,13 @@ export class DocumentQueries {
       )
 
     if (document == null) {
-      throw new Error(`Document not found for document_id: ${document_id}`);
+      return null
     }
 
     // 2. Get all field values for this document
     const unifiedFieldValues = await this.getAllFieldValues(
       document.id,
-      'all' // or pass locale parameter
+      'en' // or pass locale parameter
     );
 
     // 3. Convert unified values back to FlattenedStore format
@@ -395,7 +395,7 @@ export class DocumentQueries {
     // 4. Reconstruct field values for document
     const reconstructedFields = reconstructFields(
       fieldValues,
-      'all' // or pass locale parameter
+      'en' // or pass locale parameter
     );
 
     // 5. Add document level props

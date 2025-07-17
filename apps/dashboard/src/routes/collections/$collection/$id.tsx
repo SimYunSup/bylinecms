@@ -46,7 +46,7 @@ export const Route = createFileRoute('/collections/$collection/$id')({
 
     const rawData = await response.json()
     // Validate with schema for runtime type safety
-    const data = schemas.get.parse(rawData)
+    const data = schemas.get.parse(rawData.document)
 
     return data
   },

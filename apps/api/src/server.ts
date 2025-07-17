@@ -19,9 +19,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// NOTE: Before you dunk on this, this is a totally naïve and "weekend hack"
-// implementation of our API and used only for prototype development.
-// We'll extract a 'proper' API server into a separate app folder soon.
+/** 
+ * NOTE: Before you dunk on this, this is a prototype implementation 
+ * of our API and used only for development.
+ * We'll extract a properly configured API server soon.
+ */
 
 import type { SiteConfig } from '@byline/byline/@types/index'
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
@@ -29,18 +31,16 @@ import cors from '@fastify/cors'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
 import { Pool } from 'pg'
-// import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
-import { th } from 'zod/v4/locales'
 import * as schema from '../database/schema/index.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
 
-const server = Fastify({
+const app = Fastify({
   logger: true,
 })
 
-await server.register(cors, {
+await app.register(cors, {
   origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -55,8 +55,8 @@ const siteConfig: SiteConfig = {
 
 const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
 const db = drizzle(pool, { schema })
-const queryBuilders: ReturnType<typeof createQueryBuilders> = createQueryBuilders(siteConfig, db)
-const commandBuilders: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
+const queries: ReturnType<typeof createQueryBuilders> = createQueryBuilders(siteConfig, db)
+const commands: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
 
 const metaSchema = z.object({
   page: z.coerce.number().min(1).optional(),
@@ -69,26 +69,39 @@ const metaSchema = z.object({
 
 type Collection = typeof schema.collections.$inferSelect
 
+/**
+ * ensureCollection
+ * 
+ * Ensures that a collection exists in the database.
+ * If it doesn't exist, creates it based on the collection definition from the registry.
+ *
+ * @param {string} path - The path of the collection to ensure.
+ * @returns {Promise<Collection>} The existing or newly created collection.
+ */
 async function ensureCollection(path: string): Promise<Collection | null | undefined> {
-  // 1. Get the collection definition from the registry
   const collectionDefinition = getCollectionDefinition(path)
   if (collectionDefinition == null) {
     return null
   }
 
-  // 2. Get or create the collection in the database
-  let collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
+  let collection = await queries.collections.getCollectionByPath(collectionDefinition.path)
   if (collection == null) {
     // Collection doesn't exist in database yet, create it
-    await commandBuilders.collections.create(collectionDefinition.path, collectionDefinition)
-    collection = await queryBuilders.collections.getCollectionByPath(collectionDefinition.path)
+    await commands.collections.create(collectionDefinition.path, collectionDefinition)
+    collection = await queries.collections.getCollectionByPath(collectionDefinition.path)
   }
 
   return collection
 }
 
-// Get documents
-server.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
+/**
+ * GET /api/:collection
+ * 
+ * Get documents from a collection by page. 
+ * Defaults to page 1 and page size of 20.
+ * 
+ */
+app.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
   const search = request.query as Record<string, any>
 
@@ -101,14 +114,22 @@ server.get<{ Params: { collection: string } }>('/api/:collection', async (reques
 
   const searchParams = metaSchema.safeParse(search)
 
-  const result = await queryBuilders.documents.getDocumentsByPage(collection.id,
+  const result = await queries.documents.getDocumentsByPage(collection.id,
     { ...searchParams.data, locale: 'en' }, // Default to 'en' locale if not provided
   )
 
   return result
 })
 
-server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:collection', async (request, reply) => {
+/**
+ * POST /api/:collection
+ * 
+ * Create a new document in a collection.
+ * Expects the document data in the request body.
+ * 
+ * TODO: Re-implement this with the new commands and queries.
+ */
+app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
   const body = request.body
 
@@ -121,7 +142,7 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
 
   try {
     // Create document
-    // const documentResults = await commandBuilders.documents.createDocument({
+    // const documentResults = await commands.documents.createDocument({
     //   collectionId: collectionRecord.id,
     //   collectionConfig: collectionConfig,
     //   action: string,
@@ -132,30 +153,6 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
     // })
     // const document = documentResults[0]
 
-    // // Create initial version
-    // const versionResults = await commandBuilders.documentVersions.create(
-    //   document.id,
-    //   1,
-    //   true
-    // )
-    // const version = versionResults[0]
-
-    // // Store field values
-    // await storeDocumentFields(
-    //   version.id,
-    //   collectionRecord.id,
-    //   collection,
-    //   body
-    // )
-
-    // reply.code(201).send({
-    //   status: 'ok',
-    //   document: {
-    //     id: document.id,
-    //     path: document.path,
-    //     status: document.status
-    //   }
-    // })
     // biome-ignore lint/correctness/noUnreachable: <explanation>
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -163,34 +160,51 @@ server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api
         error: 'Validation failed',
         details: error.errors
       })
-    } else {
-      server.log.error(error)
-      reply.code(500).send({ error: 'Internal server error' })
+      return
     }
+    app.log.error(error)
+    reply.code(500).send({ error: 'Internal app error' })
+    return
   }
 })
 
-server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
+/**
+ * GET /api/:collection/:id
+ *
+ * Get a specific document by ID from a collection. 
+ * Note: this expects a logical document_id, and not a 
+ * document version ID.
+ */
+app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
 
-  // Ensure we have a collection
   const collection = await ensureCollection(path)
   if (collection == null) {
     reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
-  // Get current document
-  const document = await queryBuilders.documents.getDocumentById(collection.id, id)
+  const document = await queries.documents.getDocumentById(collection.id, id)
   if (document == null) {
-    reply.code(404).send({ error: 'Document version not found' })
+    reply.code(404).send({ error: 'Document not found' })
     return
   }
   reply.code(200).send({ document })
   return
 })
 
-server.put<{ Params: { collection: string; id: string }; Body: Record<string, any> }>('/api/:collection/:id', async (request, reply) => {
+/**
+ * PUT /api/:collection/:id
+ * 
+ * Update a specific document by ID in a collection.
+ * Expects the updated document data in the request body.
+ * 
+ * NOTE: In our new immutable 'versioning-by-default' document model,
+ * this will create a new version of the document.
+ * 
+ * TODO: Re-implement this with the new commands and queries.
+ */
+app.put<{ Params: { collection: string; id: string }; Body: Record<string, any> }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
   const body = request.body
 
@@ -201,46 +215,20 @@ server.put<{ Params: { collection: string; id: string }; Body: Record<string, an
     return
   }
 
-  // try {
-  //   // Get the document
-  //   const documentRecords = await queryBuilders.documents.findById(id)
-  //   if (documentRecords.length === 0) {
-  //     reply.code(404).send({ error: 'Document not found' })
-  //     return
-  //   }
-  //   const document = documentRecords[0]
-
-  //   // Get current version
-  //   const currentVersions = await queryBuilders.documentVersions.findCurrentVersion(document.id)
-  //   if (currentVersions.length === 0) {
-  //     reply.code(404).send({ error: 'Document version not found' })
-  //     return
-  //   }
-  //   const currentVersion = currentVersions[0]
-
-  //   // Update field values in the current version
-  //   await updateDocumentFields(currentVersion.id, collection, body)
-
-  //   // Update document metadata if status changed
-  //   if (body.status && body.status !== document.status) {
-  //     await commandBuilders.documents.updateStatus(document.id, body.status)
-  //   }
-
-  //   reply.code(200).send({ status: 'ok' })
-  // } catch (error) {
-  //   if (error instanceof z.ZodError) {
-  //     reply.code(400).send({
-  //       error: 'Validation failed',
-  //       details: error.errors
-  //     })
-  //   } else {
-  //     server.log.error(error)
-  //     reply.code(500).send({ error: 'Internal server error' })
-  //   }
-  // }
+  // TODO: Implement the update logic with commands
 })
 
-server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
+/**
+ * DELETE /api/:collection/:id
+ * Delete a specific document by ID in a collection.
+ * 
+ * NOTE: In our new immutable 'versioning-by-default' document 
+ * model, this will create a new version of the document with 
+ * is_deleted set to 'true'.
+ * 
+ * TODO: Re-implement this with the new commands and queries.
+ */
+app.delete<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
 
   // Ensure we have a collection
@@ -250,34 +238,30 @@ server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/
     return
   }
 
-  // const collection = getCollectionDefinition(path)
-  // if (!collection) {
-  //   reply.code(404).send({ error: 'Collection not found' })
-  //   return
-  // }
+  // TODO: Re-implement with our new queries and commands
 
   // try {
   //   // Get the document to ensure it exists
-  //   const documentRecords = await queryBuilders.documents.findById(id)
+  //   const documentRecords = await queries.documents.findById(id)
   //   if (documentRecords.length === 0) {
   //     reply.code(404).send({ error: 'Document not found' })
   //     return
   //   }
 
   //   // Delete the document (cascading deletes will handle versions and field values)
-  //   await commandBuilders.documents.delete(id)
+  //   await commands.documents.delete(id)
 
   //   reply.code(200).send({ status: 'ok' })
   // } catch (error) {
-  //   server.log.error(error)
-  //   reply.code(500).send({ error: 'Internal server error' })
+  //   app.log.error(error)
+  //   reply.code(500).send({ error: 'Internal app error' })
   // }
 })
 
 const port = Number(process.env.PORT) || 3001
-server.listen({ port })
-  .then(() => server.log.info(`🚀 Server listening on port ${port}`))
+app.listen({ port })
+  .then(() => app.log.info(`🚀 Server listening on port ${port}`))
   .catch(err => {
-    server.log.error(err)
+    app.log.error(err)
     process.exit(1)
   })

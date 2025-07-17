@@ -37,7 +37,7 @@ export const EditView = ({
 
   const handleSubmit = async (data: any) => {
     try {
-      const putRes = await fetch(`http://localhost:3001/api/${path}/${initialData.id}`, {
+      const putRes = await fetch(`http://localhost:3001/api/${path}/${initialData.document_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -72,7 +72,7 @@ export const EditView = ({
               onClick={() =>
                 navigate({
                   to: '/collections/$collection/$id',
-                  params: { collection: path, id: String(initialData.id) },
+                  params: { collection: path, id: String(initialData.document_id) },
                 })
               }
             >
@@ -85,7 +85,7 @@ export const EditView = ({
               onClick={() =>
                 navigate({
                   to: '/collections/$collection/$id',
-                  params: { collection: path, id: String(initialData.id) },
+                  params: { collection: path, id: String(initialData.document_id) },
                 })
               }
             >
