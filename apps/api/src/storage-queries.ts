@@ -157,28 +157,28 @@ export class DocumentQueries {
       -- Text fields
       SELECT 
         ${textFields}
-      FROM text_store
+      FROM store_text
 
       UNION ALL
 
       -- Numeric fields
       SELECT 
         ${numericFields}
-      FROM numeric_store
+      FROM store_numeric
 
       UNION ALL
 
       -- Boolean fields
       SELECT 
         ${booleanFields}
-      FROM boolean_store
+      FROM store_boolean
 
       UNION ALL
 
       -- DateTime fields
       SELECT 
         ${datetimeFields}
-      FROM datetime_store
+      FROM store_datetime
 
       UNION ALL
 
@@ -192,14 +192,14 @@ export class DocumentQueries {
       -- Relation fields
       SELECT 
         ${relationFields}
-      FROM relation_store
+      FROM store_relation
 
       UNION ALL
 
       -- File fields
       SELECT 
         ${fileFields}
-      FROM file_store
+      FROM store_file
     ) fv ON d.id = fv.document_version_id AND ${localeCondition}
     WHERE d.collection_id = ${collectionId}
     ORDER BY d.id, fv.field_path NULLS LAST, fv.locale
@@ -739,7 +739,7 @@ export class DocumentQueries {
       -- Text fields (41 columns total)
       SELECT 
         ${textFields}
-      FROM text_store 
+      FROM store_text 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -747,7 +747,7 @@ export class DocumentQueries {
       -- Numeric fields (41 columns total - SAME ORDER)
       SELECT 
         ${numericFields}
-      FROM numeric_store 
+      FROM store_numeric 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -755,7 +755,7 @@ export class DocumentQueries {
       -- Boolean fields (41 columns total - SAME ORDER)
       SELECT 
         ${booleanFields}
-      FROM boolean_store 
+      FROM store_boolean 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -763,7 +763,7 @@ export class DocumentQueries {
       -- DateTime fields (41 columns total - SAME ORDER)
       SELECT 
         ${datetimeFields}
-      FROM datetime_store 
+      FROM store_datetime 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -779,7 +779,7 @@ export class DocumentQueries {
       -- Relation fields (41 columns total - SAME ORDER)
       SELECT 
         ${relationFields}
-      FROM relation_store 
+      FROM store_relation 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -787,7 +787,7 @@ export class DocumentQueries {
       -- File fields (41 columns total - SAME ORDER)
       SELECT 
         ${fileFields}
-      FROM file_store 
+      FROM store_file 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       ORDER BY field_path, locale
@@ -817,7 +817,7 @@ export class DocumentQueries {
       -- Text fields (41 columns total)
       SELECT 
          ${textFields}
-      FROM text_store 
+      FROM store_text 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -825,7 +825,7 @@ export class DocumentQueries {
       -- Numeric fields (41 columns total - SAME ORDER)
       SELECT 
          ${numericFields}
-      FROM numeric_store 
+      FROM store_numeric 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -833,7 +833,7 @@ export class DocumentQueries {
       -- Boolean fields (41 columns total - SAME ORDER)
       SELECT 
         ${booleanFields}
-      FROM boolean_store 
+      FROM store_boolean 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -841,7 +841,7 @@ export class DocumentQueries {
       -- DateTime fields (41 columns total - SAME ORDER)
       SELECT 
         ${datetimeFields}
-      FROM datetime_store 
+      FROM store_datetime 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -857,7 +857,7 @@ export class DocumentQueries {
       -- Relation fields (41 columns total - SAME ORDER)
       SELECT 
         ${relationFields}
-      FROM relation_store 
+      FROM store_relation 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
@@ -865,7 +865,7 @@ export class DocumentQueries {
       -- File fields (41 columns total - SAME ORDER)
       SELECT 
         ${fileFields}
-      FROM file_store 
+      FROM store_file 
       WHERE ${documentCondition} ${localeCondition}
 
       ORDER BY document_version_id, field_path, locale

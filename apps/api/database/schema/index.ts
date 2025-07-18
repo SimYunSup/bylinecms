@@ -96,7 +96,7 @@ const baseStoreColumns = {
 };
 
 // 1. TEXT FIELDS TABLE
-export const textStore = pgTable('text_store', {
+export const textStore = pgTable('store_text', {
   ...baseStoreColumns,
 
   value: text('value').notNull(),
@@ -113,7 +113,7 @@ export const textStore = pgTable('text_store', {
 ]));
 
 // 2. NUMERIC FIELDS TABLE  
-export const numericStore = pgTable('numeric_store', {
+export const numericStore = pgTable('store_numeric', {
   ...baseStoreColumns,
 
   // Store the original number type for reconstruction
@@ -137,7 +137,7 @@ export const numericStore = pgTable('numeric_store', {
 ]));
 
 // 3. BOOLEAN FIELDS TABLE
-export const booleanStore = pgTable('boolean_store', {
+export const booleanStore = pgTable('store_boolean', {
   ...baseStoreColumns,
 
   value: boolean('value').notNull(),
@@ -151,7 +151,7 @@ export const booleanStore = pgTable('boolean_store', {
 ]));
 
 // 4. DATE/TIME FIELDS TABLE
-export const datetimeStore = pgTable('datetime_store', {
+export const datetimeStore = pgTable('store_datetime', {
   ...baseStoreColumns,
 
   // Store the original date type for reconstruction
@@ -171,7 +171,7 @@ export const datetimeStore = pgTable('datetime_store', {
 ]));
 
 // 5. RELATION FIELDS TABLE
-export const relationStore = pgTable('relation_store', {
+export const relationStore = pgTable('store_relation', {
   ...baseStoreColumns,
 
   // target_document_id: uuid('target_document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
@@ -198,7 +198,7 @@ export const relationStore = pgTable('relation_store', {
 ]));
 
 // 6. FILE FIELDS TABLE (Your composite type example)
-export const fileStore = pgTable('file_store', {
+export const fileStore = pgTable('store_file', {
   ...baseStoreColumns,
 
   // File identity
