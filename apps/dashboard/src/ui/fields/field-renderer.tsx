@@ -32,104 +32,60 @@ import { DateTimeField } from './datetime/datetime-field'
 import { NumericalField } from './numerical/numerical-field'
 
 interface FieldRendererProps {
-  field: Field | Field[]
+  field: Field
   initialValue?: any
-  fieldPath?: string // Add field path for nested value extraction
 }
 
-export const FieldRenderer = ({ field, initialValue, fieldPath = '' }: FieldRendererProps) => {
+export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
   const { setFieldValue } = useFormContext()
-  console.log('Rendering field:', field, 'with initial value:', initialValue)
-  // Handle array of fields (nested groups)
-  if (Array.isArray(field)) {
-    return (
-      <div className="field-group">
-        {field.map((childField, index) => (
-          <FieldRenderer
-            key={`${fieldPath}.${childField.name || index}`}
-            field={childField}
-            initialValue={initialValue}
-            fieldPath={fieldPath}
-          />
-        ))}
-      </div>
-    )
-  }
-
-  // Handle single field
-  const currentFieldPath = fieldPath ? `${fieldPath}.${field.name}` : field.name
 
   const handleChange = (value: any) => {
-    setFieldValue(currentFieldPath, value)
-  }
-
-  // Extract value for nested fields
-  const extractFieldValue = (data: any, fieldName: string, path: string): any => {
-    if (data == null) return undefined
-
-    // For simple top-level fields
-    if (!path || path === fieldName) {
-      return data
-    }
-
-    // For nested fields, we need to traverse the data structure
-    // This is a simplified approach - you may need to enhance this
-    // based on your exact data structure requirements
-    return data[fieldName]
-  }
-
-  const fieldValue = extractFieldValue(initialValue, field.name, currentFieldPath)
-
-  // Handle nested array fields
-  if (field.type === 'array' && field.fields) {
-    const arrayData = fieldValue || []
-
-    return (
-      <div className="array-field">
-        <div className="block font-medium text-[1rem] mb-2">{field.label || field.name}</div>
-        <div className="array-items space-y-4">
-          {arrayData.map((item: any, index: number) => {
-            // Each item in the array is an object with field names as keys
-            // We need to render each field definition with its corresponding value from the item
-            return (
-              <div key={index} className="array-item border border-gray-700 rounded p-4">
-                <div className="field-group">
-                  {field.fields!.map((childField, fieldIndex) => {
-                    // Extract the value for this specific field from the item
-                    const childValue = item[childField.name]
-                    return (
-                      <FieldRenderer
-                        key={`${currentFieldPath}[${index}].${childField.name}`}
-                        field={childField}
-                        initialValue={childValue}
-                        fieldPath={`${currentFieldPath}[${index}].${childField.name}`}
-                      />
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    )
+    setFieldValue(field.name, value)
   }
 
   switch (field.type) {
     case 'text':
-      return <TextField field={field} initialValue={fieldValue} onChange={handleChange} />
+      return <TextField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'checkbox':
-      return <CheckboxField field={field} initialValue={fieldValue} onChange={handleChange} />
+      return <CheckboxField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'select':
-      return <SelectField field={field} initialValue={fieldValue} onChange={handleChange} />
+      return <SelectField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'richText':
-      return <RichTextField field={field} initialValue={fieldValue} onChange={handleChange} />
+      return <RichTextField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'datetime':
-      return <DateTimeField field={field} initialValue={fieldValue} onChange={handleChange} />
+      return <DateTimeField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'integer':
-    case 'float':
-    case 'decimal':
-      return <NumericalField field={field} initialValue={fieldValue} onChange={handleChange} />
+      return <NumericalField field={field} initialValue={initialValue} onChange={handleChange} />
+    case 'array':
+      if (!field.fields) return null
+      return (
+        <div className="">
+          {field.label && <h3 className="text-[1rem] font-medium mb-1">{field.label}</h3>}
+          <div className="flex flex-col gap-4">
+            {Array.isArray(initialValue) &&
+              initialValue.map((item, index) => {
+                // For block arrays, find the matching field definition for the item.
+                const blockType = Object.keys(item)[0]
+                const subField = field.fields?.find((f) => f.name === blockType)
+
+                if (subField == null) return null
+
+                return (
+                  <div
+                    key={index}
+                    className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4"
+                  >
+                    <FieldRenderer
+                      key={subField.name}
+                      field={subField}
+                      initialValue={item[subField.name]}
+                    />
+                  </div>
+                )
+              })}
+          </div>
+        </div>
+      )
     default:
       return null
   }

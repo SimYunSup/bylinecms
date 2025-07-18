@@ -12,9 +12,6 @@ const documentExample = {
     {
       richTextBlock: [
         {
-          constrainedWidth: true
-        },
-        {
           richText: {
             root: {
               type: "root",
@@ -46,7 +43,10 @@ const documentExample = {
               direction: "ltr"
             }
           }
-        }
+        },
+        {
+          constrainedWidth: true
+        },
       ]
     },
     {
