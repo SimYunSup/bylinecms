@@ -168,6 +168,11 @@ export const FormRenderer = (props: {
   initialData?: Record<string, any>
 }) => (
   <FormProvider initialData={props.initialData}>
-    <FormContent {...props} />
+    <FormContent
+      fields={props.fields}
+      onSubmit={props.onSubmit}
+      onCancel={props.onCancel}
+      initialData={props.initialData}
+    />
   </FormProvider>
 )

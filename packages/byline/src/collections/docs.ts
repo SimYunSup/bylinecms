@@ -69,15 +69,15 @@ export const Docs: CollectionDefinition = {
     { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', required: true, admin: { position: 'sidebar' } },
     { name: 'featured', label: 'Featured', type: 'checkbox', helpText: 'Is this page featured on the home page?', admin: { position: 'sidebar' } },
     {
-      name: 'content', type: 'array', fields: [
+      name: 'content', label: 'Content', type: 'array', fields: [
         {
-          name: 'richTextBlock', type: 'array', fields: [
+          name: 'richTextBlock', label: 'Richtext', type: 'array', fields: [
             { name: 'constrainedWidth', type: 'boolean', required: false },
             { name: 'richText', type: 'richText', required: true, localized: true },
           ]
         },
         {
-          name: 'photoBlock', type: 'array', fields: [
+          name: 'photoBlock', label: 'Photo', type: 'array', fields: [
             { name: 'display', type: 'text', required: false },
             { name: 'photo', type: 'image', required: true },
             { name: 'alt', type: 'text', required: true, localized: false },
@@ -87,7 +87,7 @@ export const Docs: CollectionDefinition = {
       ]
     },
     {
-      name: 'reviews', type: 'array', fields: [
+      name: 'reviews', label: 'Reviews', type: 'array', fields: [
         {
           name: 'reviewItem', type: 'array', fields: [
             { name: 'rating', type: 'integer', required: true },
@@ -97,7 +97,7 @@ export const Docs: CollectionDefinition = {
       ]
     },
     {
-      name: 'links', type: 'array', fields: [
+      name: 'links', label: 'Links', type: 'array', fields: [
         { name: "link", type: "text" }
       ]
     }

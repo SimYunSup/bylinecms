@@ -19,54 +19,6 @@ const siteConfig: SiteConfig = {
   }
 }
 
-// export const BulkDocsCollectionConfig: CollectionDefinition = {
-//   path: 'bulk-docs',
-//   labels: {
-//     singular: 'Document',
-//     plural: 'Documents',
-//   },
-//   fields: [
-//     { name: 'path', type: 'text', required: true },
-//     { name: 'title', type: 'text', required: true, localized: true },
-//     { name: 'summary', type: 'text', required: true, localized: true },
-//     { name: 'category', type: 'relation', required: false },
-//     { name: 'publishedOn', type: 'datetime', required: false },
-//     {
-//       name: 'content', type: 'array', fields: [
-//         {
-//           name: 'richTextBlock', type: 'array', fields: [
-//             { name: 'constrainedWidth', type: 'boolean', required: false },
-//             { name: 'richText', type: 'richText', required: true, localized: true },
-//           ]
-//         },
-//         {
-//           name: 'photoBlock', type: 'array', fields: [
-//             { name: 'display', type: 'text', required: false },
-//             { name: 'photo', type: 'file', required: true },
-//             { name: 'alt', type: 'text', required: true, localized: false },
-//             { name: 'caption', type: 'richText', required: false, localized: true },
-//           ]
-//         },
-//       ]
-//     },
-//     {
-//       name: 'reviews', type: 'array', fields: [
-//         {
-//           name: 'reviewItem', type: 'array', fields: [
-//             { name: 'rating', type: 'integer', required: true },
-//             { name: 'comment', type: 'richText', required: true, localized: false },
-//           ]
-//         }
-//       ]
-//     },
-//     {
-//       name: 'links', type: 'array', fields: [
-//         { name: "link", type: "text" }
-//       ]
-//     }
-//   ],
-// };
-
 // Complex test document with many fields and arrays
 const sampleDocument = {
   path: "my-first-bulk-document",
