@@ -1,3 +1,7 @@
+NOTE: The admin dashboard would never (I hope?) receive this sort of traffic,
+but this might be a good indicator (or baseline) for the performance of the 
+front-end public-facing website; at least until we run into React SSR.
+
 autocannon --renderStatusCodes --connections 20 --duration 15 -H "User-Agent: Mozilla" http://localhost:5173/collections/docs/01981
 ce6-d40e-7218-9705-39e2b7bf609a
 Running 15s test @ http://localhost:5173/collections/docs/01981ce6-d40e-7218-9705-39e2b7bf609a
