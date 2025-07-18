@@ -64,7 +64,7 @@ While we're still finding our feet in terms of overall strategy, we felt it woul
 ## Design Goals
 1. We'd like to create an extensible, plugin-based framework for our headless CMS that will allow users to easily create admin dashboards and serialization frameworks for front-end clients.
    
-2. We'd like to create an immutable 'versioned-by-default' document store; which means document history by default, and tombstones (soft deletes) by default, including user restoration tombstoned documents.
+2. We'd like to create an immutable 'versioned-by-default' document store; which means document history by default, and tombstones (soft deletes) by default (including user restoration of tombstoned documents).
 
 3. We're going to create a native 'file' field type that can be used in any collection definition, and separately from any defined media or upload collections.
 
