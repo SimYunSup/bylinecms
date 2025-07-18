@@ -19,236 +19,249 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// NOTE: Before you dunk on this, this is a totally naïve and "weekend hack"
-// implementation of our API and used only for prototype development.
-// We'll extract a 'proper' API server into a separate app folder soon.
+/** 
+ * NOTE: Before you dunk on this, this is a prototype implementation 
+ * of our API and used only for development.
+ * We'll extract a properly configured API server soon.
+ */
 
+import type { SiteConfig } from '@byline/byline/@types/index'
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
-import { getCollectionSchemasForPath } from '@byline/byline/schemas/zod/cache'
 import cors from '@fastify/cors'
-import { desc, eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
 import { Pool } from 'pg'
-import { v7 as uuidv7 } from 'uuid'
 import { z } from 'zod'
 import * as schema from '../database/schema/index.js'
+import { createCommandBuilders } from './storage-commands.js'
+import { createQueryBuilders } from './storage-queries.js'
 
-const server = Fastify({
+const app = Fastify({
   logger: true,
 })
 
-await server.register(cors, {
+await app.register(cors, {
   origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 })
 
+const siteConfig: SiteConfig = {
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'es', 'fr'],
+  }
+}
+
 const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
 const db = drizzle(pool, { schema })
+const queries: ReturnType<typeof createQueryBuilders> = createQueryBuilders(siteConfig, db)
+const commands: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
 
-// Generic collection routes
-server.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
-  const { collection: path } = request.params
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
-    reply.code(404).send({ error: 'Collection not found' })
-    return
-  }
-
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
-    return
-  }
-
-  try {
-    const records = await db.select().from(table).orderBy(desc(table.updated_at))
-    console.log(`Records fetched: ${records.length}`)
-    return {
-      records,
-      meta: {
-        page: 1,
-        page_size: 10,
-        total: records.length,
-        total_pages: 1,
-      },
-      included: {
-        collection: {
-          name: collection.name,
-          path: collection.path,
-        }
-      }
-    }
-  } catch (error) {
-    server.log.error(error)
-    reply.code(500).send({ error: 'Internal server error' })
-  }
+const metaSchema = z.object({
+  page: z.coerce.number().min(1).optional(),
+  page_size: z.coerce.number().min(1).max(100).optional(),
+  order: z.string().optional(),
+  desc: z.boolean().optional(),
+  query: z.string().optional(),
+  locale: z.string().optional(),
 })
 
-server.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:collection', async (request, reply) => {
+type Collection = typeof schema.collections.$inferSelect
+
+/**
+ * ensureCollection
+ * 
+ * Ensures that a collection exists in the database.
+ * If it doesn't exist, creates it based on the collection definition from the registry.
+ *
+ * @param {string} path - The path of the collection to ensure.
+ * @returns {Promise<Collection>} The existing or newly created collection.
+ */
+async function ensureCollection(path: string): Promise<Collection | null | undefined> {
+  const collectionDefinition = getCollectionDefinition(path)
+  if (collectionDefinition == null) {
+    return null
+  }
+
+  let collection = await queries.collections.getCollectionByPath(collectionDefinition.path)
+  if (collection == null) {
+    // Collection doesn't exist in database yet, create it
+    await commands.collections.create(collectionDefinition.path, collectionDefinition)
+    collection = await queries.collections.getCollectionByPath(collectionDefinition.path)
+  }
+
+  return collection
+}
+
+/**
+ * GET /api/:collection
+ * 
+ * Get documents from a collection by page. 
+ * Defaults to page 1 and page size of 20.
+ * 
+ */
+app.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
+  const { collection: path } = request.params
+  const search = request.query as Record<string, any>
+
+  // Ensure we have a collection
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
+    return
+  }
+
+  const searchParams = metaSchema.safeParse(search)
+
+  const result = await queries.documents.getDocumentsByPage(collection.id,
+    { ...searchParams.data, locale: 'en' }, // Default to 'en' locale if not provided
+  )
+
+  return result
+})
+
+/**
+ * POST /api/:collection
+ * 
+ * Create a new document in a collection.
+ * Expects the document data in the request body.
+ * 
+ * TODO: Re-implement this with the new commands and queries.
+ */
+app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
   const body = request.body
 
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
-    reply.code(404).send({ error: 'Collection not found' })
-    return
-  }
-
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
+  // Ensure we have a collection
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
   try {
-    const createSchema = getCreateSchema(collection.path)
-    const validatedData = createSchema.parse(body)
-    console.log(`Validated create data: ${JSON.stringify(validatedData)}`)
+    // Create document
+    // const documentResults = await commands.documents.createDocument({
+    //   collectionId: collectionRecord.id,
+    //   collectionConfig: collectionConfig,
+    //   action: string,
+    //   documentData: any,
+    //   path: string,
+    //   locale?: string
+    //       status?: 'draft' | 'published' | 'archived'
+    // })
+    // const document = documentResults[0]
 
-    await db.insert(table).values({
-      id: uuidv7(),
-      ...validatedData
-    })
-
-    reply.code(201).send({ status: 'ok' })
+    // biome-ignore lint/correctness/noUnreachable: <explanation>
   } catch (error) {
     if (error instanceof z.ZodError) {
       reply.code(400).send({
-        error: 'zodTypes failed',
+        error: 'Validation failed',
         details: error.errors
       })
-    } else {
-      server.log.error(error)
-      reply.code(500).send({ error: 'Internal server error' })
-    }
-  }
-})
-
-server.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
-  const { collection: path, id } = request.params
-
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
-    reply.code(404).send({ error: 'Collection not found' })
-    return
-  }
-
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
-    return
-  }
-
-  try {
-    const records = await db.select().from(table).where(eq(table.id, id)).limit(1)
-
-    if (records.length === 0) {
-      reply.code(404).send({ error: 'Record not found' })
       return
     }
-
-    return records[0]
-  } catch (error) {
-    server.log.error(error)
-    reply.code(500).send({ error: 'Internal server error' })
+    app.log.error(error)
+    reply.code(500).send({ error: 'Internal app error' })
+    return
   }
 })
 
-server.put<{ Params: { collection: string; id: string }; Body: Record<string, any> }>('/api/:collection/:id', async (request, reply) => {
+/**
+ * GET /api/:collection/:id
+ *
+ * Get a specific document by ID from a collection. 
+ * Note: this expects a logical document_id, and not a 
+ * document version ID.
+ */
+app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
+  const { collection: path, id } = request.params
+
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
+    return
+  }
+
+  const document = await queries.documents.getDocumentById(collection.id, id)
+  if (document == null) {
+    reply.code(404).send({ error: 'Document not found' })
+    return
+  }
+  reply.code(200).send({ document })
+  return
+})
+
+/**
+ * PUT /api/:collection/:id
+ * 
+ * Update a specific document by ID in a collection.
+ * Expects the updated document data in the request body.
+ * 
+ * NOTE: In our new immutable 'versioning-by-default' document model,
+ * this will create a new version of the document.
+ * 
+ * TODO: Re-implement this with the new commands and queries.
+ */
+app.put<{ Params: { collection: string; id: string }; Body: Record<string, any> }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
   const body = request.body
 
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
-    reply.code(404).send({ error: 'Collection not found' })
+  // Ensure we have a collection
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
-    return
-  }
-
-  try {
-    const updateSchema = getUpdateSchema(collection.path)
-    const validatedData = updateSchema.parse(body)
-
-    await db.update(table).set({
-      ...validatedData,
-      updated_at: new Date()
-    }).where(eq(table.id, id))
-
-    reply.code(200).send({ status: 'ok' })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      reply.code(400).send({
-        error: 'zodTypes failed',
-        details: error.errors
-      })
-    } else {
-      server.log.error(error)
-      reply.code(500).send({ error: 'Internal server error' })
-    }
-  }
+  // TODO: Implement the update logic with commands
 })
 
-server.delete<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
+/**
+ * DELETE /api/:collection/:id
+ * Delete a specific document by ID in a collection.
+ * 
+ * NOTE: In our new immutable 'versioning-by-default' document 
+ * model, this will create a new version of the document with 
+ * is_deleted set to 'true'.
+ * 
+ * TODO: Re-implement this with the new commands and queries.
+ */
+app.delete<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
 
-  const collection = getCollectionDefinition(path)
-  if (!collection) {
-    reply.code(404).send({ error: 'Collection not found' })
+  // Ensure we have a collection
+  const collection = await ensureCollection(path)
+  if (collection == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
-  const table = schema.tables[collection.path]
-  if (!table) {
-    reply.code(404).send({ error: 'Table not found' })
-    return
-  }
+  // TODO: Re-implement with our new queries and commands
 
-  try {
-    await db.delete(table).where(eq(table.id, id))
-    reply.code(200).send({ status: 'ok' })
-  } catch (error) {
-    server.log.error(error)
-    reply.code(500).send({ error: 'Internal server error' })
-  }
+  // try {
+  //   // Get the document to ensure it exists
+  //   const documentRecords = await queries.documents.findById(id)
+  //   if (documentRecords.length === 0) {
+  //     reply.code(404).send({ error: 'Document not found' })
+  //     return
+  //   }
+
+  //   // Delete the document (cascading deletes will handle versions and field values)
+  //   await commands.documents.delete(id)
+
+  //   reply.code(200).send({ status: 'ok' })
+  // } catch (error) {
+  //   app.log.error(error)
+  //   reply.code(500).send({ error: 'Internal app error' })
+  // }
 })
 
-// Helper function to get create schema
-function getCreateSchema(collectionPath: string) {
-  try {
-    const { create } = getCollectionSchemasForPath(collectionPath)
-    if (!create) {
-      throw new Error(`No create schema found for collection: ${collectionPath}`)
-    }
-    return create
-  } catch (error: any) {
-    throw new Error(`Failed to get create schema for collection ${collectionPath}: ${error.message}`)
-  }
-}
-
-// Helper function to get update schema
-function getUpdateSchema(collectionPath: string) {
-  try {
-    const { update } = getCollectionSchemasForPath(collectionPath)
-    if (!update) {
-      throw new Error(`No update schema found for collection: ${collectionPath}`)
-    }
-    return update
-  } catch (error: any) {
-    throw new Error(`Failed to get update schema for collection ${collectionPath}: ${error.message}`)
-  }
-}
-
 const port = Number(process.env.PORT) || 3001
-server.listen({ port })
-  .then(() => server.log.info(`🚀 Server listening on port ${port}`))
+app.listen({ port })
+  .then(() => app.log.info(`🚀 Server listening on port ${port}`))
   .catch(err => {
-    server.log.error(err)
+    app.log.error(err)
     process.exit(1)
   })

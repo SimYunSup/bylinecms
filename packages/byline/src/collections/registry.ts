@@ -1,10 +1,12 @@
 import type { CollectionDefinition } from '../@types/index.js'
+import { Docs } from './docs.js'
 import { News } from './news.js'
 import { Pages } from './pages.js'
 
 export const collections: Record<string, CollectionDefinition> = {
   pages: Pages,
-  news: News
+  news: News,
+  docs: Docs
 }
 
 export const getCollectionDefinition = (path: string): CollectionDefinition | undefined => {

@@ -12,7 +12,9 @@
     "drizzle:push": "tsc -p tsconfig.json && drizzle-kit push --config=drizzle.config.ts",
     "drizzle:drop": "drizzle-kit drop --config=drizzle.config.ts",
     "drizzle:seed": "tsx --no-warnings --env-file=.env ./database/seeds/index.ts",
-    "clean": "rimraf node_modules dist build .turbo "
+    "clean": "rimraf node_modules dist build .turbo ",
+    "test": "LOG_LEVEL=off tsx --test $(find . -name \"*.test.ts\")",
+    "test:one": "LOG_LEVEL=off tsx --no-warnings --env-file=.env --test"
   },
   "dependencies": {
     "@byline/byline": "workspace:*",

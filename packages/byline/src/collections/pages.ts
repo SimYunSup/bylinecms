@@ -57,9 +57,13 @@ const pagesColumns: ColumnDefinition[] = [
 ]
 
 export const Pages: CollectionDefinition = {
-  name: 'Pages',
   path: 'pages',
+  labels: {
+    singular: 'Page',
+    plural: 'Pages',
+  },
   fields: [
+    { name: 'path', label: "Path", type: 'text', required: true, admin: { position: 'sidebar' } },
     { name: 'title', label: 'Title', type: 'text', required: true },
     {
       name: 'category',
@@ -75,7 +79,7 @@ export const Pages: CollectionDefinition = {
     {
       name: 'content',
       label: 'Content',
-      type: 'richtext',
+      type: 'richText',
       helpText: 'Enter the main content for this page.',
       required: true,
     },

@@ -19,8 +19,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { CheckboxField as FieldType } from '@byline/byline/@types/index'
 import { Checkbox } from '@byline/uikit/react'
-import type { CheckboxField as FieldType } from '../@types'
 
 export const CheckboxField = ({
   field,
@@ -35,7 +35,7 @@ export const CheckboxField = ({
     <Checkbox
       id={field.name}
       name={field.name}
-      label={field.label}
+      label={field.label ?? field.name}
       defaultChecked={initialValue ?? false}
       helpText={field.helpText}
       // TODO: Handle indeterminate state

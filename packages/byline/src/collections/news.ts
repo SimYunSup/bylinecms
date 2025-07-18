@@ -33,7 +33,7 @@ const newsColumns: ColumnDefinition[] = [
     className: 'w-[25%]',
   },
   {
-    fieldName: 'published',
+    fieldName: 'status',
     label: 'Status',
     align: 'center',
     className: 'w-[15%]',
@@ -50,18 +50,22 @@ const newsColumns: ColumnDefinition[] = [
 ]
 
 export const News: CollectionDefinition = {
-  name: 'News',
   path: 'news',
+  labels: {
+    singular: 'News',
+    plural: 'News',
+  },
   fields: [
+    { name: 'path', label: "Path", type: 'text', required: true, admin: { position: 'sidebar' } },
     { name: 'title', label: 'Title', type: 'text', required: true },
     {
       name: 'content',
       label: 'Content',
-      type: 'richtext',
+      type: 'richText',
       helpText: 'Enter the main content for this page.',
       required: true,
     },
-    { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', admin: { position: 'sidebar' } },
+    { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', required: true, admin: { position: 'sidebar' } },
   ],
   columns: newsColumns,
 }

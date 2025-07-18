@@ -33,11 +33,11 @@ export const EditView = ({
   initialData: AnyCollectionSchemaTypes['UpdateType']
 }) => {
   const navigate = useNavigate()
-  const { name, path, fields } = collectionDefinition
+  const { labels, path, fields } = collectionDefinition
 
   const handleSubmit = async (data: any) => {
     try {
-      const putRes = await fetch(`http://localhost:3001/api/${path}/${initialData.id}`, {
+      const putRes = await fetch(`http://localhost:3001/api/${path}/${initialData.document_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -63,7 +63,7 @@ export const EditView = ({
     <Section>
       <Container>
         <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between">
-          <h2 className="mb-2">Edit {name}</h2>
+          <h2 className="mb-2">Edit {labels.singular}</h2>
           <div className="flex items-center gap-2">
             <Button
               size="sm"
@@ -72,7 +72,7 @@ export const EditView = ({
               onClick={() =>
                 navigate({
                   to: '/collections/$collection/$id',
-                  params: { collection: path, id: String(initialData.id) },
+                  params: { collection: path, id: String(initialData.document_id) },
                 })
               }
             >
@@ -85,7 +85,7 @@ export const EditView = ({
               onClick={() =>
                 navigate({
                   to: '/collections/$collection/$id',
-                  params: { collection: path, id: String(initialData.id) },
+                  params: { collection: path, id: String(initialData.document_id) },
                 })
               }
             >

@@ -53,19 +53,15 @@ export function RouterPager({
   'aria-label': ariaLabel,
   ...rest
 }: RouterPageProps): React.JSX.Element {
-  // Remix produces a read/write SearchParams object with its useSearchParams hook
-  // Next.js only produces a readOnly object. Both produce a standard object as per
-  // docs here...
-  // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
   const location = useRouterState({ select: (s) => s.location })
-  const searchParams = new URLSearchParams(location.search)
 
   return (
     <Pagination variant="dashboard" {...rest}>
       <Pagination.Root className={className} ariaLabel={ariaLabel}>
         <Pagination.Pager
           renderFirst={(key, item) => {
-            searchParams.delete('page')
+            const params = structuredClone(location.search)
+            delete params.page
             return (
               <Pagination.First asChild key={key} disabled={item.disabled}>
                 {item.disabled === true ? (
@@ -73,14 +69,7 @@ export function RouterPager({
                     <ChevronLeftDoubleIcon />
                   </div>
                 ) : (
-                  <Link
-                    // Special case empty query string. If so - our Link
-                    // component will see the '.', which will send them to the current path
-                    // without any query parameters, thereby creating the correct canonical
-                    // url for this path.
-                    to={location.pathname}
-                    search={`${searchParams.toString() != null && searchParams.toString().length > 0 ? `?${searchParams.toString()}` : ''}`}
-                  >
+                  <Link to={location.pathname} search={params}>
                     <ChevronLeftDoubleIcon />
                   </Link>
                 )}
@@ -88,7 +77,10 @@ export function RouterPager({
             )
           }}
           renderPrevious={(key, item) => {
-            searchParams.set('page', item?.page?.toString())
+            const params = structuredClone(location.search)
+            if (item?.page) {
+              params.page = item.page
+            }
             return (
               <Pagination.Previous asChild key={key} disabled={item.disabled}>
                 {item.disabled === true ? (
@@ -96,7 +88,7 @@ export function RouterPager({
                     <ChevronLeftIcon />
                   </div>
                 ) : (
-                  <Link to={location.pathname} search={searchParams?.toString()}>
+                  <Link to={location.pathname} search={params}>
                     <ChevronLeftIcon />
                   </Link>
                 )}
@@ -104,14 +96,11 @@ export function RouterPager({
             )
           }}
           renderPageNumber={(key, item) => {
-            // Special the first page. If so - our Link
-            // component will see the '.', which will send them to the current path
-            // without any query parameters, thereby creating the correct canonical
-            // url for this path.
+            const params = structuredClone(location.search)
             if (item?.page === 1) {
-              searchParams.delete('page')
-            } else {
-              searchParams.set('page', item.page?.toString())
+              delete params.page
+            } else if (item?.page) {
+              params.page = item.page
             }
             return (
               <Pagination.Number
@@ -124,14 +113,7 @@ export function RouterPager({
                 {item.disabled === true ? (
                   <div>{item.page}</div>
                 ) : (
-                  <Link
-                    // Special case empty query string. If so - our Link
-                    // component will see the '.', which will send them to the current path
-                    // without any query parameters, thereby creating the correct canonical
-                    // url for this path.
-                    to={location.pathname}
-                    search={`${searchParams.toString() != null && searchParams.toString().length > 0 ? `?${searchParams.toString()}` : ''}`}
-                  >
+                  <Link to={location.pathname} search={params}>
                     {item.page}
                   </Link>
                 )}
@@ -139,7 +121,10 @@ export function RouterPager({
             )
           }}
           renderNext={(key, item) => {
-            searchParams.set('page', item?.page?.toString())
+            const params = structuredClone(location.search)
+            if (item?.page) {
+              params.page = item.page
+            }
             return (
               <Pagination.Next asChild key={key} page={item.page} disabled={item.disabled}>
                 {item.disabled === true ? (
@@ -147,7 +132,7 @@ export function RouterPager({
                     <ChevronRightIcon />
                   </div>
                 ) : (
-                  <Link to={location.pathname} search={searchParams?.toString()}>
+                  <Link to={location.pathname} search={params}>
                     <ChevronRightIcon />
                   </Link>
                 )}
@@ -155,7 +140,10 @@ export function RouterPager({
             )
           }}
           renderLast={(key, item, count) => {
-            searchParams.set('page', count?.toString())
+            const params = structuredClone(location.search)
+            if (count) {
+              params.page = count
+            }
             return (
               <Pagination.Last asChild key={key} disabled={item.disabled} count={count}>
                 {item.disabled === true ? (
@@ -163,7 +151,7 @@ export function RouterPager({
                     <ChevronRightDoubleIcon />
                   </div>
                 ) : (
-                  <Link to={location.pathname} search={searchParams?.toString()}>
+                  <Link to={location.pathname} search={params}>
                     <ChevronRightDoubleIcon />
                   </Link>
                 )}

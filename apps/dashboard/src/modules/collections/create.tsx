@@ -30,7 +30,7 @@ export const CreateView = ({
   collectionDefinition: CollectionDefinition
 }) => {
   const navigate = useNavigate()
-  const { name, path, fields } = collectionDefinition
+  const { labels, path, fields } = collectionDefinition
   // const location = useRouterState({ select: (s) => s.location })
 
   const handleSubmit = async (data: any) => {
@@ -57,7 +57,7 @@ export const CreateView = ({
   return (
     <Section>
       <Container>
-        <h2 className="mb-2">Create {name}</h2>
+        <h2 className="mb-2">Create {labels.singular}</h2>
         <FormRenderer
           fields={fields}
           onSubmit={handleSubmit}

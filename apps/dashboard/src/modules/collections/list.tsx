@@ -81,38 +81,40 @@ export const ListView = ({
 }) => {
   const navigate = useNavigate()
   const location = useRouterState({ select: (s) => s.location })
-  const searchParams = new URLSearchParams(location.search)
 
   const handleOnSearch = (query: string): void => {
     if (query != null && query.length > 0) {
-      searchParams.delete('page')
-      searchParams.set('query', query)
+      const params = structuredClone(location.search)
+      delete params.page
+      params.query = query
       navigate({
         to: '/collections/$collection',
         params: { collection: data.included.collection.path },
-        search: Object.fromEntries(searchParams.entries()),
+        search: params,
       })
     }
   }
 
   const handleOnClear = (): void => {
-    searchParams.delete('page')
-    searchParams.delete('query')
+    const params = structuredClone(location.search)
+    delete params.page
+    delete params.query
     navigate({
       to: '/collections/$collection',
       params: { collection: data.included.collection.path },
-      search: Object.fromEntries(searchParams.entries()),
+      search: params,
     })
   }
 
   function handleOnPageSizeChange(value: string): void {
     if (value != null && value.length > 0) {
-      searchParams.delete('page')
-      searchParams.set('page_size', value)
+      const params = structuredClone(location.search)
+      delete params.page
+      params.page_size = Number.parseInt(value)
       navigate({
         to: '/collections/$collection',
         params: { collection: data.included.collection.path },
-        search: Object.fromEntries(searchParams.entries()),
+        search: params,
       })
     }
   }
@@ -121,7 +123,7 @@ export const ListView = ({
     <Section>
       <Container>
         <div className="flex items-center gap-3 py-[2px]">
-          <h1 className="!m-0 pb-[2px]">{data.included.collection.name}</h1>
+          <h1 className="!m-0 pb-[2px]">{data.included.collection.labels.plural as string}</h1>
           <Stats total={data?.meta.total} />
           <IconButton aria-label="Create New" asChild>
             <Link
@@ -172,9 +174,9 @@ export const ListView = ({
             </Table.Header>
 
             <Table.Body>
-              {data?.records?.map((record) => {
+              {data?.documents?.map((document) => {
                 return (
-                  <Table.Row key={record.id}>
+                  <Table.Row key={document.document_id}>
                     {columns.map((column) => (
                       <Table.Cell
                         key={String(column.fieldName)}
@@ -191,17 +193,17 @@ export const ListView = ({
                             to="/collections/$collection/$id"
                             params={{
                               collection: data.included.collection.path,
-                              id: record.id,
+                              id: document.document_id,
                             }}
                           >
                             {column.formatter
-                              ? column.formatter((record as any)[column.fieldName], record)
-                              : ((record as any)[column.fieldName] ?? '------')}
+                              ? column.formatter((document as any)[column.fieldName], document)
+                              : ((document as any)[column.fieldName] ?? '------')}
                           </Link>
                         ) : column.formatter ? (
-                          column.formatter((record as any)[column.fieldName], record)
+                          column.formatter((document as any)[column.fieldName], document)
                         ) : (
-                          String((record as any)[column.fieldName] ?? '')
+                          String((document as any)[column.fieldName] ?? '')
                         )}
                       </Table.Cell>
                     ))}
@@ -210,7 +212,7 @@ export const ListView = ({
               })}
             </Table.Body>
           </Table>
-          {padRows(6 - (data?.records?.length ?? 0))}
+          {padRows(6 - (data?.documents?.length ?? 0))}
         </Table.Container>
         <div className="options flex flex-col gap-2 sm:flex-row items-start sm:items-center mb-5">
           <Select

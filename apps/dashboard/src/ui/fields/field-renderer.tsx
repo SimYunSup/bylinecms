@@ -22,13 +22,14 @@
 // NOTE: Before you dunk on this, this is a totally naïve and "weekend hack"
 // implementation of a field renderer used only for prototype development.
 
+import type { Field } from '@byline/byline/@types/index'
 import { CheckboxField } from '../fields/checkbox/checkbox-field'
 import { useFormContext } from '../fields/form-context'
 import { RichTextField } from '../fields/richtext/richtext-lexical/richtext-field'
 import { SelectField } from '../fields/select/select-field'
 import { TextField } from '../fields/text/text-field'
-import type { Field } from './@types'
 import { DateTimeField } from './datetime/datetime-field'
+import { NumericalField } from './numerical/numerical-field'
 
 interface FieldRendererProps {
   field: Field
@@ -49,10 +50,42 @@ export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
       return <CheckboxField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'select':
       return <SelectField field={field} initialValue={initialValue} onChange={handleChange} />
-    case 'richtext':
+    case 'richText':
       return <RichTextField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'datetime':
       return <DateTimeField field={field} initialValue={initialValue} onChange={handleChange} />
+    case 'integer':
+      return <NumericalField field={field} initialValue={initialValue} onChange={handleChange} />
+    case 'array':
+      if (!field.fields) return null
+      return (
+        <div className="">
+          {field.label && <h3 className="text-[1rem] font-medium mb-1">{field.label}</h3>}
+          <div className="flex flex-col gap-4">
+            {Array.isArray(initialValue) &&
+              initialValue.map((item, index) => {
+                // For block arrays, find the matching field definition for the item.
+                const blockType = Object.keys(item)[0]
+                const subField = field.fields?.find((f) => f.name === blockType)
+
+                if (subField == null) return null
+
+                return (
+                  <div
+                    key={index}
+                    className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4"
+                  >
+                    <FieldRenderer
+                      key={subField.name}
+                      field={subField}
+                      initialValue={item[subField.name]}
+                    />
+                  </div>
+                )
+              })}
+          </div>
+        </div>
+      )
     default:
       return null
   }

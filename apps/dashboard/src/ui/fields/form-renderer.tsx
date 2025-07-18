@@ -22,18 +22,18 @@
 // NOTE: Before you dunk on this, this is a totally naïve  and "weekend hack"
 // implementation of a form renderer used only for prototype development.
 
+import type { Field, ValueField } from '@byline/byline/@types/index'
 import { Button } from '@byline/uikit/react'
 import { formatDateTime } from '../../utils/utils.general'
 import { FieldRenderer } from '../fields/field-renderer'
 import { FormProvider, useFormContext } from '../fields/form-context'
-import type { Field } from './@types'
 
 const FormStatusDisplay = ({ initialData }: { initialData?: Record<string, any> }) => (
   <div className="form-status text-sm flex flex-col sm:flex-row sm:items-center sm:gap-2">
     <div className="published flex items-center gap-1 min-w-0">
       <span className="muted shrink-0">Status:</span>
       <span className="truncate overflow-hidden">
-        {initialData?.published === true ? 'Published' : 'Unpublished'}
+        {initialData?.status === 'published' ? 'Published' : 'Unpublished'}
       </span>
     </div>
 
@@ -168,6 +168,11 @@ export const FormRenderer = (props: {
   initialData?: Record<string, any>
 }) => (
   <FormProvider initialData={props.initialData}>
-    <FormContent {...props} />
+    <FormContent
+      fields={props.fields}
+      onSubmit={props.onSubmit}
+      onCancel={props.onCancel}
+      initialData={props.initialData}
+    />
   </FormProvider>
 )

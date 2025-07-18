@@ -19,16 +19,16 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { TextField as FieldType } from '@byline/byline/@types/index'
+import type { DecimalField, FloatField, IntegerField } from '@byline/byline/@types/index'
 import { Input } from '@byline/uikit/react'
-import { useFormContext } from '../../fields/form-context'
+import { useFormContext } from '../form-context'
 
-export const TextField = ({
+export const NumericalField = ({
   field,
   initialValue,
   onChange,
 }: {
-  field: FieldType
+  field: IntegerField | FloatField | DecimalField
   initialValue?: string
   onChange?: (value: string) => void
 }) => {
@@ -38,6 +38,7 @@ export const TextField = ({
   return (
     <div>
       <Input
+        type="number"
         id={field.name}
         name={field.name}
         label={field.label}

@@ -1,4 +1,6 @@
 // TODO: complete the migration to Zod v4 and remove this comment
+
+import { desc } from 'drizzle-orm'
 import type { ZodDate, ZodEffects } from 'zod/'
 import { z } from 'zod/v4'
 import type { CollectionDefinition, DateTimeField, Field, TextField, ValidationRule } from '../../@types/index.js'
@@ -53,6 +55,10 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
   let schema: z.ZodType
 
   switch (field.type) {
+    case 'array':
+      schema = z.any().array()
+      break
+
     case 'text': {
       let textSchema = z.string()
       textSchema = applyTextValidation(textSchema, field)
@@ -65,6 +71,7 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
       break
     }
 
+    case 'boolean':
     case 'checkbox':
       schema = z.boolean()
       break
@@ -89,7 +96,7 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
       break
     }
 
-    case 'richtext': {
+    case 'richText': {
       let richTextSchema = z.any()
       // TODO: Implement rich text validation if needed
       // if (field.validation?.minLength || field.validation?.maxLength) {
@@ -116,8 +123,7 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
 
 // Create the base schema that all collections share
 export const createBaseSchema = () => z.object({
-  id: z.uuid(),
-  vid: z.number().int().positive(),
+  document_id: z.uuid(),
   status: z.enum(['draft', 'published', 'archived']),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),
@@ -139,12 +145,17 @@ export const createListMetaSchema = () => z.object({
   page: z.number().int().positive(),
   page_size: z.number().int().positive(),
   total: z.number().int().nonnegative(),
-  total_pages: z.number().int().positive(),
+  total_pages: z.number().int().nonnegative(),
+  order: z.string().optional(),
+  desc: z.boolean().optional(),
 })
 
 // Create collection metadata schema
 export const createCollectionMetaSchema = (collection: CollectionDefinition) => z.object({
-  name: z.literal(collection.name),
+  labels: z.object({
+    singular: z.string(),
+    plural: z.string(),
+  }),
   path: z.literal(collection.path),
 })
 
@@ -171,7 +182,7 @@ export const createCollectionSchemas = (collection: CollectionDefinition) => {
     fields: fieldsSchema,
     full: fullSchema,
     list: z.object({
-      records: z.array(fullSchema),
+      documents: z.array(fullSchema),
       meta: createListMetaSchema(),
       included: z.object({
         collection: createCollectionMetaSchema(collection),
