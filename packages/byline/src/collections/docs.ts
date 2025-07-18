@@ -71,17 +71,17 @@ export const Docs: CollectionDefinition = {
     {
       name: 'content', label: 'Content', type: 'array', fields: [
         {
-          name: 'richTextBlock', label: 'Richtext', type: 'array', fields: [
-            { name: 'constrainedWidth', type: 'boolean', required: false },
-            { name: 'richText', type: 'richText', required: true, localized: true },
+          name: 'richTextBlock', label: 'Richtext Block', type: 'array', fields: [
+            { name: 'richText', label: 'Richtext', type: 'richText', required: true, localized: true },
+            { name: 'constrainedWidth', label: 'Constrained Width', type: 'checkbox', required: false },
           ]
         },
         {
-          name: 'photoBlock', label: 'Photo', type: 'array', fields: [
-            { name: 'display', type: 'text', required: false },
-            { name: 'photo', type: 'image', required: true },
-            { name: 'alt', type: 'text', required: true, localized: false },
-            { name: 'caption', type: 'richText', required: false, localized: true },
+          name: 'photoBlock', label: 'Photo Block', type: 'array', fields: [
+            { name: 'display', label: 'Display', type: 'text', required: false },
+            { name: 'photo', label: 'Photo', type: 'image', required: true },
+            { name: 'alt', label: 'Alt', type: 'text', required: true, localized: false },
+            { name: 'caption', label: "Caption", type: 'richText', required: false, localized: true },
           ]
         },
       ]
@@ -89,16 +89,16 @@ export const Docs: CollectionDefinition = {
     {
       name: 'reviews', label: 'Reviews', type: 'array', fields: [
         {
-          name: 'reviewItem', type: 'array', fields: [
-            { name: 'rating', type: 'integer', required: true },
-            { name: 'comment', type: 'richText', required: true, localized: false },
+          name: 'reviewItem', label: 'Review Item', type: 'array', fields: [
+            { name: 'rating', label: 'Rating', type: 'integer', required: true },
+            { name: 'comment', label: 'Comments', type: 'richText', required: true, localized: false },
           ]
         }
       ]
     },
     {
       name: 'links', label: 'Links', type: 'array', fields: [
-        { name: "link", type: "text" }
+        { name: "link", label: 'Link', type: "text" }
       ]
     }
   ],

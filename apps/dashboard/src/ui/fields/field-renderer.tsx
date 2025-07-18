@@ -29,6 +29,7 @@ import { RichTextField } from '../fields/richtext/richtext-lexical/richtext-fiel
 import { SelectField } from '../fields/select/select-field'
 import { TextField } from '../fields/text/text-field'
 import { DateTimeField } from './datetime/datetime-field'
+import { NumericalField } from './numerical/numerical-field'
 
 interface FieldRendererProps {
   field: Field | Field[]
@@ -87,15 +88,28 @@ export const FieldRenderer = ({ field, initialValue, fieldPath = '' }: FieldRend
       <div className="array-field">
         <div className="block font-medium text-[1rem] mb-2">{field.label || field.name}</div>
         <div className="array-items space-y-4">
-          {arrayData.map((item: any, index: number) => (
-            <div key={index} className="array-item border border-gray-700 rounded p-4">
-              <FieldRenderer
-                field={field.fields}
-                initialValue={item}
-                fieldPath={`${currentFieldPath}[${index}]`}
-              />
-            </div>
-          ))}
+          {arrayData.map((item: any, index: number) => {
+            // Each item in the array is an object with field names as keys
+            // We need to render each field definition with its corresponding value from the item
+            return (
+              <div key={index} className="array-item border border-gray-700 rounded p-4">
+                <div className="field-group">
+                  {field.fields!.map((childField, fieldIndex) => {
+                    // Extract the value for this specific field from the item
+                    const childValue = item[childField.name]
+                    return (
+                      <FieldRenderer
+                        key={`${currentFieldPath}[${index}].${childField.name}`}
+                        field={childField}
+                        initialValue={childValue}
+                        fieldPath={`${currentFieldPath}[${index}].${childField.name}`}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     )
@@ -112,6 +126,10 @@ export const FieldRenderer = ({ field, initialValue, fieldPath = '' }: FieldRend
       return <RichTextField field={field} initialValue={fieldValue} onChange={handleChange} />
     case 'datetime':
       return <DateTimeField field={field} initialValue={fieldValue} onChange={handleChange} />
+    case 'integer':
+    case 'float':
+    case 'decimal':
+      return <NumericalField field={field} initialValue={fieldValue} onChange={handleChange} />
     default:
       return null
   }

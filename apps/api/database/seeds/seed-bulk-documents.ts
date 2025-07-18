@@ -15,7 +15,7 @@ let commandBuilders: ReturnType<typeof createCommandBuilders>
 const siteConfig: SiteConfig = {
   i18n: {
     defaultLocale: 'en',
-    locales: ['en', 'es', 'fr'],
+    locales: ['en', 'es'],
   }
 }
 
@@ -25,12 +25,10 @@ const sampleDocument = {
   title: {
     en: "My First Document",
     es: "Mi Primer Documento",
-    fr: "Mon Premier Document"
   },
   summary: {
     en: "This is a sample document for testing purposes.",
     es: "Este es un documento de muestra para fines de prueba.",
-    fr: "Il s'agit d'un document d'exemple à des fins de test."
   },
   // category: {
   //   target_collection_id: "cat-123",
@@ -44,8 +42,68 @@ const sampleDocument = {
         { constrainedWidth: true },
         {
           richText: {
-            en: { root: { paragraph: 'Some text here...' } },
-            es: { root: { paragraph: 'Some spanish text here' } }
+            en: {
+              root: {
+                children: [
+                  {
+                    children: [
+                      {
+                        detail: 0,
+                        format: 0,
+                        mode: "normal",
+                        style: "",
+                        text: "Some richtext here...",
+                        type: "text",
+                        version: 1
+                      }
+                    ],
+                    direction: "ltr",
+                    format: "",
+                    indent: 0,
+                    type: "paragraph",
+                    version: 1,
+                    textFormat: 0,
+                    textStyle: ""
+                  }
+                ],
+                direction: "ltr",
+                format: "",
+                indent: 0,
+                type: "root",
+                version: 1
+              }
+            },
+            es: {
+              root: {
+                children: [
+                  {
+                    children: [
+                      {
+                        detail: 0,
+                        format: 0,
+                        mode: "normal",
+                        style: "",
+                        text: "Aquí hay un campo de texto enriquecido...",
+                        type: "text",
+                        version: 1
+                      }
+                    ],
+                    direction: "ltr",
+                    format: "",
+                    indent: 0,
+                    type: "paragraph",
+                    version: 1,
+                    textFormat: 0,
+                    textStyle: ""
+                  }
+                ],
+                direction: "ltr",
+                format: "",
+                indent: 0,
+                type: "root",
+                version: 1
+              }
+            }
           }
         },
       ],
@@ -67,8 +125,68 @@ const sampleDocument = {
         { alt: 'Some alt text here' },
         {
           caption: {
-            en: { root: { paragraph: 'Some text here...' } },
-            es: { root: { paragraph: 'Some spanish text here...' } }
+            en: {
+              root: {
+                children: [
+                  {
+                    children: [
+                      {
+                        detail: 0,
+                        format: 0,
+                        mode: "normal",
+                        style: "",
+                        text: "Here is a richtext field Here is a richtext field Here is a richtext field Here is a rich text field.",
+                        type: "text",
+                        version: 1
+                      }
+                    ],
+                    direction: "ltr",
+                    format: "",
+                    indent: 0,
+                    type: "paragraph",
+                    version: 1,
+                    textFormat: 0,
+                    textStyle: ""
+                  }
+                ],
+                direction: "ltr",
+                format: "",
+                indent: 0,
+                type: "root",
+                version: 1
+              }
+            },
+            es: {
+              root: {
+                children: [
+                  {
+                    children: [
+                      {
+                        detail: 0,
+                        format: 0,
+                        mode: "normal",
+                        style: "",
+                        text: "Aquí hay un campo de texto enriquecido. Aquí hay un campo de texto enriquecido. Aquí hay un campo de texto enriquecido. Aquí hay un campo de texto enriquecido.",
+                        type: "text",
+                        version: 1
+                      }
+                    ],
+                    direction: "ltr",
+                    format: "",
+                    indent: 0,
+                    type: "paragraph",
+                    version: 1,
+                    textFormat: 0,
+                    textStyle: ""
+                  }
+                ],
+                direction: "ltr",
+                format: "",
+                indent: 0,
+                type: "root",
+                version: 1
+              }
+            }
           }
         },
       ]
@@ -78,13 +196,77 @@ const sampleDocument = {
     {
       reviewItem: [
         { rating: 5 },
-        { comment: { root: { paragraph: 'Some review text here...' } } },
+        {
+          comment: {
+            root: {
+              children: [
+                {
+                  children: [
+                    {
+                      detail: 0,
+                      format: 0,
+                      mode: "normal",
+                      style: "",
+                      text: "Some review text here...",
+                      type: "text",
+                      version: 1
+                    }
+                  ],
+                  direction: "ltr",
+                  format: "",
+                  indent: 0,
+                  type: "paragraph",
+                  version: 1,
+                  textFormat: 0,
+                  textStyle: ""
+                }
+              ],
+              direction: "ltr",
+              format: "",
+              indent: 0,
+              type: "root",
+              version: 1
+            }
+          }
+        },
       ]
     },
     {
       reviewItem: [
         { rating: 3 },
-        { comment: { root: { paragraph: 'Some more reviews here...' } } },
+        {
+          comment: {
+            root: {
+              children: [
+                {
+                  children: [
+                    {
+                      detail: 0,
+                      format: 0,
+                      mode: "normal",
+                      style: "",
+                      text: "Some review text here...",
+                      type: "text",
+                      version: 1
+                    }
+                  ],
+                  direction: "ltr",
+                  format: "",
+                  indent: 0,
+                  type: "paragraph",
+                  version: 1,
+                  textFormat: 0,
+                  textStyle: ""
+                }
+              ],
+              direction: "ltr",
+              format: "",
+              indent: 0,
+              type: "root",
+              version: 1
+            }
+          }
+        },
       ]
     }
   ],

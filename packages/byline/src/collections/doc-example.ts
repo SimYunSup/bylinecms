@@ -1,8 +1,8 @@
-const sampleDocument = {
-  document_id: "019804f5-e055-703f-975a-69ab5fb4304c",
+const documentExample = {
+  document_id: "01981ce6-d40e-7218-9705-39e2b7bf609a",
   status: "draft",
-  created_at: "2025-07-13T18:04:39.381Z",
-  updated_at: "2025-07-13T18:04:39.381Z",
+  created_at: "2025-07-18T09:39:06.382Z",
+  updated_at: "2025-07-18T09:39:06.382Z",
   path: "my-first-bulk-document-13325",
   title: "A bulk created document. 981",
   summary: "This is a sample document for testing purposes.",
@@ -17,7 +17,33 @@ const sampleDocument = {
         {
           richText: {
             root: {
-              paragraph: "Some text here..."
+              type: "root",
+              format: "",
+              indent: 0,
+              version: 1,
+              children: [
+                {
+                  type: "paragraph",
+                  format: "",
+                  indent: 0,
+                  version: 1,
+                  children: [
+                    {
+                      mode: "normal",
+                      text: "Some richtext here...",
+                      type: "text",
+                      style: "",
+                      detail: 0,
+                      format: 0,
+                      version: 1
+                    }
+                  ],
+                  direction: "ltr",
+                  textStyle: "",
+                  textFormat: 0
+                }
+              ],
+              direction: "ltr"
             }
           }
         }
@@ -30,7 +56,7 @@ const sampleDocument = {
         },
         {
           photo: {
-            file_id: "019804f5-a505-75bb-add6-719a56a163cd",
+            file_id: "01981ce6-9c93-751b-bd33-21cfe01cb28e",
             filename: "docs-photo-01.jpg",
             original_filename: "some-original-filename.jpg",
             mime_type: "image/jpeg",
@@ -52,7 +78,33 @@ const sampleDocument = {
         {
           caption: {
             root: {
-              paragraph: "Some text here..."
+              type: "root",
+              format: "",
+              indent: 0,
+              version: 1,
+              children: [
+                {
+                  type: "paragraph",
+                  format: "",
+                  indent: 0,
+                  version: 1,
+                  children: [
+                    {
+                      mode: "normal",
+                      text: "Here is a richtext field Here is a richtext field Here is a richtext field Here is a rich text field.",
+                      type: "text",
+                      style: "",
+                      detail: 0,
+                      format: 0,
+                      version: 1
+                    }
+                  ],
+                  direction: "ltr",
+                  textStyle: "",
+                  textFormat: 0
+                }
+              ],
+              direction: "ltr"
             }
           }
         }
@@ -68,7 +120,33 @@ const sampleDocument = {
         {
           comment: {
             root: {
-              paragraph: "Some review text here..."
+              type: "root",
+              format: "",
+              indent: 0,
+              version: 1,
+              children: [
+                {
+                  type: "paragraph",
+                  format: "",
+                  indent: 0,
+                  version: 1,
+                  children: [
+                    {
+                      mode: "normal",
+                      text: "Some review text here...",
+                      type: "text",
+                      style: "",
+                      detail: 0,
+                      format: 0,
+                      version: 1
+                    }
+                  ],
+                  direction: "ltr",
+                  textStyle: "",
+                  textFormat: 0
+                }
+              ],
+              direction: "ltr"
             }
           }
         }
@@ -82,7 +160,33 @@ const sampleDocument = {
         {
           comment: {
             root: {
-              paragraph: "Some more reviews here..."
+              type: "root",
+              format: "",
+              indent: 0,
+              version: 1,
+              children: [
+                {
+                  type: "paragraph",
+                  format: "",
+                  indent: 0,
+                  version: 1,
+                  children: [
+                    {
+                      mode: "normal",
+                      text: "Some review text here...",
+                      type: "text",
+                      style: "",
+                      detail: 0,
+                      format: 0,
+                      version: 1
+                    }
+                  ],
+                  direction: "ltr",
+                  textStyle: "",
+                  textFormat: 0
+                }
+              ],
+              direction: "ltr"
             }
           }
         }
