@@ -31,7 +31,7 @@ import cors from '@fastify/cors'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
 import { Pool } from 'pg'
-import { z } from 'zod'
+import * as z from "zod";
 import * as schema from '../database/schema/index.js'
 import { createCommandBuilders } from './storage-commands.js'
 import { createQueryBuilders } from './storage-queries.js'
@@ -158,7 +158,7 @@ app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:c
     if (error instanceof z.ZodError) {
       reply.code(400).send({
         error: 'Validation failed',
-        details: error.errors
+        details: z.treeifyError(error)
       })
       return
     }

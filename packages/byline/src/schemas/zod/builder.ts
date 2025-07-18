@@ -1,8 +1,4 @@
-// TODO: complete the migration to Zod v4 and remove this comment
-
-import { desc } from 'drizzle-orm'
-import type { ZodDate, ZodEffects } from 'zod/'
-import { z } from 'zod/v4'
+import * as z from "zod";
 import type { CollectionDefinition, DateTimeField, Field, TextField, ValidationRule } from '../../@types/index.js'
 import { getCollectionDefinition } from '../../collections/registry.js'
 
@@ -44,10 +40,10 @@ const applyTextValidation = (schema: z.ZodString, field: TextField): z.ZodString
 }
 
 // Helper function to apply datetime validation
-const applyDateTimeValidation = (schema: ZodEffects<ZodDate, Date, unknown>, field: DateTimeField): ZodEffects<ZodDate, Date, unknown> => {
+const applyDateTimeValidation = (schema: z.ZodType, field: DateTimeField): z.ZodType => {
   // TODO: Implement specific datetime validation if needed
   let validatedSchema = schema
-  return validatedSchema as ZodEffects<ZodDate, Date, unknown>
+  return validatedSchema
 }
 
 // Convert a single field to a Zod schema
@@ -88,7 +84,9 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
     case 'datetime': {
       let dateSchema = z.preprocess(
         (val) => (val === '' || val == null) ? null : val,
-        z.coerce.date()
+        z.coerce.date().refine((val) => val.toString() !== 'Invalid Date', {
+          message: 'Invalid date',
+        })
       )
       // TODO: Implement specific datetime validation if needed
       // dateSchema = applyDateTimeValidation(dateTimeSchema, field)

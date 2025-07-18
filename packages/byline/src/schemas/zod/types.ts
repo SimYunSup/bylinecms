@@ -1,4 +1,4 @@
-import type { z } from 'zod/v4'
+import type { z } from 'zod'
 import type { getCollectionSchemasForPath } from './cache.js'
 
 // Helper type to infer all schema types from a collection schemas object
