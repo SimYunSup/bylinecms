@@ -64,17 +64,17 @@ While we're still finding our feet in terms of overall strategy, we felt it woul
 ## Design Goals
 1. We'd like to create an extensible, plugin-based framework for our headless CMS that will allow users to easily create admin dashboards and serialization frameworks for front-end clients.
    
-3. We'd like to offer the option of 'monolith deployments' - combined API / admin dashboard deployments within a front-end framework of choice, or fully isolated API server, admin dashboard web app and API-only consuming front-end client applications.
+2. We'd like to create an immutable 'versioned-by-default' document store; which means document history by default, and tombstones (soft deletes) by default, including user restoration tombstoned documents.
+
+3. We're going to create a native 'file' field type that can be used in any collection definition, and separately from any defined media or upload collections.
 
 4. We'd like everything to be fast - like really fast - from admin bundle compile times to API responses.
    
-5. We're keen to follow patterns of highly cohesive and loosely coupled design - the benefits of which would include a nice API for content updates and callbacks / webhooks for consumer cache invalidation strategies etc.
+5. We're keen to follow patterns of highly cohesive and loosely coupled design - the benefits of which will include a good API for content versioning, and callbacks / webhooks for consumer cache invalidation strategies (to name a few).
 
-6. For now, we'd like to create a 'thin' field API over [Drizzle](https://orm.drizzle.team/).
+6. For our admin dashboards, it should be easy to create content editors with your favorite editor, whether [CKEditor](https://ckeditor.com/), [Lexical](https://lexical.dev/), [TipTap](https://tiptap.dev/), [ProseMirror](https://prosemirror.net/) or other.
 
-7. For our admin dashboards, it should be easy to create content editors with your favorite editor, whether [CKEditor](https://ckeditor.com/), [Lexical](https://lexical.dev/), [TipTap](https://tiptap.dev/), [ProseMirror](https://prosemirror.net/) or other.
-
-8. And more....
+7. And more....
 
 ## What's Next?
 We need to find our feet, choose license, publish a roadmap, code of conduct, our values and mission statement, as well as settle on a governance model and likely stewardship entity. We've published the prototype under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.en.html) license - for now, as we understand this has implications. Before we accept contributions, we'll likely switch to a more permissive license like Apache 2.0 (this requires consent or a CLA from contributors, which is fine while there's just a few of us).
