@@ -1,11 +1,11 @@
 {
-  "id": "bf296f73-2b6a-48a9-b4b0-c46a690e7fd2",
+  "id": "dbbafdff-9546-4abf-b7bf-b55f92a93a7a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.boolean_store": {
-      "name": "boolean_store",
+    "public.store_boolean": {
+      "name": "store_boolean",
       "schema": "",
       "columns": {
         "id": {
@@ -138,9 +138,9 @@
         }
       },
       "foreignKeys": {
-        "boolean_store_document_version_id_documents_id_fk": {
-          "name": "boolean_store_document_version_id_documents_id_fk",
-          "tableFrom": "boolean_store",
+        "store_boolean_document_version_id_documents_id_fk": {
+          "name": "store_boolean_document_version_id_documents_id_fk",
+          "tableFrom": "store_boolean",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -151,9 +151,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "boolean_store_collection_id_collections_id_fk": {
-          "name": "boolean_store_collection_id_collections_id_fk",
-          "tableFrom": "boolean_store",
+        "store_boolean_collection_id_collections_id_fk": {
+          "name": "store_boolean_collection_id_collections_id_fk",
+          "tableFrom": "store_boolean",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -246,8 +246,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.datetime_store": {
-      "name": "datetime_store",
+    "public.store_datetime": {
+      "name": "store_datetime",
       "schema": "",
       "columns": {
         "id": {
@@ -407,9 +407,9 @@
         }
       },
       "foreignKeys": {
-        "datetime_store_document_version_id_documents_id_fk": {
-          "name": "datetime_store_document_version_id_documents_id_fk",
-          "tableFrom": "datetime_store",
+        "store_datetime_document_version_id_documents_id_fk": {
+          "name": "store_datetime_document_version_id_documents_id_fk",
+          "tableFrom": "store_datetime",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -420,9 +420,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "datetime_store_collection_id_collections_id_fk": {
-          "name": "datetime_store_collection_id_collections_id_fk",
-          "tableFrom": "datetime_store",
+        "store_datetime_collection_id_collections_id_fk": {
+          "name": "store_datetime_collection_id_collections_id_fk",
+          "tableFrom": "store_datetime",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -708,8 +708,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.file_store": {
-      "name": "file_store",
+    "public.store_file": {
+      "name": "store_file",
       "schema": "",
       "columns": {
         "id": {
@@ -970,9 +970,9 @@
         }
       },
       "foreignKeys": {
-        "file_store_document_version_id_documents_id_fk": {
-          "name": "file_store_document_version_id_documents_id_fk",
-          "tableFrom": "file_store",
+        "store_file_document_version_id_documents_id_fk": {
+          "name": "store_file_document_version_id_documents_id_fk",
+          "tableFrom": "store_file",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -983,9 +983,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "file_store_collection_id_collections_id_fk": {
-          "name": "file_store_collection_id_collections_id_fk",
-          "tableFrom": "file_store",
+        "store_file_collection_id_collections_id_fk": {
+          "name": "store_file_collection_id_collections_id_fk",
+          "tableFrom": "store_file",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -1013,8 +1013,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.json_store": {
-      "name": "json_store",
+    "public.store_json": {
+      "name": "store_json",
       "schema": "",
       "columns": {
         "id": {
@@ -1141,9 +1141,9 @@
         }
       },
       "foreignKeys": {
-        "json_store_document_version_id_documents_id_fk": {
-          "name": "json_store_document_version_id_documents_id_fk",
-          "tableFrom": "json_store",
+        "store_json_document_version_id_documents_id_fk": {
+          "name": "store_json_document_version_id_documents_id_fk",
+          "tableFrom": "store_json",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -1154,9 +1154,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "json_store_collection_id_collections_id_fk": {
-          "name": "json_store_collection_id_collections_id_fk",
-          "tableFrom": "json_store",
+        "store_json_collection_id_collections_id_fk": {
+          "name": "store_json_collection_id_collections_id_fk",
+          "tableFrom": "store_json",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -1184,8 +1184,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.numeric_store": {
-      "name": "numeric_store",
+    "public.store_numeric": {
+      "name": "store_numeric",
       "schema": "",
       "columns": {
         "id": {
@@ -1360,9 +1360,9 @@
         }
       },
       "foreignKeys": {
-        "numeric_store_document_version_id_documents_id_fk": {
-          "name": "numeric_store_document_version_id_documents_id_fk",
-          "tableFrom": "numeric_store",
+        "store_numeric_document_version_id_documents_id_fk": {
+          "name": "store_numeric_document_version_id_documents_id_fk",
+          "tableFrom": "store_numeric",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -1373,9 +1373,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "numeric_store_collection_id_collections_id_fk": {
-          "name": "numeric_store_collection_id_collections_id_fk",
-          "tableFrom": "numeric_store",
+        "store_numeric_collection_id_collections_id_fk": {
+          "name": "store_numeric_collection_id_collections_id_fk",
+          "tableFrom": "store_numeric",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -1403,8 +1403,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.relation_store": {
-      "name": "relation_store",
+    "public.store_relation": {
+      "name": "store_relation",
       "schema": "",
       "columns": {
         "id": {
@@ -1581,9 +1581,9 @@
         }
       },
       "foreignKeys": {
-        "relation_store_document_version_id_documents_id_fk": {
-          "name": "relation_store_document_version_id_documents_id_fk",
-          "tableFrom": "relation_store",
+        "store_relation_document_version_id_documents_id_fk": {
+          "name": "store_relation_document_version_id_documents_id_fk",
+          "tableFrom": "store_relation",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -1594,9 +1594,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "relation_store_collection_id_collections_id_fk": {
-          "name": "relation_store_collection_id_collections_id_fk",
-          "tableFrom": "relation_store",
+        "store_relation_collection_id_collections_id_fk": {
+          "name": "store_relation_collection_id_collections_id_fk",
+          "tableFrom": "store_relation",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
@@ -1607,9 +1607,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "relation_store_target_document_id_documents_id_fk": {
-          "name": "relation_store_target_document_id_documents_id_fk",
-          "tableFrom": "relation_store",
+        "store_relation_target_document_id_documents_id_fk": {
+          "name": "store_relation_target_document_id_documents_id_fk",
+          "tableFrom": "store_relation",
           "tableTo": "documents",
           "columnsFrom": [
             "target_document_id"
@@ -1620,9 +1620,9 @@
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
-        "relation_store_target_collection_id_collections_id_fk": {
-          "name": "relation_store_target_collection_id_collections_id_fk",
-          "tableFrom": "relation_store",
+        "store_relation_target_collection_id_collections_id_fk": {
+          "name": "store_relation_target_collection_id_collections_id_fk",
+          "tableFrom": "store_relation",
           "tableTo": "collections",
           "columnsFrom": [
             "target_collection_id"
@@ -1650,8 +1650,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.text_store": {
-      "name": "text_store",
+    "public.store_text": {
+      "name": "store_text",
       "schema": "",
       "columns": {
         "id": {
@@ -1799,9 +1799,9 @@
         }
       },
       "foreignKeys": {
-        "text_store_document_version_id_documents_id_fk": {
-          "name": "text_store_document_version_id_documents_id_fk",
-          "tableFrom": "text_store",
+        "store_text_document_version_id_documents_id_fk": {
+          "name": "store_text_document_version_id_documents_id_fk",
+          "tableFrom": "store_text",
           "tableTo": "documents",
           "columnsFrom": [
             "document_version_id"
@@ -1812,9 +1812,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "text_store_collection_id_collections_id_fk": {
-          "name": "text_store_collection_id_collections_id_fk",
-          "tableFrom": "text_store",
+        "store_text_collection_id_collections_id_fk": {
+          "name": "store_text_collection_id_collections_id_fk",
+          "tableFrom": "store_text",
           "tableTo": "collections",
           "columnsFrom": [
             "collection_id"
