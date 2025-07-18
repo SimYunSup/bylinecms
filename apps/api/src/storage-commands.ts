@@ -19,10 +19,6 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// ENHANCED STORAGE COMMANDS WITH ARRAY SUPPORT
-// ============================================
-
-
 import type { CollectionDefinition, SiteConfig } from '@byline/byline/@types/index'
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
@@ -296,9 +292,12 @@ export class DocumentCommands {
   }
 }
 
-// FACTORY FUNCTION FOR CONVENIENCE
-// ================================
-
+/**
+ * Factory function
+ * @param siteConfig 
+ * @param db 
+ * @returns 
+ */
 export function createCommandBuilders(siteConfig: SiteConfig, db: DatabaseConnection) {
   return {
     collections: new CollectionCommands(siteConfig, db),

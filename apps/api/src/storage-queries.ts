@@ -1000,6 +1000,12 @@ export class DocumentQueries {
 // FACTORY FUNCTION FOR CONVENIENCE
 // ================================
 
+/**
+ * Factory function
+ * @param siteConfig 
+ * @param db 
+ * @returns 
+ */
 export function createQueryBuilders(siteConfig: SiteConfig, db: DatabaseConnection) {
   return {
     collections: new CollectionQueries(siteConfig, db),
