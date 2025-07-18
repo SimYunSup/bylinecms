@@ -243,7 +243,7 @@ export const fileStore = pgTable('store_file', {
 ]));
 
 // 7. JSON/STRUCTURED DATA FIELDS TABLE
-export const jsonStore = pgTable('json_store', {
+export const jsonStore = pgTable('store_json', {
   ...baseStoreColumns,
 
   value: jsonb('value').notNull(),

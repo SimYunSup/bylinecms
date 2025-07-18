@@ -185,7 +185,7 @@ export class DocumentQueries {
       -- JSON fields
       SELECT 
         ${jsonFields}
-      FROM json_store
+      FROM store_json
 
       UNION ALL
 
@@ -771,7 +771,7 @@ export class DocumentQueries {
       -- JSON fields (41 columns total - SAME ORDER)
       SELECT 
        ${jsonFields}
-      FROM json_store 
+      FROM store_json 
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       UNION ALL
@@ -849,7 +849,7 @@ export class DocumentQueries {
      -- JSON fields (41 columns total - SAME ORDER)
       SELECT 
         ${jsonFields}
-      FROM json_store 
+      FROM store_json 
       WHERE ${documentCondition} ${localeCondition}
 
       UNION ALL
