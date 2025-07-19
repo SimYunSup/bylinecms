@@ -19,8 +19,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition } from '@byline/byline/@types/index'
-import type { AnyCollectionSchemaTypes } from '@byline/byline/schemas/zod/types'
+import type { CollectionDefinition } from '@byline/byline'
+import type { AnyCollectionSchemaTypes } from '@byline/byline/zod-schemas'
 import { Button, Container, Section } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
 import { FormRenderer } from '@/ui/fields/form-renderer'

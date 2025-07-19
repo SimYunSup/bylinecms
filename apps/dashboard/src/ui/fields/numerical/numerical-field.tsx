@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { DecimalField, FloatField, IntegerField } from '@byline/byline/@types/index'
+import type { DecimalField, FloatField, IntegerField } from '@byline/byline'
 import { Input } from '@byline/uikit/react'
 import { useFormContext } from '../form-context'
 

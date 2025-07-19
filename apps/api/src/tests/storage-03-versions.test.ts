@@ -22,7 +22,7 @@
 
 import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
-import type { CollectionDefinition } from '@byline/byline/@types/index'
+import type { CollectionDefinition } from '@byline/byline'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '../../database/schema/index.js'

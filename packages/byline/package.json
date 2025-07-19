@@ -30,14 +30,15 @@
     "clean": "rimraf node_modules dist build .turbo"
   },
   "exports": {
-    "./*": {
-      "types": "./dist/*.d.ts",
-      "import": "./dist/*.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     },
-    "./drizzle-schemas": {
-      "types": "./dist/output/drizzle-schemas/index.d.ts",
-      "import": "./dist/output/drizzle-schemas/index.js",
-      "require": "./dist/output/drizzle-schemas/index.js"
+    "./zod-schemas": {
+      "types": "./dist/schemas/zod/index.d.ts",
+      "import": "./dist/schemas/zod/index.js",
+      "require": "./dist/schemas/zod/index.js"
     },
     "./package.json": "./package.json"
   },

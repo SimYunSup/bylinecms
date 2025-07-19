@@ -26,7 +26,7 @@
  */
 
 // TODO: Remove direct dependency on the registry
-import { getCollectionDefinition } from '@byline/byline/collections/registry'
+import { getCollectionDefinition } from '@byline/byline'
 import cors from '@fastify/cors'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'

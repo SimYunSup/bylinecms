@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition, Field, ValueField } from '@byline/byline/@types/index'
+import type { CollectionDefinition, Field, ValueField } from '@byline/byline'
 
 import type {
   DateTimeStore,

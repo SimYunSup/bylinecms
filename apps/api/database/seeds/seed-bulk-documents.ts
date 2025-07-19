@@ -1,5 +1,5 @@
 
-import { getCollectionDefinition } from '@byline/byline/collections/registry'
+import { getCollectionDefinition } from '@byline/byline'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'

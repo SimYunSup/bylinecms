@@ -19,9 +19,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition } from '@byline/byline/@types/index'
-import { getCollectionDefinition } from '@byline/byline/config/config'
-import { getCollectionSchemasForPath } from '@byline/byline/schemas/zod/cache'
+import type { CollectionDefinition } from '@byline/byline'
+import { getCollectionDefinition, getCollectionSchemasForPath } from '@byline/byline'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { z } from 'zod'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'

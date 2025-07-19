@@ -19,8 +19,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { ColumnDefinition } from '@byline/byline/@types/index'
-import type { AnyCollectionSchemaTypes } from '@byline/byline/schemas/zod/types'
+import type { ColumnDefinition } from '@byline/byline'
+import type { AnyCollectionSchemaTypes } from '@byline/byline/zod-schemas'
 import {
   Container,
   IconButton,

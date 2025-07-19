@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { Field } from '@byline/byline/@types/index'
+import type { Field } from '@byline/byline'
 import type React from 'react'
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
 

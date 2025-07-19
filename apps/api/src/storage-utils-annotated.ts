@@ -20,7 +20,7 @@
  */
 
 
-import type { CollectionDefinition, Field, ValueField } from '@byline/byline/@types/index'
+import type { CollectionDefinition, Field, ValueField } from '@byline/byline'
 import type { FlattenedStore } from './@types/index.js';
 
 

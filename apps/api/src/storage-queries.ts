@@ -29,7 +29,7 @@ import { collections, currentDocumentsView, documents } from '../database/schema
 
 type DatabaseConnection = NodePgDatabase<typeof schema>;
 
-import type { CollectionDefinition, SiteConfig } from "@byline/byline/@types/index";
+import type { CollectionDefinition } from "@byline/byline";
 
 import type {
   FlattenedStore,

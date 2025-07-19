@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { DateTimeField as FieldType } from '@byline/byline/@types/index'
+import type { DateTimeField as FieldType } from '@byline/byline'
 import { DatePicker } from '@byline/uikit/react'
 
 export const DateTimeField = ({

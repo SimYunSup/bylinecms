@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CheckboxField as FieldType } from '@byline/byline/@types/index'
+import type { CheckboxField as FieldType } from '@byline/byline'
 import { Checkbox } from '@byline/uikit/react'
 
 export const CheckboxField = ({

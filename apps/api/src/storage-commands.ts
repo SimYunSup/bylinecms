@@ -1,3 +1,4 @@
+import { index } from 'drizzle-orm/pg-core';
 /**
  * Byline CMS Server Tests
  *
@@ -19,7 +20,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition } from '@byline/byline/@types/index'
+import type { CollectionDefinition } from '@byline/byline'
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { v7 as uuidv7 } from 'uuid'
