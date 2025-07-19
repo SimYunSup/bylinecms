@@ -1,5 +1,4 @@
 
-import type { SiteConfig } from '@byline/byline/@types/index'
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
@@ -11,13 +10,6 @@ import * as schema from '../schema/index.js'
 let pool: Pool
 let db: NodePgDatabase<typeof schema>
 let commandBuilders: ReturnType<typeof createCommandBuilders>
-
-const siteConfig: SiteConfig = {
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'es'],
-  }
-}
 
 // Complex test document with many fields and arrays
 const sampleDocument = {
@@ -282,7 +274,7 @@ async function run() {
   db = drizzle(pool, { schema })
 
   const collectionDefinition = getCollectionDefinition('docs')
-  commandBuilders = createCommandBuilders(siteConfig, db)
+  commandBuilders = createCommandBuilders(db)
 
   if (!collectionDefinition) {
     console.error('Collection definition not found for "docs"')
