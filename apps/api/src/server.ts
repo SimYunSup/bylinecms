@@ -28,7 +28,7 @@
 // Initialize Byline config by importing the shared config package
 import '@byline/config';
 
-// TODO: Remove direct dependency on the registry
+// TODO: Remove direct dependency on the getCollectionDefinition
 import { getCollectionDefinition } from '@byline/byline'
 import cors from '@fastify/cors'
 import { drizzle } from 'drizzle-orm/node-postgres'
@@ -112,10 +112,11 @@ app.get<{ Params: { collection: string } }>('/api/:collection', async (request, 
 
   const searchParams = metaSchema.safeParse(search)
 
-  const result = await queries.documents.getDocumentsByPage(collection.id,
-    { ...searchParams.data, locale: 'en' }, // Default to 'en' locale if not provided
-  )
-
+  const result = await queries.documents.getDocumentsByPage({
+    collection_id: collection.id,
+    locale: 'en',
+    ...searchParams.data
+  })
   return result
 })
 
@@ -182,7 +183,7 @@ app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', 
     return
   }
 
-  const document = await queries.documents.getDocumentById(collection.id, id)
+  const document = await queries.documents.getDocumentById({ collection_id: collection.id, document_id: id, locale: 'en' })
   if (document == null) {
     reply.code(404).send({ error: 'Document not found' })
     return

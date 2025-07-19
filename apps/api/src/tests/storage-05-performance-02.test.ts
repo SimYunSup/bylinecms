@@ -85,10 +85,10 @@ describe('Bulk Document Operations', () => {
       const startTime = performance.now()
 
       const documents = await queryBuilders.documents.getAllDocuments
-        (
-          collection.id,
-          'all'
-        )
+        ({
+          collection_id: collection.id,
+          locale: 'all'
+        })
 
       const endTime = performance.now()
       const duration = endTime - startTime
@@ -105,8 +105,8 @@ describe('Bulk Document Operations', () => {
       const startTime = performance.now()
 
       const result = await queryBuilders.documents.getDocumentsByPage(
-        collection.id,
         {
+          collection_id: collection.id,
           locale: 'en',
           page: 1,
           page_size: 50,

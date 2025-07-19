@@ -304,10 +304,10 @@ describe('Performance Analysis', () => {
     it('should retrieve document using optimized approach', async () => {
       const startTime = performance.now()
 
-      const document = await queryBuilders.documents.getDocumentByVersion(
-        testDocumentsVersionIds[0],
-        'all'
-      )
+      const document = await queryBuilders.documents.getDocumentByVersion({
+        document_version_id: testDocumentsVersionIds[0],
+        locale: 'all'
+      })
 
       const endTime = performance.now()
       const duration = endTime - startTime
@@ -332,10 +332,10 @@ describe('Performance Analysis', () => {
       for (let i = 0; i < runs; i++) {
         // Test optimized approach
         const optimizedStart = performance.now()
-        await queryBuilders.documents.getDocumentByVersion(
-          testDocumentsVersionIds[i % testDocumentsVersionIds.length],
-          'all'
-        )
+        await queryBuilders.documents.getDocumentByVersion({
+          document_version_id: testDocumentsVersionIds[i % testDocumentsVersionIds.length],
+          locale: 'all'
+        })
         const optimizedEnd = performance.now()
         optimizedTotal += (optimizedEnd - optimizedStart)
       }
@@ -355,10 +355,10 @@ describe('Performance Analysis', () => {
 
       const startTime = performance.now()
 
-      const documents = await queryBuilders.documents.getDocuments(
-        documentVersionIds,
-        'all'
-      )
+      const documents = await queryBuilders.documents.getDocuments({
+        document_version_ids: documentVersionIds,
+        locale: 'all'
+      })
 
       const endTime = performance.now()
       const duration = endTime - startTime
@@ -382,10 +382,10 @@ describe('Performance Analysis', () => {
 
         // Optimized approach (batch)
         const optimizedStart = performance.now()
-        await queryBuilders.documents.getDocuments(
-          documentIds,
-          'all'
-        )
+        await queryBuilders.documents.getDocuments({
+          document_version_ids: documentIds,
+          locale: 'all'
+        })
         const optimizedEnd = performance.now()
         const optimizedDuration = optimizedEnd - optimizedStart
 
@@ -406,10 +406,10 @@ describe('Performance Analysis', () => {
 
         // Optimized approach
         const optimizedStart = performance.now()
-        await queryBuilders.documents.getDocumentByVersion(
-          testDocumentsVersionIds[0],
+        await queryBuilders.documents.getDocumentByVersion({
+          document_version_id: testDocumentsVersionIds[0], // Use first document for testing
           locale
-        )
+        })
         const optimizedEnd = performance.now()
         const optimizedDuration = optimizedEnd - optimizedStart
 
@@ -426,10 +426,10 @@ describe('Performance Analysis', () => {
       // Load multiple documents to see memory impact
       const documents: any[] = []
       for (let i = 0; i < 5; i++) {
-        const doc = await queryBuilders.documents.getDocumentByVersion(
-          testDocumentsVersionIds[i],
-          'all'
-        )
+        const doc = await queryBuilders.documents.getDocumentByVersion({
+          document_version_id: testDocumentsVersionIds[i],
+          locale: 'all'
+        })
         documents.push(doc)
       }
 

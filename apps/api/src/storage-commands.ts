@@ -1,4 +1,3 @@
-import { index } from 'drizzle-orm/pg-core';
 /**
  * Byline CMS Server Tests
  *
@@ -73,10 +72,10 @@ export class DocumentCommands {
    * 
    * Creates a new document or a new version of an existing document.
    * 
-   * @param options - Options for creating the document
+   * @param params - Options for creating the document
    * @returns The created document and the number of field values inserted
    */
-  async createDocument(options: {
+  async createDocument(params: {
     documentId?: string, // Optional logical document ID when creating a new version for the same logical document
     collectionId: string,
     collectionConfig: CollectionDefinition,
@@ -91,18 +90,18 @@ export class DocumentCommands {
       // 1. Create the document - new version for logical document_id or new document
       const document = await tx.insert(documents).values({
         id: uuidv7(), // Document version
-        document_id: options.documentId ?? uuidv7(),
-        collection_id: options.collectionId,
-        path: options.path,
-        event_type: options.action ?? 'create',
-        status: options.status ?? 'draft',
+        document_id: params.documentId ?? uuidv7(),
+        collection_id: params.collectionId,
+        path: params.path,
+        event_type: params.action ?? 'create',
+        status: params.status ?? 'draft',
       }).returning();
 
       // 2. Flatten the document data to field values
       const flattenedFields = flattenFields(
-        options.documentData,
-        options.collectionConfig,
-        options.locale ?? 'all'
+        params.documentData,
+        params.collectionConfig,
+        params.locale ?? 'all'
       );
 
       // 3. Insert all field values
@@ -110,7 +109,7 @@ export class DocumentCommands {
         await this.insertFieldValueByType(
           tx,
           document[0].id, // Use the document version ID
-          options.collectionId,
+          params.collectionId,
           fieldValue
         );
       }

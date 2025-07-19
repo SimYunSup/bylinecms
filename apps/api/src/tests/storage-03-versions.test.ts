@@ -383,10 +383,10 @@ describe('Document Creation and Versioning', () => {
 
       assert.notStrictEqual(thirdVersion.document.document_id, null, 'Document creation failed');
 
-      const versionHistory = await queryBuilders.documents.getDocumentHistory(
-        firstVersion.document.document_id,
-        testCollection.id,
-      )
+      const versionHistory = await queryBuilders.documents.getDocumentHistory({
+        collection_id: testCollection.id,
+        document_id: firstVersion.document.document_id,
+      })
 
       console.log('Version history:', versionHistory)
     })
