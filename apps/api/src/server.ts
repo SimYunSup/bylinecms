@@ -25,6 +25,9 @@
  * We'll extract a properly configured API server soon.
  */
 
+// Initialize Byline config by importing the shared config package
+import '@byline/config';
+
 // TODO: Remove direct dependency on the registry
 import { getCollectionDefinition } from '@byline/byline'
 import cors from '@fastify/cors'

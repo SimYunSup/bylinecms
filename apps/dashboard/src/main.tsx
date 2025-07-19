@@ -19,9 +19,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// TODO: Create a Vite (and other framework) plugin to automatically
-// initialize the Byline config
-import '~/../byline.config.ts'
+// Initialize Byline config by importing the shared config package
+import '@byline/config'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
@@ -55,4 +54,5 @@ if (!rootElement.innerHTML) {
   )
 }
 
+console.log('Byline config loaded.')
 console.log('Byline config loaded.')

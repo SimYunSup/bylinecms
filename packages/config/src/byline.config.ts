@@ -1,7 +1,7 @@
 import { defineConfig } from '@byline/byline';
-import { Docs } from '~/collections/docs';
-import { News } from '~/collections/news';
-import { Pages } from '~/collections/pages';
+import { Docs } from '@/collections/docs.js';
+import { News } from '@/collections/news.js';
+import { Pages } from '@/collections/pages.js';
 
 defineConfig({
   serverURL: 'http://localhost:5173/',

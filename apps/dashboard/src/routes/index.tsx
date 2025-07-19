@@ -19,6 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { getConfig } from '@byline/byline'
 import { Card, Container, Section } from '@byline/uikit/react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
@@ -27,43 +28,28 @@ export const Route = createFileRoute('/')({
 })
 
 function Index() {
+  const config = getConfig()
   return (
     <Section className="py-6">
       <Container>
         <div className="grid grid-cols-auto-fit-320 gap-6">
-          <Card asChild hover={true}>
-            <Link to="/collections/$collection" params={{ collection: 'pages' }} className="block">
-              <Card.Header>
-                <Card.Title>Pages</Card.Title>
-                <Card.Description>Pages collection...</Card.Description>
-              </Card.Header>
-              <Card.Content>
-                <p>Pages collection description or stats here...</p>
-              </Card.Content>
-            </Link>
-          </Card>
-          <Card asChild hover={true}>
-            <Link to="/collections/$collection" params={{ collection: 'docs' }} className="block">
-              <Card.Header>
-                <Card.Title>Docs</Card.Title>
-                <Card.Description>Docs collection...</Card.Description>
-              </Card.Header>
-              <Card.Content>
-                <p>Docs collection description or stats here...</p>
-              </Card.Content>
-            </Link>
-          </Card>
-          <Card asChild hover={true}>
-            <Link to="/collections/$collection" params={{ collection: 'news' }} className="block">
-              <Card.Header>
-                <Card.Title>News</Card.Title>
-                <Card.Description>News collection...</Card.Description>
-              </Card.Header>
-              <Card.Content>
-                <p>News collection description or stats here...</p>
-              </Card.Content>
-            </Link>
-          </Card>
+          {config.collections.map((collection) => (
+            <Card asChild key={collection.path} hover={true}>
+              <Link
+                to="/collections/$collection"
+                params={{ collection: collection.path }}
+                className="block"
+              >
+                <Card.Header>
+                  <Card.Title>{collection.labels.plural}</Card.Title>
+                  <Card.Description>{`${collection.labels.plural} collection`}</Card.Description>
+                </Card.Header>
+                <Card.Content>
+                  <p>Docs collection description or stats here...</p>
+                </Card.Content>
+              </Link>
+            </Card>
+          ))}
         </div>
       </Container>
     </Section>

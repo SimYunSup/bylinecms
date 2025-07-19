@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@byline/byline": "workspace:*",
+    "@byline/config": "workspace:*",
     "@byline/shared": "workspace:*",
     "@byline/uikit": "workspace:*",
     "@lexical/clipboard": "0.33.1",
