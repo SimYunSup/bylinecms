@@ -20,7 +20,7 @@
  */
 
 import type { CollectionDefinition } from '@byline/byline/@types/index'
-import { getCollectionDefinition } from '@byline/byline/collections/registry'
+import { getCollectionDefinition } from '@byline/byline/config/config'
 import { getCollectionSchemasForPath } from '@byline/byline/schemas/zod/cache'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { z } from 'zod'

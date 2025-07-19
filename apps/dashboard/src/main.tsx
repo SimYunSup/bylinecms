@@ -19,9 +19,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// TODO: Create a Vite (and other framework) plugin to automatically
+// initialize the Byline config
+import '~/../byline.config.ts'
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
-import { StrictMode } from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 // Import the generated route tree
@@ -43,10 +47,12 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   const queryClient = new QueryClient()
   root.render(
-    <StrictMode>
+    <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>
-    </StrictMode>
+    </React.StrictMode>
   )
 }
+
+console.log('Byline config loaded.')

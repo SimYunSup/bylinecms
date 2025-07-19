@@ -1,11 +1,29 @@
 {
   "name": "@byline/byline",
-  "private": true,
+  "private": false,
+  "license": "AGPL",
   "version": "0.1.0",
+  "description": "Byline CMS core package",
+  "keywords": [
+    "cms",
+    "headless cms",
+    "content management"
+  ],
+  "homepage": "https://github.com/Byline-CMS/bylinecms.app",
+  "bugs": {
+    "url": "https://github.com/Byline-CMS/bylinecms.app/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Byline-CMS/bylinecms.app.git"
+  },
   "type": "module",
+  "main": "dist/index.js",
+  "index": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "chokidar 'src/collections/**/*' -c 'npm-run-all build'",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && tsc-alias",
     "skip": "tsx ./scripts/task-watch.js",
     "test": "LOG_LEVEL=off tsx --test $(find . -name \"*.test.ts\")",
     "test:one": "LOG_LEVEL=off tsx --no-warnings --env-file=.env --test",
@@ -52,6 +70,7 @@
     "chokidar": "^4.0.3",
     "chokidar-cli": "^3.0.0",
     "classnames": "^2.5.1",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.20.3",
     "typescript": "5.8.3"
   }

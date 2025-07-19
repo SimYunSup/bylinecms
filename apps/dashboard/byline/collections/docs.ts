@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition, ColumnDefinition } from '../@types'
+import type { CollectionDefinition, ColumnDefinition } from '@byline/byline/@types/index'
 
 // import { formatDateTime } from '../utils/formatDateTime'
 

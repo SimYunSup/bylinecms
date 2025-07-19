@@ -11,5 +11,12 @@ export default defineConfig({
       "@": "/src",
       "~": "/byline",
     }
-  }
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: 'src/main.tsx',
+      },
+    },
+  },
 })

@@ -20,7 +20,7 @@
  */
 
 import type { CollectionDefinition } from '@byline/byline/@types/index'
-import { getCollectionDefinition } from '@byline/byline/collections/registry'
+import { getCollectionDefinition } from '@byline/byline/config/config'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { CreateView } from '@/modules/collections/create'

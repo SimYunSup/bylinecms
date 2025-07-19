@@ -20,10 +20,18 @@
  */
 
 export interface SiteConfig {
+  serverURL: string
   i18n: {
-    defaultLocale: string;
-    locales: string[];
+    interface: {
+      defaultLocale: string;
+      locales: string[];
+    }
+    content: {
+      defaultLocale: string;
+      locales: string[];
+    }
   }
+  collections: CollectionDefinition[]
 }
 
 export interface ColumnDefinition<T = any> {

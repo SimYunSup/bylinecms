@@ -1,6 +1,6 @@
 import * as z from "zod";
 import type { CollectionDefinition, DateTimeField, Field, TextField, ValidationRule } from '../../@types/index.js'
-import { getCollectionDefinition } from '../../collections/registry.js'
+import { getCollectionDefinition } from '../../config/config.js'
 
 // Helper function to apply custom validation rules
 const applyValidationRules = (schema: z.ZodType, rules: ValidationRule[]): z.ZodType => {

@@ -1,5 +1,5 @@
 import type { CollectionDefinition } from '../../@types/index.js'
-import { getCollectionDefinition } from '../../collections/registry.js'
+import { getCollectionDefinition } from '../../config/config.js'
 import { createTypedCollectionSchemas } from './builder.js'
 
 type TypedSchemaSet = ReturnType<typeof createTypedCollectionSchemas>
