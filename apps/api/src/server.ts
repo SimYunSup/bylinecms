@@ -96,6 +96,8 @@ async function ensureCollection(path: string): Promise<Collection | null | undef
  * Get documents from a collection by page. 
  * Defaults to page 1 and page size of 20.
  * 
+ * TODO: Implement with optional cursor-based pagination
+ * 
  */
 app.get<{ Params: { collection: string } }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
