@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition, SiteConfig } from '@byline/byline/@types/index'
+import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { v7 as uuidv7 } from 'uuid'
@@ -44,7 +44,7 @@ type DatabaseConnection = NodePgDatabase<typeof schema>;
  * CollectionCommands
  */
 export class CollectionCommands {
-  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
+  constructor(private db: DatabaseConnection) { }
 
   async create(path: string, config: CollectionDefinition) {
     return await this.db.insert(collections).values({
@@ -65,7 +65,7 @@ export class CollectionCommands {
  * DocumentCommands
  */
 export class DocumentCommands {
-  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
+  constructor(private db: DatabaseConnection) { }
 
   /**
    * createDocument
@@ -298,9 +298,9 @@ export class DocumentCommands {
  * @param db 
  * @returns 
  */
-export function createCommandBuilders(siteConfig: SiteConfig, db: DatabaseConnection) {
+export function createCommandBuilders(db: DatabaseConnection) {
   return {
-    collections: new CollectionCommands(siteConfig, db),
-    documents: new DocumentCommands(siteConfig, db),
+    collections: new CollectionCommands(db),
+    documents: new DocumentCommands(db),
   };
 }

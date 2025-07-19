@@ -25,7 +25,7 @@
  * We'll extract a properly configured API server soon.
  */
 
-import type { SiteConfig } from '@byline/byline/@types/index'
+// TODO: Remove direct dependency on the registry
 import { getCollectionDefinition } from '@byline/byline/collections/registry'
 import cors from '@fastify/cors'
 import { drizzle } from 'drizzle-orm/node-postgres'
@@ -46,17 +46,10 @@ await app.register(cors, {
   allowedHeaders: ['Content-Type', 'Authorization']
 })
 
-const siteConfig: SiteConfig = {
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'es', 'fr'],
-  }
-}
-
 const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
 const db = drizzle(pool, { schema })
-const queries: ReturnType<typeof createQueryBuilders> = createQueryBuilders(siteConfig, db)
-const commands: ReturnType<typeof createCommandBuilders> = createCommandBuilders(siteConfig, db)
+const queries: ReturnType<typeof createQueryBuilders> = createQueryBuilders(db)
+const commands: ReturnType<typeof createCommandBuilders> = createCommandBuilders(db)
 
 const metaSchema = z.object({
   page: z.coerce.number().min(1).optional(),
