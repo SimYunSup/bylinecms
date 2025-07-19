@@ -51,7 +51,7 @@ import { reconstructFields } from './storage-utils.js';
  * CollectionQueries
  */
 export class CollectionQueries {
-  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
+  constructor(private db: DatabaseConnection) { }
 
   /**
    * getAllCollections
@@ -88,7 +88,7 @@ export class CollectionQueries {
  * DocumentQueries
  */
 export class DocumentQueries {
-  constructor(private siteConfig: SiteConfig, private db: DatabaseConnection) { }
+  constructor(private db: DatabaseConnection) { }
 
   /**
    * getAllDocuments
@@ -997,18 +997,15 @@ export class DocumentQueries {
   }
 }
 
-// FACTORY FUNCTION FOR CONVENIENCE
-// ================================
-
 /**
  * Factory function
  * @param siteConfig 
  * @param db 
  * @returns 
  */
-export function createQueryBuilders(siteConfig: SiteConfig, db: DatabaseConnection) {
+export function createQueryBuilders(db: DatabaseConnection) {
   return {
-    collections: new CollectionQueries(siteConfig, db),
-    documents: new DocumentQueries(siteConfig, db),
+    collections: new CollectionQueries(db),
+    documents: new DocumentQueries(db),
   };
 }

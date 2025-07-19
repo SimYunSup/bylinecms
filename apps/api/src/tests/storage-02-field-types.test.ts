@@ -22,7 +22,7 @@
 
 import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
-import type { CollectionDefinition, SiteConfig } from '@byline/byline/@types/index'
+import type { CollectionDefinition } from '@byline/byline/@types/index'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
@@ -35,13 +35,6 @@ let pool: Pool
 let db: NodePgDatabase<typeof schema>
 let commandBuilders: ReturnType<typeof createCommandBuilders>
 let queryBuilders: ReturnType<typeof createQueryBuilders>
-
-const siteConfig: SiteConfig = {
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en', 'es', 'fr'],
-  }
-}
 
 const FieldTypesCollectionConfig: CollectionDefinition = {
   path: 'field-types',
@@ -102,8 +95,8 @@ describe('Field Types', () => {
     pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
     db = drizzle(pool, { schema })
 
-    commandBuilders = createCommandBuilders(siteConfig, db)
-    queryBuilders = createQueryBuilders(siteConfig, db)
+    commandBuilders = createCommandBuilders(db)
+    queryBuilders = createQueryBuilders(db)
 
     // Create test collection
     const timestamp = Date.now()
