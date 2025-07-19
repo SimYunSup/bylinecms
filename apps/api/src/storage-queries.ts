@@ -376,11 +376,13 @@ export class DocumentQueries {
   async getDocumentById({
     collection_id,
     document_id,
-    locale = 'en'
+    locale = 'en',
+    reconstruct = true
   }: {
     collection_id: string;
     document_id: string;
     locale?: string;
+    reconstruct?: boolean;
   }) {
     // 1. Get current version
     const [document] = await this.db.select()
@@ -405,13 +407,24 @@ export class DocumentQueries {
     // 3. Convert unified values back to FlattenedStore format
     const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
 
-    // 4. Reconstruct field values for document
-    const reconstructedFields = reconstructFields(
-      fieldValues,
-      locale
-    );
+    if (reconstruct === true) {
+      // 4. Reconstruct field values for document
+      const reconstructedFields = reconstructFields(
+        fieldValues,
+        locale
+      );
 
-    // 5. Add document level props
+      // 5. Add document level props
+      return {
+        document_version_id: document.id,
+        document_id: document.document_id,
+        path: document.path,
+        status: document.status,
+        created_at: document.created_at,
+        updated_at: document.updated_at,
+        ...reconstructedFields
+      };
+    }
     return {
       document_version_id: document.id,
       document_id: document.document_id,
@@ -419,7 +432,7 @@ export class DocumentQueries {
       status: document.status,
       created_at: document.created_at,
       updated_at: document.updated_at,
-      ...reconstructedFields
+      fields: fieldValues
     };
   }
 

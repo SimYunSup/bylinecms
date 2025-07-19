@@ -1,16 +1,20 @@
-const documentExample = {
-  document_id: "01981ce6-d40e-7218-9705-39e2b7bf609a",
+const doc_tree_locale_en = {
+  document_version_id: "01981ef7-6782-71a7-a779-3e36d9b2bc05",
+  document_id: "01981ef7-6782-71a7-a779-432fe33aaa80",
   status: "draft",
-  created_at: "2025-07-18T09:39:06.382Z",
-  updated_at: "2025-07-18T09:39:06.382Z",
+  created_at: "2025-07-18T19:16:27.138Z",
+  updated_at: "2025-07-18T19:16:27.138Z",
   path: "my-first-bulk-document-13325",
+  publishedOn: "2024-01-15 03:00:00+00",
   title: "A bulk created document. 981",
   summary: "This is a sample document for testing purposes.",
-  publishedOn: "2024-01-15T03:00:00.000Z",
   featured: false,
   content: [
     {
       richTextBlock: [
+        {
+          constrainedWidth: true
+        },
         {
           richText: {
             root: {
@@ -43,10 +47,7 @@ const documentExample = {
               direction: "ltr"
             }
           }
-        },
-        {
-          constrainedWidth: true
-        },
+        }
       ]
     },
     {
@@ -56,7 +57,7 @@ const documentExample = {
         },
         {
           photo: {
-            file_id: "01981ce6-9c93-751b-bd33-21cfe01cb28e",
+            file_id: "01981ef7-2e41-7084-add9-3bf27c9b27c3",
             filename: "docs-photo-01.jpg",
             original_filename: "some-original-filename.jpg",
             mime_type: "image/jpeg",
@@ -109,6 +110,14 @@ const documentExample = {
           }
         }
       ]
+    }
+  ],
+  links: [
+    {
+      link: "https://example.com"
+    },
+    {
+      link: "https://another-example.com"
     }
   ],
   reviews: [
@@ -191,14 +200,6 @@ const documentExample = {
           }
         }
       ]
-    }
-  ],
-  links: [
-    {
-      link: "https://example.com"
-    },
-    {
-      link: "https://another-example.com"
     }
   ]
 }
