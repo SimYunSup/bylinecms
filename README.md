@@ -17,12 +17,12 @@ Here's a no-frills FAQ.
 
 <details>
 <summary>1. Why are you doing this?</summary>
-The initial maintainers of this project are also users of Payload CMS - which is a great project, with a few caveats and one recent development. One caveat is that as of version 3.0 Payload CMS has become a technically complex project, in particular after its integration with Next.js (we like Next.js, but are not sure about Payload's integration). More importantly, Payload CMS was just acquired by Figma. And so we felt there would be no harm (and maybe even some fun) in exploring an alternative while we try to understand more about what this means for the future of Payload.
+The initial maintainers of this project are also users of Payload CMS — which is a great project, with a few caveats and one recent development. One caveat is that as of version 3.0 Payload CMS has become a technically complex project, in particular after its integration with Next.js (we like Next.js, but are not sure about Payload's integration). More importantly, Payload CMS was just acquired by Figma. And so we felt there would be no harm (and maybe even some fun) in exploring an alternative while we try to understand more about what this means for the future of Payload.
 </details>
 
 <details>
 <summary>2. Who are you?</summary>
-Pretty much nobody - at least not within the 'influence sphere'. We're a couple of developers at an agency based in South East Asia - but we're also pretty sure you've never heard of us.
+We’re pretty much nobody — at least not within the usual spheres of influence. We're a couple of developers at an agency based in Southeast Asia, and we're fairly certain you've never heard of us. That said, we have over a decade of experience building content solutions for clients—and we’re tired of fighting frameworks for core features our clients need and expect.
 </details>
 
 <details>
@@ -43,7 +43,7 @@ Yes!
 
 <details>
 <summary>6. Would you accept venture or seed-round investment?</summary>
-Probably not. We'd need to understand more, and we're just finding our way. What we feel quite strongly about however, is that community contributions should remain in the community, and not become part of an 'enterprise' or 'pay-walled' solution that the general community no longer has access to.
+Probably not — at least not at this stage. We still have a lot to figure out. What we do feel strongly about, however, is that community contributions should remain within the community — and not locked behind an 'enterprise' or paywalled solution.
 </details>
 
 <details>
@@ -68,13 +68,17 @@ While we're still finding our feet in terms of overall strategy, we felt it woul
 
 3. We'd like to do the same for collection definitions - 'versioned-by-default' with a superb migration experience. Imagine being able to query data on v1 of your collection definition, migrate the data in memory, and then save your migrated documents against v2 of your collection definition. Zero hoops and zero field wrangling.
 
-4. We're going to create a native 'file' field type that can be used in any collection definition, and separately from any defined media or upload collections (think Drupal files).
+4. We plan to support separate localization for the default admin dashboard interface and for content. In our past work, we’ve often built solutions where content is available in multiple languages, while the admin dashboard remains in just one or two locales. More importantly, changing a content field from non-localized to localized should not require a document collection migration.
 
-5. We'd like everything to be fast - like really fast - from admin bundle compile times to API responses.
+5. We’re making it easy to create alternative collection list views — whether for regular collections or media. You’ll also be able to reduce the selected fields for any list view, so there’s no need to retrieve full collection documents just to render a paginated list in the admin dashboard.
+
+6. We're going to create a native 'file' field type that can be used in any collection definition, and separately from any defined media or upload collections (think Drupal files).
+
+7. We'd like everything to be fast - like really fast - from admin bundle compile times to API responses.
    
-6. We're keen to follow patterns of highly cohesive and loosely coupled design - the benefits of which will include a good API for content versioning, and callbacks / webhooks for consumer cache invalidation strategies (to name a few).
+8. While we’ll be focused on a small, opinionated core, we’re thinking big — offering enterprise-grade features like built-in content versioning (as described above), along with callbacks and webhooks support for consumer cache invalidation strategies (to name just a few).
 
-7. For our admin dashboards, it should be easy to create content editors with your favorite editor, whether [CKEditor](https://ckeditor.com/), [Lexical](https://lexical.dev/), [TipTap](https://tiptap.dev/), [ProseMirror](https://prosemirror.net/) or other.
+7. For our admin dashboards, it should be easy to create content editors with your favorite editor, whether [CKEditor](https://ckeditor.com/), [Lexical](https://lexical.dev/), [TipTap](https://tiptap.dev/), [ProseMirror](https://prosemirror.net/) or other. We've spent years working with [contenteditable](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/contenteditable) editors - like CKeditor, and more recently Lexical. Implementing a good editing experience, [including mobile support on Android](https://discuss.prosemirror.net/t/contenteditable-on-android-is-the-absolute-worst/3810) - is a significant task. Fortunately, we have a 'pretty good' and 'ready to go' opinionated Lexical implementation that will allow us to get off to a great start quickly with a suite of commonly requested editor features.
 
 8. And more....
 
