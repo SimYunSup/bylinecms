@@ -407,14 +407,13 @@ export class DocumentQueries {
     // 3. Convert unified values back to FlattenedStore format
     const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
 
+    // 4. If reconstruct is true, reconstruct the fields
     if (reconstruct === true) {
-      // 4. Reconstruct field values for document
       const reconstructedFields = reconstructFields(
         fieldValues,
         locale
       );
 
-      // 5. Add document level props
       return {
         document_version_id: document.id,
         document_id: document.document_id,
@@ -446,11 +445,13 @@ export class DocumentQueries {
   async getDocumentByPath({
     collection_id,
     path,
-    locale = 'en'
+    locale = 'en',
+    reconstruct = true
   }: {
     collection_id: string;
     path: string;
     locale?: string;
+    reconstruct: boolean;
   }) {
     // 1. Get current version
     const [document] = await this.db.select()
@@ -475,13 +476,24 @@ export class DocumentQueries {
     // 3. Convert unified values back to FlattenedStore format
     const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
 
-    // 4. Reconstruct the document
-    const reconstructedFields = reconstructFields(
-      fieldValues,
-      locale
-    );
+    // 4. If reconstruct is true, reconstruct the fields
+    if (reconstruct === true) {
+      // 4. Reconstruct field values for document
+      const reconstructedFields = reconstructFields(
+        fieldValues,
+        locale
+      );
 
-    // 5. Add document level props
+      return {
+        document_version_id: document.id,
+        document_id: document.document_id,
+        path: document.path,
+        status: document.status,
+        created_at: document.created_at,
+        updated_at: document.updated_at,
+        ...reconstructedFields
+      };
+    }
     return {
       document_version_id: document.id,
       document_id: document.document_id,
@@ -489,7 +501,7 @@ export class DocumentQueries {
       status: document.status,
       created_at: document.created_at,
       updated_at: document.updated_at,
-      ...reconstructedFields
+      fields: fieldValues
     };
   }
 
@@ -959,31 +971,6 @@ export class DocumentQueries {
             value_decimal: row.value_decimal,
             value_float: row.value_float,
           };
-
-        // case 'numeric':
-        //   return {
-        //     ...baseValue,
-        //     field_type: row.number_type as 'float' | 'integer' | 'decimal',
-        //     value: row.number_type === 'integer'
-        //       ? row.value_integer
-        //       : row.number_type === 'decimal'
-        //         ? Number.parseFloat(row.value_decimal as string)
-        //         : row.number_type
-        //   };
-
-        // case 'number':
-        // case 'integer':
-        // case 'bigint':
-        // case 'decimal': {
-        //   return {
-        //     ...baseValue,
-        //     field_type: unified.field_type,
-        //     value_integer: unified.value_integer,
-        //     value_decimal: unified.value_decimal,
-        //     value_float: unified.value_float,
-        //     value_bigint: unified.value_bigint
-        //   };
-        // }
 
         case 'boolean':
           return {
