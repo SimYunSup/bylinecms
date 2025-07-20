@@ -1,5 +1,5 @@
 {
-  "id": "dbbafdff-9546-4abf-b7bf-b55f92a93a7a",
+  "id": "bdd3025a-2ebd-42a0-bbc6-79409b0b7c78",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -443,6 +443,78 @@
             "document_version_id",
             "field_path",
             "locale"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.document_relationships": {
+      "name": "document_relationships",
+      "schema": "",
+      "columns": {
+        "parent_document_id": {
+          "name": "parent_document_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "child_document_id": {
+          "name": "child_document_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_document_relationships_parent": {
+          "name": "idx_document_relationships_parent",
+          "columns": [
+            {
+              "expression": "parent_document_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_document_relationships_child": {
+          "name": "idx_document_relationships_child",
+          "columns": [
+            {
+              "expression": "child_document_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "document_relationships_parent_document_id_child_document_id_unique": {
+          "name": "document_relationships_parent_document_id_child_document_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "parent_document_id",
+            "child_document_id"
           ]
         }
       },
@@ -1605,19 +1677,6 @@
             "id"
           ],
           "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "store_relation_target_document_id_documents_id_fk": {
-          "name": "store_relation_target_document_id_documents_id_fk",
-          "tableFrom": "store_relation",
-          "tableTo": "documents",
-          "columnsFrom": [
-            "target_document_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
           "onUpdate": "no action"
         },
         "store_relation_target_collection_id_collections_id_fk": {

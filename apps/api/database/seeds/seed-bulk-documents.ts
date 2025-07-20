@@ -1,4 +1,9 @@
 
+// Initialize Byline config by importing the shared config package
+// NOTE: This is a temporary workaround to ensure the config is loaded
+// and will be changed once we refactor our Byline packages.
+import '@byline/config';
+
 import { getCollectionDefinition } from '@byline/byline'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'

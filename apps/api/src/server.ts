@@ -26,6 +26,8 @@
  */
 
 // Initialize Byline config by importing the shared config package
+// NOTE: This is a temporary workaround to ensure the config is loaded
+// and will be changed once we refactor our Byline packages.
 import '@byline/config';
 
 // TODO: Remove direct dependency on the getCollectionDefinition

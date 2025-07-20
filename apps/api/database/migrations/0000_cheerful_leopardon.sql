@@ -40,6 +40,13 @@ CREATE TABLE "store_datetime" (
 	CONSTRAINT "unique_datetime_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint
+CREATE TABLE "document_relationships" (
+	"parent_document_id" uuid NOT NULL,
+	"child_document_id" uuid NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	CONSTRAINT "document_relationships_parent_document_id_child_document_id_unique" UNIQUE("parent_document_id","child_document_id")
+);
+--> statement-breakpoint
 CREATE TABLE "documents" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"document_id" uuid NOT NULL,
@@ -160,7 +167,6 @@ ALTER TABLE "store_numeric" ADD CONSTRAINT "store_numeric_document_version_id_do
 ALTER TABLE "store_numeric" ADD CONSTRAINT "store_numeric_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_relation" ADD CONSTRAINT "store_relation_document_version_id_documents_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_relation" ADD CONSTRAINT "store_relation_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "store_relation" ADD CONSTRAINT "store_relation_target_document_id_documents_id_fk" FOREIGN KEY ("target_document_id") REFERENCES "public"."documents"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_relation" ADD CONSTRAINT "store_relation_target_collection_id_collections_id_fk" FOREIGN KEY ("target_collection_id") REFERENCES "public"."collections"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_text" ADD CONSTRAINT "store_text_document_version_id_documents_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."documents"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_text" ADD CONSTRAINT "store_text_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -171,6 +177,8 @@ CREATE INDEX "idx_datetime_date" ON "store_datetime" USING btree ("value_date");
 CREATE INDEX "idx_datetime_timestamp_tz" ON "store_datetime" USING btree ("value_timestamp_tz");--> statement-breakpoint
 CREATE INDEX "idx_datetime_path_date" ON "store_datetime" USING btree ("field_path","value_timestamp_tz");--> statement-breakpoint
 CREATE INDEX "idx_datetime_collection_date" ON "store_datetime" USING btree ("collection_id","value_timestamp_tz");--> statement-breakpoint
+CREATE INDEX "idx_document_relationships_parent" ON "document_relationships" USING btree ("parent_document_id");--> statement-breakpoint
+CREATE INDEX "idx_document_relationships_child" ON "document_relationships" USING btree ("child_document_id");--> statement-breakpoint
 CREATE INDEX "idx_documents_document_id" ON "documents" USING btree ("document_id");--> statement-breakpoint
 CREATE INDEX "idx_documents_collection_path_deleted" ON "documents" USING btree ("collection_id","path","is_deleted");--> statement-breakpoint
 CREATE INDEX "idx_documents_collection_document_deleted" ON "documents" USING btree ("collection_id","document_id","is_deleted");--> statement-breakpoint

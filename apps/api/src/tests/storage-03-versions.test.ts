@@ -20,6 +20,11 @@
  *
  */
 
+// Initialize Byline config by importing the shared config package
+// NOTE: This is a temporary workaround to ensure the config is loaded
+// and will be changed once we refactor our Byline packages.
+import '@byline/config';
+
 import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
 import type { CollectionDefinition } from '@byline/byline'
