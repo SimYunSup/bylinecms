@@ -55,6 +55,21 @@ export const documents = pgTable('documents', {
   // unique('unique_document_path').on(table.collection_id, table.document_id, table.path, table.is_deleted),
 ]));
 
+// Document Relationships (Parent/Child) - Many-to-Many
+export const documentRelationships = pgTable('document_relationships', {
+  // Note: These reference the logical `document_id`, not the version `id`.
+  // Foreign key constraints are not used; integrity is handled at the application layer.
+  parent_document_id: uuid('parent_document_id').notNull(),
+  child_document_id: uuid('child_document_id').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+}, (table) => ([
+  // Composite primary key to ensure a child is only parented once by the same parent.
+  unique().on(table.parent_document_id, table.child_document_id),
+  // Indexes for efficient lookups of children and parents.
+  index('idx_document_relationships_parent').on(table.parent_document_id),
+  index('idx_document_relationships_child').on(table.child_document_id),
+]));
+
 // Current Documents View - gets latest version of each logical document
 export const currentDocumentsView = pgView("current_documents").as((qb) => {
   return qb
@@ -263,16 +278,8 @@ export const jsonStore = pgTable('store_json', {
 // RELATIONS
 // =========
 
-export const collections_relations = relations(collections, ({ many }) => ({
+export const collectionsRelations = relations(collections, ({ many }) => ({
   documents: many(documents),
-  field_values: many(textStore), // All field tables reference collections
-}));
-
-export const documents_relations = relations(documents, ({ one, many }) => ({
-  collection: one(collections, {
-    fields: [documents.collection_id],
-    references: [collections.id],
-  }),
   text_values: many(textStore),
   numeric_values: many(numericStore),
   boolean_values: many(booleanStore),
@@ -282,8 +289,41 @@ export const documents_relations = relations(documents, ({ one, many }) => ({
   json_values: many(jsonStore),
 }));
 
+export const documentsRelations = relations(documents, ({ one, many }) => ({
+  collection: one(collections, {
+    fields: [documents.collection_id],
+    references: [collections.id],
+  }),
+  // Relations for parent/child documents
+  // A document can be a child in many relationships. This finds the links.
+  parent_relationships: many(documentRelationships, { relationName: 'child' }),
+  // A document can be a parent in many relationships. This finds the links.
+  child_relationships: many(documentRelationships, { relationName: 'parent' }),
+  // Relations for field values
+  text_values: many(textStore),
+  numeric_values: many(numericStore),
+  boolean_values: many(booleanStore),
+  datetime_values: many(datetimeStore),
+  relation_values: many(relationStore),
+  file_values: many(fileStore),
+  json_values: many(jsonStore),
+}));
+
+export const documentRelationshipsRelations = relations(documentRelationships, ({ one }) => ({
+  parent: one(documents, {
+    fields: [documentRelationships.parent_document_id],
+    references: [documents.document_id],
+    relationName: 'parent',
+  }),
+  child: one(documents, {
+    fields: [documentRelationships.child_document_id],
+    references: [documents.document_id],
+    relationName: 'child',
+  }),
+}));
+
 // Field value relations
-export const text_store_relations = relations(textStore, ({ one }) => ({
+export const textStoreRelations = relations(textStore, ({ one }) => ({
   document: one(documents, {
     fields: [textStore.document_version_id],
     references: [documents.id],
@@ -294,7 +334,7 @@ export const text_store_relations = relations(textStore, ({ one }) => ({
   }),
 }));
 
-export const numeric_store_relations = relations(numericStore, ({ one }) => ({
+export const numericStoreRelations = relations(numericStore, ({ one }) => ({
   document: one(documents, {
     fields: [numericStore.document_version_id],
     references: [documents.id],
@@ -305,7 +345,7 @@ export const numeric_store_relations = relations(numericStore, ({ one }) => ({
   }),
 }));
 
-export const boolean_store_relations = relations(booleanStore, ({ one }) => ({
+export const booleanStoreRelations = relations(booleanStore, ({ one }) => ({
   document: one(documents, {
     fields: [booleanStore.document_version_id],
     references: [documents.id],
@@ -316,7 +356,7 @@ export const boolean_store_relations = relations(booleanStore, ({ one }) => ({
   }),
 }));
 
-export const datetime_store_relations = relations(datetimeStore, ({ one }) => ({
+export const datetimeStoreRelations = relations(datetimeStore, ({ one }) => ({
   document: one(documents, {
     fields: [datetimeStore.document_version_id],
     references: [documents.id],
@@ -327,7 +367,7 @@ export const datetime_store_relations = relations(datetimeStore, ({ one }) => ({
   }),
 }));
 
-export const relation_store_relations = relations(relationStore, ({ one }) => ({
+export const relationStoreRelations = relations(relationStore, ({ one }) => ({
   document: one(documents, {
     fields: [relationStore.document_version_id],
     references: [documents.id],
@@ -349,7 +389,7 @@ export const relation_store_relations = relations(relationStore, ({ one }) => ({
   }),
 }));
 
-export const file_store_relations = relations(fileStore, ({ one }) => ({
+export const fileStoreRelations = relations(fileStore, ({ one }) => ({
   document: one(documents, {
     fields: [fileStore.document_version_id],
     references: [documents.id],
@@ -360,7 +400,7 @@ export const file_store_relations = relations(fileStore, ({ one }) => ({
   }),
 }));
 
-export const json_store_relations = relations(jsonStore, ({ one }) => ({
+export const jsonStoreRelations = relations(jsonStore, ({ one }) => ({
   document: one(documents, {
     fields: [jsonStore.document_version_id],
     references: [documents.id],
