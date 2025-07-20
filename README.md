@@ -72,11 +72,13 @@ While we're still finding our feet in terms of overall strategy, we felt it woul
 
 5. We’re making it easy to create alternative collection list views — whether for regular collections or media. You’ll also be able to reduce the selected fields for any list view, so there’s no need to retrieve full collection documents just to render a paginated list in the admin dashboard.
 
-6. We're going to create a native 'file' field type that can be used in any collection definition, and separately from any defined media or upload collections (think Drupal files).
+6. We're going to enable parent / child document relationships by default — ideal for creating documentation sites, or sub-areas in a site where navigation components can be built from child documents.
 
-7. We'd like everything to be fast - like really fast - from admin bundle compile times to API responses.
+7. We're going to create a native 'file' field type that can be used in any collection definition, and separately from any defined media or upload collections (think Drupal files).
+
+8. We'd like everything to be fast - like really fast - from admin bundle compile times to API responses.
    
-8. While we’ll be focused on a small, opinionated core, we’re thinking big — offering enterprise-grade features like built-in content versioning (as described above), along with callbacks and webhooks support for consumer cache invalidation strategies (to name just a few).
+9. While we’ll be focused on a small, opinionated core, we’re thinking big — offering enterprise-grade features like built-in content versioning (as described above), along with callbacks and webhooks support for consumer cache invalidation strategies (to name just a few).
 
 7. For our admin dashboards, it should be easy to create content editors with your favorite editor, whether [CKEditor](https://ckeditor.com/), [Lexical](https://lexical.dev/), [TipTap](https://tiptap.dev/), [ProseMirror](https://prosemirror.net/) or other. We've spent years working with [contenteditable](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/contenteditable) editors - like CKeditor, and more recently Lexical. Implementing a good editing experience, [including mobile support on Android](https://discuss.prosemirror.net/t/contenteditable-on-android-is-the-absolute-worst/3810) - is a significant task. Fortunately, we have a 'pretty good' and 'ready to go' opinionated Lexical implementation that will allow us to get off to a great start quickly with a suite of commonly requested editor features.
 
