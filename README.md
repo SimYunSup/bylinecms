@@ -22,7 +22,7 @@ The initial maintainers of this project are also users of Payload CMS — which 
 
 <details>
 <summary>2. Who are you?</summary>
-We’re pretty much nobody — at least not within the usual spheres of influence. We're a couple of developers at an agency based in Southeast Asia, and we're fairly certain you've never heard of us. That said, we have over a decade of experience building content solutions for clients—and we’re tired of fighting frameworks for core features our clients need and expect.
+We’re pretty much nobody — at least not within the usual spheres of influence. We're a couple of developers at an agency based in Southeast Asia, and we're fairly certain you've never heard of us. That said, we have over a decade of experience building content solutions for clients — and we’re tired of fighting frameworks for core features our clients need and expect.
 </details>
 
 <details>
@@ -62,7 +62,7 @@ While we're still finding our feet in terms of overall strategy, we felt it woul
 </details>
 
 ## Design Goals
-1. We'd like to create an extensible, plugin-based framework for our headless CMS that will allow users to easily create admin dashboards and serialization frameworks for front-end clients.
+1. We aim to create an extensible, plugin-based framework for our headless CMS — enabling users to easily build custom admin dashboards and UI rendering frameworks for front-end clients.
    
 2. We'd like to create an immutable 'versioned-by-default' document store; which means document history by default, and tombstones (soft deletes) by default (including user restoration of tombstoned documents).
 
