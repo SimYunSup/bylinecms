@@ -172,8 +172,10 @@ export const datetimeStore = pgTable('store_datetime', {
 export const relationStore = pgTable('store_relation', {
   ...baseStoreColumns,
 
-  // target_document_id: uuid('target_document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
-  target_document_id: uuid('target_document_id').references(() => documents.id, { onDelete: 'restrict' }).notNull(),
+  // target_document_id now references the logical document_id, NOT the version id.
+  // The foreign key constraint is removed because document_id is not unique in the documents table.
+  // Integrity is handled at the application layer.
+  target_document_id: uuid('target_document_id').notNull(),
   target_collection_id: uuid('target_collection_id').references(() => collections.id).notNull(),
 
   // Relationship metadata
@@ -334,9 +336,12 @@ export const relation_store_relations = relations(relationStore, ({ one }) => ({
     fields: [relationStore.collection_id],
     references: [collections.id],
   }),
+  // This relation is now based on the logical document_id.
+  // Note: This will relate to *all* versions of the document.
+  // You will typically query against the `currentDocumentsView` to get the latest version.
   target_document: one(documents, {
     fields: [relationStore.target_document_id],
-    references: [documents.id],
+    references: [documents.document_id],
   }),
   target_collection: one(collections, {
     fields: [relationStore.target_collection_id],
