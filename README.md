@@ -5,7 +5,7 @@
 
 Welcome to Byline CMS. We're new!
 
-We're hoping to build a developer-friendly, customer-friendly, AI-first headlesss CMS.
+We're hoping to build a developer-friendly, customer-friendly, AI-first headless CMS.
 
 <img width="734" alt="byline-screeenshot-03" src="https://github.com/user-attachments/assets/c7d6efa1-71bb-4add-b0a2-34611f17be4c" />
 
@@ -119,7 +119,7 @@ Plus lots more... whew!
 
 ## Getting Started
 
-At the moment, the project is mostly a prototype and 'weekend hack'. But it builds and runs if you wanted to poke around or follow along.
+At the moment, the project is a prototype, but it builds and runs if you wanted to poke around or follow along. Note that we're currently combining the dashboard, api, and configuration into apps/dashboard for prototype development only. 
 
 ### 1. Clone and install dependencies
 
@@ -153,7 +153,7 @@ mkdir data
 ```sh
 # Copy .env.example to .env in the apps/api directory. 
 # Read the notes in .env.example.
-cd apps/api
+cd apps/dashboard
 cp .env.example .env
 
 # Again, the default database root password is 'test' 
@@ -174,7 +174,7 @@ pnpm drizzle:generate
 pnpm drizzle:migrate
 
 # Optionally seed the database with documents.
-# from /apps/api
+# from /apps/dashboard
 tsx --env-file=.env database/seeds/seed-bulk-documents.ts 
 ```
 
