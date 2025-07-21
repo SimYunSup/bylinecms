@@ -20,25 +20,14 @@
  *
  */
 
-// Initialize Byline config by importing the shared config package
-// NOTE: This is a temporary workaround to ensure the config is loaded
-// and will be changed once we refactor our Byline packages.
-import '@byline/config';
-
-
 // IMPORTANT NOTE!: depends on seed-bulk-documents.ts to have run 
 // first to create the bulk collection and documents.
 
 import { after, before, describe, it } from 'node:test'
-import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
-import pg from 'pg'
-import * as schema from '../../database/schema/index.js'
-import { createQueryBuilders } from '../storage-queries.js'
+import { setupTestDB, teardownTestDB } from '../lib/test-helper.js';
 
 // Test database setup
-let pool: pg.Pool
-let db: NodePgDatabase<typeof schema>
-let queryBuilders: ReturnType<typeof createQueryBuilders>
+let queryBuilders: ReturnType<typeof import('../storage-queries.js').createQueryBuilders>
 
 // Global test variables
 let collection: {
@@ -51,20 +40,11 @@ let collection: {
   updated_at: Date | null;
 } | undefined
 
-describe('Bulk Document Operations', () => {
+describe('05 Performance Bulk Tests', () => {
   before(async () => {
     // Connect to test database
-
-    pool = new pg.Pool({
-      connectionString: process.env.POSTGRES_CONNECTION_STRING,
-      max: 20, // set pool max size to 20
-      idleTimeoutMillis: 2000, // close idle clients after 2 second
-      connectionTimeoutMillis: 1000, // return an error after 1 second if connection could not be established
-    })
-
-    db = drizzle(pool, { schema })
-
-    queryBuilders = createQueryBuilders(db)
+    const testDB = setupTestDB()
+    queryBuilders = testDB.queryBuilders
 
     // Get bulk collection
     collection = await queryBuilders.collections.getCollectionByPath('docs')
@@ -75,10 +55,7 @@ describe('Bulk Document Operations', () => {
   })
 
   after(async () => {
-    if (pool != null && typeof pool.end === 'function') {
-      console.log('Drizzle pool is ending...')
-      pool.end().catch()
-    }
+    await teardownTestDB()
   })
 
   describe('Get Documents for Collection', () => {

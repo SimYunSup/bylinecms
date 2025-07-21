@@ -26,7 +26,7 @@
 import '@byline/config';
 
 import assert from 'node:assert';
-import { after, before, describe, it } from 'node:test'
+import { describe, it } from 'node:test'
 import type { CollectionDefinition } from '@byline/byline'
 import { v7 as uuidv7 } from 'uuid'
 import { flattenFields, reconstructFields } from '../storage-utils.js'
@@ -163,15 +163,7 @@ const sampleDocument = {
   ]
 };
 
-describe('Document Flattening and Reconstruction', () => {
-  before(async () => {
-
-  })
-
-  after(async () => {
-
-  })
-
+describe('01 Document Flattening and Reconstruction', () => {
   it('should flatten and reconstruct a document', () => {
     const flattened = flattenFields(sampleDocument, DocsCollectionConfig)
     assert(flattened, 'Flattened document should not be null or undefined')

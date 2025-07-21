@@ -20,26 +20,15 @@
  *
  */
 
-// Initialize Byline config by importing the shared config package
-// NOTE: This is a temporary workaround to ensure the config is loaded
-// and will be changed once we refactor our Byline packages.
-import '@byline/config';
-
 import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
 import type { CollectionDefinition } from '@byline/byline'
-import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'
-import * as schema from '../../database/schema/index.js'
-import { createCommandBuilders } from '../storage-commands.js'
-import { createQueryBuilders } from '../storage-queries.js'
+import { setupTestDB, teardownTestDB } from '../lib/test-helper.js';
 
 // Test database setup
-let pool: Pool
-let db: NodePgDatabase<typeof schema>
-let commandBuilders: ReturnType<typeof createCommandBuilders>
-let queryBuilders: ReturnType<typeof createQueryBuilders>
+let commandBuilders: ReturnType<typeof import('../storage-commands.js').createCommandBuilders>
+let queryBuilders: ReturnType<typeof import('../storage-queries.js').createQueryBuilders>
 
 const FieldTypesCollectionConfig: CollectionDefinition = {
   path: 'field-types',
@@ -94,14 +83,12 @@ const sampleDocument = {
 // Global test variables
 let testCollection: { id: string; name: string } = {} as any
 
-describe('Field Types', () => {
+describe('02 Field Types', () => {
   before(async () => {
     // Connect to test database
-    pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
-    db = drizzle(pool, { schema })
-
-    commandBuilders = createCommandBuilders(db)
-    queryBuilders = createQueryBuilders(db)
+    const testDB = setupTestDB()
+    commandBuilders = testDB.commandBuilders
+    queryBuilders = testDB.queryBuilders
 
     // Create test collection
     const timestamp = Date.now()
@@ -123,7 +110,7 @@ describe('Field Types', () => {
       console.error('Failed to cleanup test collection:', error)
     }
 
-    await pool.end()
+    await teardownTestDB()
   })
 
   it('should create and return a field type document', async () => {
