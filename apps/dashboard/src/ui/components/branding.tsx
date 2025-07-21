@@ -27,7 +27,7 @@ export function Branding() {
   return (
     <div className="flex items-center space-x-2">
       <Link to="/">
-        <Logo className="w-[28px] h-[28px]" />
+        <Logo className="w-[24px] h-[24px]" />
       </Link>
     </div>
   )
