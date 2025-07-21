@@ -24,10 +24,10 @@
   "scripts": {
     "dev": "chokidar 'src/collections/**/*' -c 'npm-run-all build'",
     "build": "tsc -p tsconfig.json && tsc-alias",
+    "clean": "rimraf node_modules dist build .turbo",
     "skip": "tsx ./scripts/task-watch.js",
     "test": "LOG_LEVEL=off tsx --test $(find . -name \"*.test.ts\")",
-    "test:one": "LOG_LEVEL=off tsx --no-warnings --env-file=.env --test",
-    "clean": "rimraf node_modules dist build .turbo"
+    "test:one": "LOG_LEVEL=off tsx --no-warnings --test"
   },
   "exports": {
     ".": {

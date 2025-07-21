@@ -29,7 +29,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "clean": "rm -rf node_modules dist .turbo",
-    "test": "vitest",
+    "test": "vitest run",
     "lint": "eslint --ext .ts,.js./src"
   },
   "dependencies": {

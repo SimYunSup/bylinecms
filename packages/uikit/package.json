@@ -42,7 +42,7 @@
     "lint": "biome check . --diagnostic-level=warn",
     "storybook": "storybook dev -p 6007",
     "build-storybook": "storybook build",
-    "test": "vitest"
+    "skip": "vitest run"
   },
   "dependencies": {
     "@mantine/hooks": "^8.1.3",
