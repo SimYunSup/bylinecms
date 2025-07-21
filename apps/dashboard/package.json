@@ -4,15 +4,27 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -p tsconfig.json && vite build",
-    "clean": "rimraf node_modules dist build .turbo "
+    "dev": "run-p dev:*",
+    "dev:app": "vite",
+    "dev:server": "tsx --env-file=.env --watch server/server.ts",
+    "build": "run-s build:*",
+    "build:app": "tsc -p tsconfig.json && vite build",
+    "build:server": "tsc -p tsconfig.server.json",
+    "clean": "rimraf node_modules dist build .turbo ",
+    "db:init": "cd database && ./db_init.sh",
+    "drizzle:generate": "tsc -p tsconfig.json && drizzle-kit generate --config=drizzle.config.ts",
+    "drizzle:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
+    "drizzle:push": "tsc -p tsconfig.json && drizzle-kit push --config=drizzle.config.ts",
+    "drizzle:drop": "drizzle-kit drop --config=drizzle.config.ts",
+    "drizzle:seed": "tsx --no-warnings --env-file=.env ./database/seeds/index.ts",
+    "test": "LOG_LEVEL=off tsx --env-file=.env --test $(find . -name \"*.test.ts\")",
+    "test:one": "LOG_LEVEL=off tsx --no-warnings --env-file=.env --test"
   },
   "dependencies": {
     "@byline/byline": "workspace:*",
-    "@byline/config": "workspace:*",
     "@byline/shared": "workspace:*",
     "@byline/uikit": "workspace:*",
+    "@fastify/cors": "^11.0.1",
     "@lexical/clipboard": "0.33.1",
     "@lexical/code": "0.33.1",
     "@lexical/hashtag": "0.33.1",
@@ -31,7 +43,9 @@
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-router": "^1.128.3",
     "@tanstack/react-router-devtools": "^1.128.3",
+    "fastify": "^5.4.0",
     "intl-messageformat": "^10.7.16",
+    "pg": "^8.16.3",
     "jose": "^6.0.12",
     "lexical": "0.33.1",
     "npm-run-all": "^4.1.5",
@@ -44,6 +58,7 @@
     "zod-form-data": "^3.0.0"
   },
   "devDependencies": {
+    "@types/pg": "^8.15.4",
     "@biomejs/biome": "2.1.2",
     "@tailwindcss/vite": "^4.1.11",
     "@tanstack/router-plugin": "^1.128.3",
@@ -54,9 +69,13 @@
     "@types/react-dom": "^19.1.6",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.3",
+    "prettier": "^3.6.2",
     "classnames": "^2.5.1",
     "tailwindcss": "4.1.11",
     "typescript": "5.8.3",
+    "tsx": "^4.20.3",
     "vite": "^7.0.5"
   }
 }

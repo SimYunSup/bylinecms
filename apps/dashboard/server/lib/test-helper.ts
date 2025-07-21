@@ -7,7 +7,7 @@ import { createQueryBuilders } from '../storage-queries.js';
 // Initialize Byline config by importing the shared config package
 // NOTE: This is a temporary workaround to ensure the config is loaded
 // and will be changed once we refactor our Byline packages.
-import '@byline/config';
+import '../../byline.config';
 
 let pool: pg.Pool;
 let db: NodePgDatabase<typeof schema>;

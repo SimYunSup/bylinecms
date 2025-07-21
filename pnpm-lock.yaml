@@ -22,90 +22,20 @@ importers:
         specifier: 2.1.2
         version: 2.1.2
 
-  apps/api:
-    dependencies:
-      '@byline/byline':
-        specifier: workspace:*
-        version: link:../../packages/byline
-      '@byline/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@byline/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
-      '@fastify/cors':
-        specifier: ^11.0.1
-        version: 11.0.1
-      fastify:
-        specifier: ^5.4.0
-        version: 5.4.0
-      jose:
-        specifier: ^6.0.12
-        version: 6.0.12
-      npm-run-all:
-        specifier: ^4.1.5
-        version: 4.1.5
-      pg:
-        specifier: ^8.16.3
-        version: 8.16.3
-      uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
-      zod:
-        specifier: ^4.0.5
-        version: 4.0.5
-      zod-form-data:
-        specifier: ^3.0.0
-        version: 3.0.0(zod@4.0.5)
-    devDependencies:
-      '@biomejs/biome':
-        specifier: 2.1.2
-        version: 2.1.2
-      '@types/node':
-        specifier: ^24.0.14
-        version: 24.0.14
-      '@types/nodemailer':
-        specifier: ^6.4.17
-        version: 6.4.17
-      '@types/nodemailer-html-to-text':
-        specifier: ^3.1.3
-        version: 3.1.3
-      '@types/pg':
-        specifier: ^8.15.4
-        version: 8.15.4
-      '@types/uuid':
-        specifier: ^10.0.0
-        version: 10.0.0
-      drizzle-kit:
-        specifier: ^0.31.4
-        version: 0.31.4
-      drizzle-orm:
-        specifier: ^0.44.3
-        version: 0.44.3(@types/pg@8.15.4)(pg@8.16.3)
-      prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
-      tsx:
-        specifier: ^4.20.3
-        version: 4.20.3
-      typescript:
-        specifier: 5.8.3
-        version: 5.8.3
-
   apps/dashboard:
     dependencies:
       '@byline/byline':
         specifier: workspace:*
         version: link:../../packages/byline
-      '@byline/config':
-        specifier: workspace:*
-        version: link:../../packages/config
       '@byline/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@byline/uikit':
         specifier: workspace:*
         version: link:../../packages/uikit
+      '@fastify/cors':
+        specifier: ^11.0.1
+        version: 11.0.1
       '@lexical/clipboard':
         specifier: 0.33.1
         version: 0.33.1
@@ -160,6 +90,9 @@ importers:
       '@tanstack/react-router-devtools':
         specifier: ^1.128.3
         version: 1.128.3(@tanstack/react-router@1.128.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@tanstack/router-core@1.128.3)(csstype@3.1.3)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(solid-js@1.9.7)(tiny-invariant@1.3.3)
+      fastify:
+        specifier: ^5.4.0
+        version: 5.4.0
       intl-messageformat:
         specifier: ^10.7.16
         version: 10.7.16
@@ -172,6 +105,9 @@ importers:
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
       react:
         specifier: 19.1.0
         version: 19.1.0
@@ -212,6 +148,9 @@ importers:
       '@types/nodemailer-html-to-text':
         specifier: ^3.1.3
         version: 3.1.3
+      '@types/pg':
+        specifier: ^8.15.4
+        version: 8.15.4
       '@types/react':
         specifier: ^19.1.8
         version: 19.1.8
@@ -227,9 +166,21 @@ importers:
       classnames:
         specifier: ^2.5.1
         version: 2.5.1
+      drizzle-kit:
+        specifier: ^0.31.4
+        version: 0.31.4
+      drizzle-orm:
+        specifier: ^0.44.3
+        version: 0.44.3(@types/pg@8.15.4)(pg@8.16.3)
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
       tailwindcss:
         specifier: 4.1.11
         version: 4.1.11
+      tsx:
+        specifier: ^4.20.3
+        version: 4.20.3
       typescript:
         specifier: 5.8.3
         version: 5.8.3
@@ -315,19 +266,6 @@ importers:
       tsx:
         specifier: ^4.20.3
         version: 4.20.3
-      typescript:
-        specifier: 5.8.3
-        version: 5.8.3
-
-  packages/config:
-    dependencies:
-      '@byline/byline':
-        specifier: workspace:*
-        version: link:../byline
-    devDependencies:
-      tsc-alias:
-        specifier: ^1.8.16
-        version: 1.8.16
       typescript:
         specifier: 5.8.3
         version: 5.8.3

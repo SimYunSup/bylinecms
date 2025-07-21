@@ -26,5 +26,5 @@
   },
   "include": ["src", "byline", "byline.config.ts"],
   "exclude": ["node_modules"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [{ "path": "./tsconfig.node.json" }, { "path": "./tsconfig.server.json" }]
 }
