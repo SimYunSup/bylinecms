@@ -27,7 +27,7 @@ import type {
   FlattenedStore,
   NumericStore,
   RelationStore,
-} from './@types/index.js';
+} from '../@types/index.js';
 
 
 export function flattenFields(

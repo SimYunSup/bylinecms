@@ -23,7 +23,7 @@ import type { CollectionDefinition } from '@byline/byline'
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { v7 as uuidv7 } from 'uuid'
-import type * as schema from '../database/schema/index.js'
+import type * as schema from '../../database/schema/index.js'
 import {
   booleanStore,
   collections,
@@ -34,8 +34,8 @@ import {
   numericStore,
   relationStore,
   textStore
-} from '../database/schema/index.js';
-import { isFileStore, isJsonStore, isNumericStore, isRelationStore } from './@types/index.js'
+} from '../../database/schema/index.js';
+import { isFileStore, isJsonStore, isNumericStore, isRelationStore } from '../@types/index.js'
 import { flattenFields } from './storage-utils.js';
 
 type DatabaseConnection = NodePgDatabase<typeof schema>;

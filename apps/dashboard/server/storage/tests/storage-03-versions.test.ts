@@ -23,7 +23,7 @@
 import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
 import type { CollectionDefinition } from '@byline/byline'
-import { setupTestDB, teardownTestDB } from '../lib/test-helper.js';
+import { setupTestDB, teardownTestDB } from '../../lib/test-helper.js';
 
 // Test database setup
 let commandBuilders: ReturnType<typeof import('../storage-commands.js').createCommandBuilders>

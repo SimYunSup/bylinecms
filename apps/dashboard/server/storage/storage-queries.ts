@@ -24,8 +24,8 @@
 
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import type * as schema from '../database/schema/index.js'
-import { collections, currentDocumentsView, documents } from '../database/schema/index.js';
+import type * as schema from '../../database/schema/index.js'
+import { collections, currentDocumentsView, documents } from '../../database/schema/index.js';
 
 type DatabaseConnection = NodePgDatabase<typeof schema>;
 
@@ -34,7 +34,7 @@ import type { CollectionDefinition } from "@byline/byline";
 import type {
   FlattenedStore,
   UnionRowValue
-} from './@types/index.js'
+} from '../@types/index.js'
 
 import {
   booleanFields,

@@ -24,7 +24,7 @@
 // first to create the bulk collection and documents.
 
 import { after, before, describe, it } from 'node:test'
-import { setupTestDB, teardownTestDB } from '../lib/test-helper.js';
+import { setupTestDB, teardownTestDB } from '../../lib/test-helper.js';
 
 // Test database setup
 let queryBuilders: ReturnType<typeof import('../storage-queries.js').createQueryBuilders>

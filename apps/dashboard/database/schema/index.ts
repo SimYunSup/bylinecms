@@ -1,15 +1,22 @@
-// import { getAllTableSchemas } from '@byline/byline/drizzle-schemas'
-
-
 import { desc, eq, relations, sql } from 'drizzle-orm';
-import { bigint, boolean, date, decimal, index, integer, jsonb, pgTable, pgView, real, text, time, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
-
-
-// export const tables = getAllTableSchemas()
-
-// export default tables
-
-// export * from '@byline/byline/drizzle-schemas';
+import {
+  bigint,
+  boolean,
+  date,
+  decimal,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  pgView,
+  real,
+  text,
+  time,
+  timestamp,
+  unique,
+  uuid,
+  varchar
+} from 'drizzle-orm/pg-core';
 
 // Collections table
 export const collections = pgTable('collections', {

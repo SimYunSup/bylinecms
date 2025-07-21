@@ -1,8 +1,8 @@
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 import * as schema from '../../database/schema/index.js';
-import { createCommandBuilders } from '../storage-commands.js';
-import { createQueryBuilders } from '../storage-queries.js';
+import { createCommandBuilders } from '../storage/storage-commands.js';
+import { createQueryBuilders } from '../storage/storage-queries.js';
 
 // Initialize Byline config by importing the shared config package
 // NOTE: This is a temporary workaround to ensure the config is loaded

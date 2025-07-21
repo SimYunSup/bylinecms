@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "run-p dev:*",
     "dev:app": "vite",
-    "dev:server": "tsx --env-file=.env --watch server/server.ts",
+    "dev:server": "tsx --env-file=.env --watch server/index.ts",
     "build": "run-s build:*",
     "build:app": "tsc -p tsconfig.json && vite build",
     "build:server": "tsc -p tsconfig.server.json",

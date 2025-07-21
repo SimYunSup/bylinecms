@@ -38,8 +38,8 @@ import Fastify from 'fastify'
 import { Pool } from 'pg'
 import * as z from "zod";
 import * as schema from '../database/schema/index.js'
-import { createCommandBuilders } from './storage-commands.js'
-import { createQueryBuilders } from './storage-queries.js'
+import { createCommandBuilders } from './storage/storage-commands.js'
+import { createQueryBuilders } from './storage/storage-queries.js'
 
 const app = Fastify({
   logger: true,

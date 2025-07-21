@@ -21,7 +21,7 @@
 
 
 import type { CollectionDefinition, Field, ValueField } from '@byline/byline'
-import type { FlattenedStore } from './@types/index.js';
+import type { FlattenedStore } from '../@types/index.js';
 
 
 export function flattenFields(

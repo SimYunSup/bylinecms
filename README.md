@@ -151,7 +151,7 @@ mkdir data
 
 2.2. Initialize the database and schema
 ```sh
-# Copy .env.example to .env in the apps/api directory. 
+# Copy .env.example to .env in the apps/dashboard directory. 
 # Read the notes in .env.example.
 cd apps/dashboard
 cp .env.example .env
