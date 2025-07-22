@@ -14,9 +14,14 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      input: {
-        main: 'src/main.tsx',
-      },
+      input: 'index.html',
     },
   },
+  // build: {
+  //   rollupOptions: {
+  //     input: {
+  //       main: 'src/main.tsx',
+  //     },
+  //   },
+  // },
 })

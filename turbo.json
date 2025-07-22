@@ -57,6 +57,13 @@
       "dependsOn": [
         "^start"
       ]
+    },
+    "preview": {
+      "cache": false,
+      "dependsOn": [
+        "^preview"
+      ],
+      "persistent": true
     }
   },
   "globalEnv": []
