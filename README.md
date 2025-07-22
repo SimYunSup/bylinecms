@@ -1,4 +1,4 @@
-[![CLA assistant](https://cla-assistant.io/readme/badge/Byline-CMS/bylinecms.app)](https://cla-assistant.io/Byline-CMS/bylinecms.app)
+[![CLA assistant](https://cla-assistant.io/readme/badge/Byline-CMS/bylinecms.dev)](https://cla-assistant.io/Byline-CMS/bylinecms.dev)
 
 # Byline CMS
 
@@ -126,7 +126,7 @@ At the moment, the project is a prototype, but it builds and runs if you wanted 
 ```sh
 # git clone this repo
 git clone git@github.com:Byline-CMS/bylinecms.dev.git
-cd bylinecms.app
+cd bylinecms.dev
 # install deps
 pnpm install
 # build once so that all workspace packages and apps have their deps
