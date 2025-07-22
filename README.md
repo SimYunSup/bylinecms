@@ -125,7 +125,7 @@ At the moment, the project is a prototype, but it builds and runs if you wanted 
 
 ```sh
 # git clone this repo
-git clone git@github.com:Byline-CMS/bylinecms.app.git
+git clone git@github.com:Byline-CMS/bylinecms.dev.git
 cd bylinecms.app
 # install deps
 pnpm install
