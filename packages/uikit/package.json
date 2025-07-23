@@ -1,15 +1,30 @@
 {
   "name": "@byline/uikit",
-  "version": "1.0.0",
-  "private": true,
+  "private": false,
+  "license": "AGPL",
+  "version": "0.1.0",
+  "description": "Byline CMS uikit package",
+  "keywords": [
+    "cms",
+    "headless cms",
+    "content management"
+  ],
+  "homepage": "https://github.com/Byline-CMS/bylinecms.dev",
+  "bugs": {
+    "url": "https://github.com/Byline-CMS/bylinecms.dev/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Byline-CMS/bylinecms.dev.git",
+    "directory": "packages/uikit"
+  },
   "type": "module",
   "sideEffects": false,
   "types": "./dist/react.d.ts",
   "module": "./dist/react.js",
   "main": "./dist/react.js",
   "files": [
-    "dist/",
-    "src/astro.js"
+    "dist"
   ],
   "exports": {
     "./react": {
@@ -84,5 +99,26 @@
     "typescript-plugin-css-modules": "^5.1.0",
     "vite": "^7.0.5",
     "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      "./react": {
+        "types": "./dist/react.d.ts",
+        "import": "./dist/react.js",
+        "default": "./dist/react.js"
+      },
+      "./styles.css": {
+        "import": "./dist/styles/styles.css",
+        "default": "./dist/styles/styles.css"
+      },
+      "./typography.css": {
+        "import": "./dist/styles/typography.css",
+        "default": "./dist/styles/typography.css"
+      }
+    },
+    "main": "./dist/react.js",
+    "registry": "https://registry.npmjs.org/",
+    "types": "./dist/react.d.ts"
   }
 }

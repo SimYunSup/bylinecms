@@ -1,7 +1,23 @@
 {
   "name": "@byline/dashboard",
-  "private": true,
+  "private": false,
+  "license": "AGPL",
   "version": "0.1.0",
+  "description": "Byline CMS dashboard app",
+  "keywords": [
+    "cms",
+    "headless cms",
+    "content management"
+  ],
+  "homepage": "https://github.com/Byline-CMS/bylinecms.dev",
+  "bugs": {
+    "url": "https://github.com/Byline-CMS/bylinecms.dev/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Byline-CMS/bylinecms.dev.git",
+    "directory": "apps/dashboard"
+  },
   "type": "module",
   "scripts": {
     "dev": "run-p dev:*",

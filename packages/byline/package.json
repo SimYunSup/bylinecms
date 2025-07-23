@@ -9,13 +9,14 @@
     "headless cms",
     "content management"
   ],
-  "homepage": "https://github.com/Byline-CMS/bylinecms.app",
+  "homepage": "https://github.com/Byline-CMS/bylinecms.dev",
   "bugs": {
-    "url": "https://github.com/Byline-CMS/bylinecms.app/issues"
+    "url": "https://github.com/Byline-CMS/bylinecms.dev/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Byline-CMS/bylinecms.app.git"
+    "url": "git+https://github.com/Byline-CMS/bylinecms.dev.git",
+    "directory": "packages/byline"
   },
   "type": "module",
   "main": "dist/index.js",
@@ -74,5 +75,25 @@
     "tsc-alias": "^1.8.16",
     "tsx": "^4.20.3",
     "typescript": "5.8.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "require": "./dist/index.js"
+      },
+      "./zod-schemas": {
+        "types": "./dist/schemas/zod/index.d.ts",
+        "import": "./dist/schemas/zod/index.js",
+        "require": "./dist/schemas/zod/index.js"
+      },
+      "./package.json": "./package.json"
+    },
+    "main": "dist/index.js",
+    "index": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "registry": "https://registry.npmjs.org/"
   }
 }
