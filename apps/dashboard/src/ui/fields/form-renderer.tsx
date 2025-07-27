@@ -22,7 +22,7 @@
 // NOTE: Before you dunk on this, this is a totally naïve  and "weekend hack"
 // implementation of a form renderer used only for prototype development.
 
-import type { Field, ValueField } from '@byline/byline'
+import type { Field } from '@byline/byline'
 import { Button } from '@byline/uikit/react'
 import { formatDateTime } from '../../utils/utils.general'
 import { FieldRenderer } from '../fields/field-renderer'
@@ -64,7 +64,7 @@ const FormContent = ({
   onCancel: () => void
   initialData?: Record<string, any>
 }) => {
-  const { getFieldValues, getFieldValue, validateForm, errors, hasChanges } = useFormContext()
+  const { getFieldValues, validateForm, errors, hasChanges } = useFormContext()
 
   const handleCancel = () => {
     if (onCancel && typeof onCancel === 'function') {
@@ -102,6 +102,7 @@ const FormContent = ({
           <h4 className="text-red-800 font-medium">Please fix the following errors:</h4>
           <ul className="mt-2 text-sm text-red-700">
             {errors.map((error, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: index is okay here.
               <li key={index}>• {error.message}</li>
             ))}
           </ul>

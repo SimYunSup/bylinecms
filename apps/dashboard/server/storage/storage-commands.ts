@@ -104,6 +104,8 @@ export class DocumentCommands {
         params.locale ?? 'all'
       );
 
+      console.log('Flattened fields for update:', JSON.stringify(flattenedFields, null, 2));
+
       // 3. Insert all field values
       for (const fieldValue of flattenedFields) {
         await this.insertFieldValueByType(

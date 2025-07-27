@@ -37,14 +37,14 @@ export const EditView = ({
 
   const handleSubmit = async (data: any) => {
     try {
-      const putRes = await fetch(`http://localhost:3001/api/${path}/${initialData.document_id}`, {
+      const response = await fetch(`http://localhost:3001/api/${path}/${initialData.document_id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       })
 
-      if (!putRes.ok) {
-        const error = await putRes.json()
+      if (!response.ok) {
+        const error = await response.json()
         console.error('Failed to update page:', error)
         // TODO: Show error to user
       } else {

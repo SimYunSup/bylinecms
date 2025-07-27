@@ -31,7 +31,7 @@
 import '../byline.config.js';
 
 // TODO: Remove direct dependency on the getCollectionDefinition
-import { getCollectionDefinition } from '@byline/byline'
+import { type CollectionDefinition, getCollectionDefinition } from '@byline/byline'
 import cors from '@fastify/cors'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
@@ -74,9 +74,9 @@ type Collection = typeof schema.collections.$inferSelect
  * If it doesn't exist, creates it based on the collection definition from the registry.
  *
  * @param {string} path - The path of the collection to ensure.
- * @returns {Promise<Collection>} The existing or newly created collection.
+ * @returns {Promise<{definition: CollectionDefinition, collection: Collection}>} The existing or newly created collection.
  */
-async function ensureCollection(path: string): Promise<Collection | null | undefined> {
+async function ensureCollection(path: string): Promise<{ definition: CollectionDefinition, collection: Collection } | null> {
   const collectionDefinition = getCollectionDefinition(path)
   if (collectionDefinition == null) {
     return null
@@ -89,7 +89,7 @@ async function ensureCollection(path: string): Promise<Collection | null | undef
     collection = await queries.collections.getCollectionByPath(collectionDefinition.path)
   }
 
-  return collection
+  return { definition: collectionDefinition, collection: collection as Collection }
 }
 
 /**
@@ -106,8 +106,8 @@ app.get<{ Params: { collection: string } }>('/api/:collection', async (request, 
   const search = request.query as Record<string, any>
 
   // Ensure we have a collection
-  const collection = await ensureCollection(path)
-  if (collection == null) {
+  const config = await ensureCollection(path)
+  if (config == null) {
     reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
@@ -115,7 +115,7 @@ app.get<{ Params: { collection: string } }>('/api/:collection', async (request, 
   const searchParams = metaSchema.safeParse(search)
 
   const result = await queries.documents.getDocumentsByPage({
-    collection_id: collection.id,
+    collection_id: config.collection.id,
     locale: 'en',
     ...searchParams.data
   })
@@ -135,8 +135,8 @@ app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:c
   const body = request.body
 
   // Ensure we have a collection
-  const collection = await ensureCollection(path)
-  if (collection == null) {
+  const config = await ensureCollection(path)
+  if (config == null) {
     reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
@@ -154,7 +154,7 @@ app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:c
     // })
     // const document = documentResults[0]
 
-    // biome-ignore lint/correctness/noUnreachable: <explanation>
+    // biome-ignore lint/correctness/noUnreachable: TODO
   } catch (error) {
     if (error instanceof z.ZodError) {
       reply.code(400).send({
@@ -179,13 +179,13 @@ app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:c
 app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
 
-  const collection = await ensureCollection(path)
-  if (collection == null) {
+  const config = await ensureCollection(path)
+  if (config == null) {
     reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
-  const document = await queries.documents.getDocumentById({ collection_id: collection.id, document_id: id, locale: 'en' })
+  const document = await queries.documents.getDocumentById({ collection_id: config.collection.id, document_id: id, locale: 'en' })
   if (document == null) {
     reply.code(404).send({ error: 'Document not found' })
     return
@@ -203,22 +203,40 @@ app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', 
  * NOTE: In our new immutable 'versioning-by-default' document model,
  * this will create a new version of the document.
  * 
- * TODO: Re-implement this with the new commands and queries.
  */
 app.put<{ Params: { collection: string; id: string }; Body: Record<string, any> }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
-  const body = request.body
-
-  console.log('Updating document', JSON.stringify({ path, id, body }, null, 2))
 
   // Ensure we have a collection
-  const collection = await ensureCollection(path)
-  if (collection == null) {
+  const config = await ensureCollection(path)
+  if (config == null) {
     reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
     return
   }
 
-  // TODO: Implement the update logic with commands
+  const documentData = structuredClone(request.body)
+
+  // TODO: Validate the documentData against the collection schema and
+  // coerce values to the correct types.
+  if (documentData.created_at) documentData.created_at = new Date(documentData.created_at)
+  if (documentData.updated_at) documentData.updated_at = new Date(documentData.updated_at)
+  if (documentData.publishedOn) documentData.publishedOn = new Date(documentData.publishedOn)
+
+  console.log('Updating document', JSON.stringify({ path, id, documentData }, null, 2))
+
+  await commands.documents.createDocument({
+    documentId: id,
+    collectionId: config.collection.id,
+    collectionConfig: config.definition,
+    action: 'update',
+    documentData,
+    path: documentData.path,
+    status: documentData.status,
+    locale: 'en',
+  })
+
+  reply.code(200).send({ status: 'ok' })
+  return
 })
 
 /**

@@ -19,6 +19,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// TODO - this must come from site config for content collections.
+const CONTENT_LOCALES = ['en', 'es', 'fr'];
+
 import type { CollectionDefinition, Field, ValueField } from '@byline/byline'
 
 import type {
@@ -33,7 +36,7 @@ import type {
 export function flattenFields(
   documentData: any,
   collectionConfig: CollectionDefinition,
-  locale = 'default'
+  locale = 'all'
 ): FlattenedStore[] {
   const flattenedFields: FlattenedStore[] = [];
 
@@ -65,19 +68,42 @@ export function flattenFields(
           }
         });
       } else if (fieldConfig.localized && typeof value === 'object' && !Array.isArray(value)) {
-        for (const [localeKey, localizedValue] of Object.entries(value)) {
-          if (localizedValue !== undefined && localizedValue !== null) {
-            flattenedFields.push(
-              createFlattenedStore(
-                currentPath,
-                fieldConfig.name,
-                fieldConfig.type as ValueField['type'],
-                localizedValue,
-                localeKey,
-                getParentPath(currentPath)
-              )
-            );
+        const valueKeys = Object.keys(value);
+
+        // NOTE: This is potentially a valuable feature, as it would allow us to handle the updating
+        // or migration of documents that have been retrieved via the 'all' locale. In other words,
+        // if a document has been retrieved with the 'all' locale, it will have all locales present
+        // for localized fields, and we can submit the document as such during migration, instead
+        // of having to iterate over each locale and insert portions of a localized document separately.
+        const isLocalizedObject = valueKeys.length > 0 && valueKeys.every(key => CONTENT_LOCALES.includes(key));
+
+        if (isLocalizedObject) {
+          for (const [localeKey, localizedValue] of Object.entries(value)) {
+            if (localizedValue !== undefined && localizedValue !== null) {
+              flattenedFields.push(
+                createFlattenedStore(
+                  currentPath,
+                  fieldConfig.name,
+                  fieldConfig.type as ValueField['type'],
+                  localizedValue,
+                  localeKey,
+                  getParentPath(currentPath)
+                )
+              );
+            }
           }
+        } else {
+          // Not a localized object, treat as a regular field.
+          flattenedFields.push(
+            createFlattenedStore(
+              currentPath,
+              fieldConfig.name,
+              fieldConfig.type as ValueField['type'],
+              value,
+              locale,
+              getParentPath(currentPath)
+            )
+          );
         }
       } else {
         flattenedFields.push(
@@ -194,7 +220,7 @@ function createFlattenedStore(
 
 export function reconstructFields(
   fieldValues: FlattenedStore[],
-  locale = 'default'
+  locale = 'all'
 ): any {
   const document: any = {};
 
@@ -247,7 +273,7 @@ export function reconstructFields(
     const values = fieldValuesByPath[path];
     const preferredValue = values.find(v => v.locale === locale) || values.find(v => v.locale === 'default') || values[0];
 
-    if (values.length > 1 && values.some(v => v.locale !== 'default')) { // Localized
+    if (values.length > 1 && values.some(v => v.locale !== 'all')) { // Localized
       const localizedObject: Record<string, any> = {};
       values.forEach(v => {
         localizedObject[v.locale] = createReconstructedValue(v);

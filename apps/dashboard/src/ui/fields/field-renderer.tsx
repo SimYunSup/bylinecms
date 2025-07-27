@@ -75,7 +75,7 @@ export const FieldRenderer = ({ field, initialValue, basePath }: FieldRendererPr
 
                 return (
                   <div
-                    key={index}
+                    key={arrayElementPath}
                     className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4"
                   >
                     <FieldRenderer
