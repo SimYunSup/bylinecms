@@ -78,6 +78,8 @@ export const documentRelationships = pgTable('document_relationships', {
 ]));
 
 // Current Documents View - gets latest version of each logical document
+// NOTE: This does not work as selectDistinct is based on the entire row, 
+// and not just the document_id.
 // export const currentDocumentsView = pgView("current_documents").as((qb) => {
 //   return qb
 //     .selectDistinct({
@@ -103,6 +105,7 @@ export const documentRelationships = pgTable('document_relationships', {
 // });
 
 // Current Documents View - gets latest version of each logical document
+// based on ROW_NUMBER() window function.
 // Or would this be better implemented as raw DISTINCT ON?
 export const currentDocumentsView = pgView("current_documents").as((qb) => {
   const sq = qb.$with('sq').as(
