@@ -38,10 +38,11 @@ export const CreateView = ({
       const postRes = await fetch(`http://localhost:3001/api/${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ documentData: data }),
       })
       if (!postRes.ok) {
-        console.error(`Failed to create page: ${postRes.statusText}`)
+        const errorData = await postRes.json()
+        console.error(`Failed to create document: ${postRes.statusText}`, errorData)
       } else {
         navigate({
           to: '/collections/$collection',

@@ -209,6 +209,8 @@ app.put<{ Params: { collection: string; id: string }; Body: Record<string, any> 
   const { collection: path, id } = request.params
   const body = request.body
 
+  console.log('Updating document', JSON.stringify({ path, id, body }, null, 2))
+
   // Ensure we have a collection
   const collection = await ensureCollection(path)
   if (collection == null) {

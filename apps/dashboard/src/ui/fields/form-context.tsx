@@ -20,6 +20,7 @@
  */
 
 import type { Field } from '@byline/byline'
+import { get as getNestedValue, set as setNestedValue } from 'lodash-es'
 import type React from 'react'
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
 
@@ -30,8 +31,8 @@ interface FormError {
 
 interface FormContextType {
   setFieldValue: (name: string, value: any) => void
-  getFieldValues: () => Record<string, any>
   getFieldValue: (name: string) => any
+  getFieldValues: () => Record<string, any>
   hasChanges: () => boolean
   validateForm: (fields: Field[]) => FormError[]
   errors: FormError[]
@@ -56,13 +57,15 @@ export const FormProvider = ({
   children: React.ReactNode
   initialData?: Record<string, any>
 }) => {
-  const fieldValues = useRef<Record<string, any>>({})
+  const fieldValues = useRef<Record<string, any>>(JSON.parse(JSON.stringify(initialData)))
   const initialValues = useRef<Record<string, any>>(initialData)
   const [errors, setErrors] = useState<FormError[]>([])
   const dirtyFields = useRef<Set<string>>(new Set())
 
   const setFieldValue = useCallback((name: string, value: any) => {
-    fieldValues.current[name] = value
+    const newFieldValues = { ...fieldValues.current }
+    setNestedValue(newFieldValues, name, value)
+    fieldValues.current = newFieldValues
     dirtyFields.current.add(name)
 
     // Clear field-specific errors when value changes
@@ -72,11 +75,16 @@ export const FormProvider = ({
   const getFieldValues = useCallback(() => fieldValues.current, [])
 
   const getFieldValue = useCallback((name: string) => {
-    return fieldValues.current[name] != null && fieldValues.current[name] !== ''
-      ? fieldValues.current[name]
-      : dirtyFields.current.has(name) === false
-        ? initialValues.current[name]
-        : null
+    const dirty = dirtyFields.current.has(name)
+    const currentValue = getNestedValue(fieldValues.current, name)
+
+    if (currentValue !== undefined) {
+      return currentValue
+    }
+    if (!dirty) {
+      return getNestedValue(initialValues.current, name)
+    }
+    return undefined
   }, [])
 
   const hasChanges = useCallback(() => {
@@ -91,6 +99,8 @@ export const FormProvider = ({
     (fields: Field[]): FormError[] => {
       const formErrors: FormError[] = []
 
+      // This validation logic might need to be enhanced to handle nested fields.
+      // For now, it will validate top-level fields.
       for (const field of fields) {
         const value = getFieldValue(field.name)
 
@@ -158,8 +168,8 @@ export const FormProvider = ({
     <FormContext.Provider
       value={{
         setFieldValue,
-        getFieldValues,
         getFieldValue,
+        getFieldValues,
         hasChanges,
         validateForm,
         errors,

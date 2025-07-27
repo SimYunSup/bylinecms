@@ -34,13 +34,15 @@ import { NumericalField } from './numerical/numerical-field'
 interface FieldRendererProps {
   field: Field
   initialValue?: any
+  basePath?: string
 }
 
-export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
+export const FieldRenderer = ({ field, initialValue, basePath }: FieldRendererProps) => {
   const { setFieldValue } = useFormContext()
+  const path = basePath ? `${basePath}.${field.name}` : field.name
 
   const handleChange = (value: any) => {
-    setFieldValue(field.name, value)
+    setFieldValue(path, value)
   }
 
   switch (field.type) {
@@ -64,6 +66,7 @@ export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
           <div className="flex flex-col gap-4">
             {Array.isArray(initialValue) &&
               initialValue.map((item, index) => {
+                const arrayElementPath = `${path}.${index}`
                 // For block arrays, find the matching field definition for the item.
                 const blockType = Object.keys(item)[0]
                 const subField = field.fields?.find((f) => f.name === blockType)
@@ -79,6 +82,7 @@ export const FieldRenderer = ({ field, initialValue }: FieldRendererProps) => {
                       key={subField.name}
                       field={subField}
                       initialValue={item[subField.name]}
+                      basePath={arrayElementPath}
                     />
                   </div>
                 )

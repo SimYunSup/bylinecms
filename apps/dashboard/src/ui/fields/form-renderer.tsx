@@ -82,11 +82,7 @@ const FormContent = ({
       return
     }
 
-    const data: any = {}
-
-    fields.forEach((field) => {
-      data[field.name] = getFieldValue(field.name)
-    })
+    const data = getFieldValues()
 
     if (onSubmit && typeof onSubmit === 'function') {
       onSubmit(data)
