@@ -78,28 +78,65 @@ export const documentRelationships = pgTable('document_relationships', {
 ]));
 
 // Current Documents View - gets latest version of each logical document
+// export const currentDocumentsView = pgView("current_documents").as((qb) => {
+//   return qb
+//     .selectDistinct({
+//       id: documents.id, // Version ID
+//       document_id: documents.document_id, // Logical document ID
+//       collection_id: documents.collection_id,
+//       path: documents.path,
+//       event_type: documents.event_type,
+//       status: documents.status,
+//       is_deleted: documents.is_deleted,
+//       created_at: documents.created_at,
+//       updated_at: documents.updated_at,
+//       created_by: documents.created_by,
+//       change_summary: documents.change_summary,
+//     })
+//     .from(documents)
+//     .where(eq(documents.is_deleted, false))
+//     .orderBy(
+//       documents.collection_id,
+//       documents.document_id,
+//       desc(documents.id) // Latest version (UUIDv7) first
+//     );
+// });
+
+// Current Documents View - gets latest version of each logical document
+// Or would this be better implemented as raw DISTINCT ON?
 export const currentDocumentsView = pgView("current_documents").as((qb) => {
-  return qb
-    .selectDistinct({
-      id: documents.id, // Version ID
-      document_id: documents.document_id, // Logical document ID
-      collection_id: documents.collection_id,
-      path: documents.path,
-      event_type: documents.event_type,
-      status: documents.status,
-      is_deleted: documents.is_deleted,
-      created_at: documents.created_at,
-      updated_at: documents.updated_at,
-      created_by: documents.created_by,
-      change_summary: documents.change_summary,
-    })
-    .from(documents)
-    .where(eq(documents.is_deleted, false))
-    .orderBy(
-      documents.collection_id,
-      documents.document_id,
-      desc(documents.id) // Latest version (UUIDv7) first
-    );
+  const sq = qb.$with('sq').as(
+    qb
+      .select({
+        id: documents.id,
+        document_id: documents.document_id,
+        collection_id: documents.collection_id,
+        path: documents.path,
+        event_type: documents.event_type,
+        status: documents.status,
+        is_deleted: documents.is_deleted,
+        created_at: documents.created_at,
+        updated_at: documents.updated_at,
+        created_by: documents.created_by,
+        change_summary: documents.change_summary,
+        rn: sql<number>`row_number() OVER (PARTITION BY ${documents.document_id} ORDER BY ${documents.id} DESC)`.as('rn'),
+      })
+      .from(documents)
+      .where(eq(documents.is_deleted, false))
+  );
+  return qb.with(sq).select({
+    id: sq.id,
+    document_id: sq.document_id,
+    collection_id: sq.collection_id,
+    path: sq.path,
+    event_type: sq.event_type,
+    status: sq.status,
+    is_deleted: sq.is_deleted,
+    created_at: sq.created_at,
+    updated_at: sq.updated_at,
+    created_by: sq.created_by,
+    change_summary: sq.change_summary,
+  }).from(sq).where(eq(sq.rn, 1));
 });
 
 // Base field values structure
@@ -291,7 +328,7 @@ export const collectionsRelations = relations(collections, ({ many }) => ({
   numeric_values: many(numericStore),
   boolean_values: many(booleanStore),
   datetime_values: many(datetimeStore),
-  relation_values: many(relationStore),
+  relation_values: many(relationStore, { relationName: 'source_collection' }),
   file_values: many(fileStore),
   json_values: many(jsonStore),
 }));
@@ -382,6 +419,7 @@ export const relationStoreRelations = relations(relationStore, ({ one }) => ({
   collection: one(collections, {
     fields: [relationStore.collection_id],
     references: [collections.id],
+    relationName: 'source_collection',
   }),
   // This relation is now based on the logical document_id.
   // Note: This will relate to *all* versions of the document.

@@ -1,5 +1,5 @@
 {
-  "id": "67fcb6ec-6575-48c1-86e5-12a17462cf28",
+  "id": "4627adec-2bd3-48fc-9a7e-005afb3cd5ea",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1982,7 +1982,7 @@
           "notNull": false
         }
       },
-      "definition": "select distinct \"id\", \"document_id\", \"collection_id\", \"path\", \"event_type\", \"status\", \"is_deleted\", \"created_at\", \"updated_at\", \"created_by\", \"change_summary\" from \"documents\" where \"documents\".\"is_deleted\" = false order by \"documents\".\"collection_id\", \"documents\".\"document_id\", \"documents\".\"id\" desc",
+      "definition": "with \"sq\" as (select \"id\", \"document_id\", \"collection_id\", \"path\", \"event_type\", \"status\", \"is_deleted\", \"created_at\", \"updated_at\", \"created_by\", \"change_summary\", row_number() OVER (PARTITION BY \"document_id\" ORDER BY \"id\" DESC) as \"rn\" from \"documents\" where \"documents\".\"is_deleted\" = false) select \"id\", \"document_id\", \"collection_id\", \"path\", \"event_type\", \"status\", \"is_deleted\", \"created_at\", \"updated_at\", \"created_by\", \"change_summary\" from \"sq\" where \"rn\" = 1",
       "name": "current_documents",
       "schema": "public",
       "isExisting": false,

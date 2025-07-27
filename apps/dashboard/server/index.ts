@@ -222,7 +222,7 @@ app.put<{ Params: { collection: string; id: string }; Body: Record<string, any> 
   if (documentData.updated_at) documentData.updated_at = new Date(documentData.updated_at)
   if (documentData.publishedOn) documentData.publishedOn = new Date(documentData.publishedOn)
 
-  console.log('Updating document', JSON.stringify({ path, id, documentData }, null, 2))
+  // console.log('Updating document', JSON.stringify({ path, id, documentData }, null, 2))
 
   await commands.documents.createDocument({
     documentId: id,
