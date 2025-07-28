@@ -21,7 +21,7 @@
 
 import type { CollectionDefinition } from '@byline/byline'
 import type { AnyCollectionSchemaTypes } from '@byline/byline/zod-schemas'
-import { Button, Container, Section } from '@byline/uikit/react'
+import { Button, Container, HistoryIcon, IconButton, Section } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
 import { allExpanded, darkStyles, defaultStyles, JsonView } from 'react-json-view-lite'
 import 'react-json-view-lite/dist/index.css'
@@ -42,6 +42,19 @@ export const ApiView = ({
         <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between mb-2">
           <h2 className="mb-2">{labels.singular} API</h2>
           <div className="flex items-center gap-2">
+            <IconButton
+              className="min-w-[24px] min-h-[24px]"
+              size="sm"
+              variant="text"
+              onClick={() =>
+                navigate({
+                  to: '/collections/$collection/$id/history',
+                  params: { collection: path, id: String(initialData.document_id) },
+                })
+              }
+            >
+              <HistoryIcon className="w-4 h-4" />
+            </IconButton>
             <Button
               size="sm"
               variant="filled"

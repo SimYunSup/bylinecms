@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CollectionsCollectionIndexRouteImport } from './routes/collections/$collection/index'
 import { Route as CollectionsCollectionCreateRouteImport } from './routes/collections/$collection/create'
 import { Route as CollectionsCollectionIdIndexRouteImport } from './routes/collections/$collection/$id/index'
+import { Route as CollectionsCollectionIdHistoryRouteImport } from './routes/collections/$collection/$id/history'
 import { Route as CollectionsCollectionIdApiRouteImport } from './routes/collections/$collection/$id/api'
 
 const IndexRoute = IndexRouteImport.update({
@@ -38,6 +39,12 @@ const CollectionsCollectionIdIndexRoute =
     path: '/collections/$collection/$id/',
     getParentRoute: () => rootRouteImport,
   } as any)
+const CollectionsCollectionIdHistoryRoute =
+  CollectionsCollectionIdHistoryRouteImport.update({
+    id: '/collections/$collection/$id/history',
+    path: '/collections/$collection/$id/history',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CollectionsCollectionIdApiRoute =
   CollectionsCollectionIdApiRouteImport.update({
     id: '/collections/$collection/$id/api',
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/collections/$collection/create': typeof CollectionsCollectionCreateRoute
   '/collections/$collection': typeof CollectionsCollectionIndexRoute
   '/collections/$collection/$id/api': typeof CollectionsCollectionIdApiRoute
+  '/collections/$collection/$id/history': typeof CollectionsCollectionIdHistoryRoute
   '/collections/$collection/$id': typeof CollectionsCollectionIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -57,6 +65,7 @@ export interface FileRoutesByTo {
   '/collections/$collection/create': typeof CollectionsCollectionCreateRoute
   '/collections/$collection': typeof CollectionsCollectionIndexRoute
   '/collections/$collection/$id/api': typeof CollectionsCollectionIdApiRoute
+  '/collections/$collection/$id/history': typeof CollectionsCollectionIdHistoryRoute
   '/collections/$collection/$id': typeof CollectionsCollectionIdIndexRoute
 }
 export interface FileRoutesById {
@@ -65,6 +74,7 @@ export interface FileRoutesById {
   '/collections/$collection/create': typeof CollectionsCollectionCreateRoute
   '/collections/$collection/': typeof CollectionsCollectionIndexRoute
   '/collections/$collection/$id/api': typeof CollectionsCollectionIdApiRoute
+  '/collections/$collection/$id/history': typeof CollectionsCollectionIdHistoryRoute
   '/collections/$collection/$id/': typeof CollectionsCollectionIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -74,6 +84,7 @@ export interface FileRouteTypes {
     | '/collections/$collection/create'
     | '/collections/$collection'
     | '/collections/$collection/$id/api'
+    | '/collections/$collection/$id/history'
     | '/collections/$collection/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -81,6 +92,7 @@ export interface FileRouteTypes {
     | '/collections/$collection/create'
     | '/collections/$collection'
     | '/collections/$collection/$id/api'
+    | '/collections/$collection/$id/history'
     | '/collections/$collection/$id'
   id:
     | '__root__'
@@ -88,6 +100,7 @@ export interface FileRouteTypes {
     | '/collections/$collection/create'
     | '/collections/$collection/'
     | '/collections/$collection/$id/api'
+    | '/collections/$collection/$id/history'
     | '/collections/$collection/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -96,6 +109,7 @@ export interface RootRouteChildren {
   CollectionsCollectionCreateRoute: typeof CollectionsCollectionCreateRoute
   CollectionsCollectionIndexRoute: typeof CollectionsCollectionIndexRoute
   CollectionsCollectionIdApiRoute: typeof CollectionsCollectionIdApiRoute
+  CollectionsCollectionIdHistoryRoute: typeof CollectionsCollectionIdHistoryRoute
   CollectionsCollectionIdIndexRoute: typeof CollectionsCollectionIdIndexRoute
 }
 
@@ -129,6 +143,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CollectionsCollectionIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/collections/$collection/$id/history': {
+      id: '/collections/$collection/$id/history'
+      path: '/collections/$collection/$id/history'
+      fullPath: '/collections/$collection/$id/history'
+      preLoaderRoute: typeof CollectionsCollectionIdHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/collections/$collection/$id/api': {
       id: '/collections/$collection/$id/api'
       path: '/collections/$collection/$id/api'
@@ -144,6 +165,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionsCollectionCreateRoute: CollectionsCollectionCreateRoute,
   CollectionsCollectionIndexRoute: CollectionsCollectionIndexRoute,
   CollectionsCollectionIdApiRoute: CollectionsCollectionIdApiRoute,
+  CollectionsCollectionIdHistoryRoute: CollectionsCollectionIdHistoryRoute,
   CollectionsCollectionIdIndexRoute: CollectionsCollectionIdIndexRoute,
 }
 export const routeTree = rootRouteImport
