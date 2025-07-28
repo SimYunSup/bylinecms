@@ -22,15 +22,15 @@
  *
  */
 
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from '../../database/schema/index.js'
-import { collections, currentDocumentsView, documents } from '../../database/schema/index.js';
+import { collections, currentDocumentsView, documents, textStore } from '../../database/schema/index.js';
 
 type DatabaseConnection = NodePgDatabase<typeof schema>;
+type Document = Omit<typeof documents.$inferSelect, 'doc'>;
 
 import type { CollectionDefinition } from "@byline/byline";
-import { queryObjects } from "v8";
 import type {
   FlattenedStore,
   UnionRowValue
@@ -264,7 +264,8 @@ export class DocumentQueries {
    * 
    * Paginated query to get current documents for a collection
    * 
-   * TODO: Parameter and return types
+   * TODO: We're currently hard coding the query parameter to search by title.
+   * However, we can pass the field store name and field_name as options
    * 
    * @param collectionId 
    * @param options 
@@ -319,35 +320,74 @@ export class DocumentQueries {
 
     const config = collection.config as CollectionDefinition;
 
-    // First get total count
-    const totalResult = await this.db.select({
-      count: sql<number>`count(*)`,
-    })
-      .from(currentDocumentsView)
-      .where(eq(currentDocumentsView.collection_id, collection_id)
-      );
+    let totalResult: { count: number; }[];
+    if (query) {
+      totalResult = await this.db.select({
+        count: sql<number>`count(DISTINCT ${currentDocumentsView.id})`,
+      })
+        .from(currentDocumentsView)
+        .leftJoin(textStore, eq(currentDocumentsView.id, textStore.document_version_id))
+        .where(
+          and(
+            eq(currentDocumentsView.collection_id, collection_id),
+            eq(textStore.field_name, 'title'),
+            ilike(textStore.value, `%${query}%`)
+          )
+        );
+    } else {
+      totalResult = await this.db.select({
+        count: sql<number>`count(*)`,
+      })
+        .from(currentDocumentsView)
+        .where(eq(currentDocumentsView.collection_id, collection_id)
+        );
+    }
 
 
     const total = Number(totalResult[0]?.count) || 0;
     const total_pages = Math.ceil(total / page_size);
     const offset = (page - 1) * page_size;
-
-    // Get paginated document IDs
     const orderColumn = order === 'path' ? currentDocumentsView.path : currentDocumentsView.created_at;
     const orderFunc = desc === true ? sql`DESC` : sql`ASC`;
 
-    const versionIdsPerPage = await this.db.select({
-      id: currentDocumentsView.id,
-    })
-      .from(currentDocumentsView)
-      .where(eq(currentDocumentsView.collection_id, collection_id),
-      )
-      .orderBy(sql`${orderColumn} ${orderFunc}`)
-      .limit(page_size)
-      .offset(offset);
+    let currentDocuments: Document[] = [];
+    if (query) {
+      currentDocuments = await this.db.select({
+        id: currentDocumentsView.id,
+        document_id: currentDocumentsView.document_id,
+        collection_id: currentDocumentsView.collection_id,
+        path: currentDocumentsView.path,
+        event_type: currentDocumentsView.event_type,
+        status: currentDocumentsView.status,
+        is_deleted: currentDocumentsView.is_deleted,
+        created_at: currentDocumentsView.created_at,
+        updated_at: currentDocumentsView.updated_at,
+        created_by: currentDocumentsView.created_by,
+        change_summary: currentDocumentsView.change_summary,
+      })
+        .from(currentDocumentsView)
+        .leftJoin(textStore, eq(currentDocumentsView.id, textStore.document_version_id))
+        .where(
+          and(
+            eq(currentDocumentsView.collection_id, collection_id),
+            eq(textStore.field_name, 'title'),
+            ilike(textStore.value, `%${query}%`)
+          )
+        )
+        .orderBy(sql`${orderColumn} ${orderFunc}`)
+        .limit(page_size)
+        .offset(offset);
+    } else {
+      currentDocuments = await this.db.select()
+        .from(currentDocumentsView)
+        .where(eq(currentDocumentsView.collection_id, collection_id),
+        )
+        .orderBy(sql`${orderColumn} ${orderFunc}`)
+        .limit(page_size)
+        .offset(offset);
+    }
 
-    const documentVersionIds = versionIdsPerPage.map(doc => doc.id);
-    const documents = await this.getDocuments({ document_version_ids: documentVersionIds, locale });
+    const documents = await this.reconstructDocuments({ documents: currentDocuments, locale });
 
     return {
       documents,
@@ -553,6 +593,90 @@ export class DocumentQueries {
     };
 
     return documentWithFields
+  }
+
+  /** 
+   * getFieldsForDocuments (multiple)
+   * 
+   * Retrieve field values and reconstruct multiple documents
+   *
+   * @param documents 
+   * @param locale 
+   * @returns 
+   */
+  async reconstructDocuments({
+    documents,
+    locale = 'all'
+  }: {
+    documents: Document[];
+    locale?: string;
+  }): Promise<any[]> {
+    if (documents.length === 0) return [];
+
+    // Get current documents
+    // Again here we can use the documents table directly
+    // since its primary key is the document version, and we are 
+    // supplying an array of document version IDs (as opposed to 
+    // logical document IDs).
+    // const docs = await this.db.select({
+    //   document_version_id: documents.id,
+    //   document_id: documents.document_id,
+    //   path: documents.path,
+    //   status: documents.status,
+    //   created_at: documents.created_at,
+    //   updated_at: documents.updated_at,
+    // })
+    //   .from(documents)
+    //   .where(inArray(documents.id, document_version_ids));
+
+    // if (docs.length === 0) return [];
+
+    // Get all field values for all versions in one query
+    const versionIds = documents.map(v => v.id);
+
+    const allFieldValues = await this.getAllFieldValuesForMultipleVersions(
+      versionIds,
+      locale
+    );
+
+    // Group field values by document version
+    const fieldValuesByVersion = new Map<string, UnionRowValue[]>();
+    for (const fieldValue of allFieldValues) {
+      if (!fieldValuesByVersion.has(fieldValue.document_version_id)) {
+        fieldValuesByVersion.set(fieldValue.document_version_id, []);
+      }
+      fieldValuesByVersion.get(fieldValue.document_version_id)?.push(fieldValue);
+    }
+
+    // Reconstruct each document with document data at root level
+    const result: any[] = [];
+    for (const doc of documents) {
+      const versionFieldValues = fieldValuesByVersion.get(doc.id) || [];
+      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(versionFieldValues);
+
+      const reconstructedFields = reconstructFields(
+        flattenedFieldValues,
+        locale
+      );
+
+      // Add document data at root level
+      const documentWithFields = {
+        document_version_id: doc.id,
+        document_id: doc.document_id,
+        path: doc.path,
+        status: doc.status,
+        created_at: doc.created_at,
+        updated_at: doc.updated_at,
+        ...reconstructedFields
+      };
+
+      result.push(documentWithFields);
+    }
+
+    // Sort by document path for consistent ordering
+    // TODO: Is this necessary? We should likely sort by timestamp or
+    // created_at in the document query above.
+    return result.sort((a, b) => (a.path || '').localeCompare(b.path || ''));
   }
 
   /** 
