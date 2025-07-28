@@ -673,10 +673,7 @@ export class DocumentQueries {
       result.push(documentWithFields);
     }
 
-    // Sort by document path for consistent ordering
-    // TODO: Is this necessary? We should likely sort by timestamp or
-    // created_at in the document query above.
-    return result.sort((a, b) => (a.path || '').localeCompare(b.path || ''));
+    return result
   }
 
   /** 
@@ -758,10 +755,7 @@ export class DocumentQueries {
       result.push(documentWithFields);
     }
 
-    // Sort by document path for consistent ordering
-    // TODO: Is this necessary? We should likely sort by timestamp or
-    // created_at in the document query above.
-    return result.sort((a, b) => (a.path || '').localeCompare(b.path || ''));
+    return result
   }
 
   /**
