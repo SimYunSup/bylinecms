@@ -30,8 +30,9 @@
 // and will be changed once we refactor our Byline packages.
 import '../byline.config.js';
 
-// TODO: Remove direct dependency on the getCollectionDefinition
 import { type CollectionDefinition, getCollectionDefinition } from '@byline/byline'
+// TODO: Remove direct dependency on the getCollectionDefinition
+import { booleanSchema } from '@byline/shared/schemas'
 import cors from '@fastify/cors'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
@@ -60,7 +61,7 @@ const metaSchema = z.object({
   page: z.coerce.number().min(1).optional(),
   page_size: z.coerce.number().min(1).max(100).optional(),
   order: z.string().optional(),
-  desc: z.boolean().optional(),
+  desc: booleanSchema(true),
   query: z.string().optional(),
   locale: z.string().optional(),
 })

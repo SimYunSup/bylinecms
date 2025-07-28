@@ -30,7 +30,7 @@ const searchSchema = z.object({
   page: z.coerce.number().min(1).optional(),
   page_size: z.coerce.number().max(100).optional(),
   order: z.string().optional(),
-  desc: z.boolean().optional(),
+  desc: z.coerce.boolean().optional(),
   query: z.string().optional(),
   locale: z.string().optional(),
 })
@@ -57,27 +57,29 @@ export const Route = createFileRoute('/collections/$collection/')({
     // // Parse search parameters from location
     const searchParams = new URLSearchParams()
 
-    if (page) {
+    if (page != null) {
       searchParams.set('page', page.toString())
     }
-    if (page_size) {
+    if (page_size != null) {
       searchParams.set('page_size', page_size.toString())
     }
-    if (order) {
+    if (order != null) {
       searchParams.set('order', order)
     }
-    if (desc) {
-      searchParams.set('desc', desc ? 'true' : 'false')
+    if (desc != null) {
+      searchParams.set('desc', desc.toString())
     }
-    if (query) {
+    if (query != null) {
       searchParams.set('query', query)
     }
-    if (locale) {
+    if (locale != null) {
       searchParams.set('locale', locale)
     }
 
     const queryString = searchParams.toString()
+    console.log('Query string:', queryString)
     const url = `http://localhost:3001/api/${params.collection}${queryString ? `?${queryString}` : ''}`
+    console.log('Fetching URL:', url)
 
     const response = await fetch(url)
     if (!response.ok) {
@@ -85,7 +87,6 @@ export const Route = createFileRoute('/collections/$collection/')({
     }
 
     const rawData = await response.json()
-    console.log('Raw data:', rawData)
     // Validate with schema for runtime type safety
     const data = list.parse(rawData)
 

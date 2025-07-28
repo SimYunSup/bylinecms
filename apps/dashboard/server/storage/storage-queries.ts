@@ -30,12 +30,11 @@ import { collections, currentDocumentsView, documents } from '../../database/sch
 type DatabaseConnection = NodePgDatabase<typeof schema>;
 
 import type { CollectionDefinition } from "@byline/byline";
-
+import { queryObjects } from "v8";
 import type {
   FlattenedStore,
   UnionRowValue
 } from '../@types/index.js'
-
 import {
   booleanFields,
   datetimeFields,
@@ -45,7 +44,6 @@ import {
   relationFields,
   textFields
 } from './storage-template-queries.js';
-
 import { reconstructFields } from './storage-utils.js';
 
 /**
@@ -278,7 +276,8 @@ export class DocumentQueries {
     page = 1,
     page_size = 20,
     order = 'created_at',
-    desc = true
+    desc = true,
+    query
   }: {
     collection_id: string;
     locale?: string;
@@ -286,6 +285,7 @@ export class DocumentQueries {
     page_size?: number;
     order?: string;
     desc?: boolean;
+    query?: string;
   }): Promise<{
     documents: any[];
     meta: {
@@ -295,6 +295,7 @@ export class DocumentQueries {
       total_pages: number;
       order: string;
       desc: boolean;
+      query?: string
     };
     included: {
       collection: {
@@ -350,7 +351,7 @@ export class DocumentQueries {
 
     return {
       documents,
-      meta: { total, page, page_size, total_pages, order, desc },
+      meta: { total, page, page_size, total_pages, order, desc, query },
       included: {
         collection: {
           id: collection.id,

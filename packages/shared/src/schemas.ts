@@ -67,6 +67,7 @@ export const uuidSchema = z.uuid({
  * @param defaultValue
  * @returns
  */
+
 export const booleanSchema = (defaultValue = false) =>
   z
     .preprocess((value) => {
