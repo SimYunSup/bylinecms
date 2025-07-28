@@ -73,6 +73,7 @@
     "react-dom": "19.1.0",
     "react-error-boundary": "^6.0.0",
     "react-hook-form": "^7.60.0",
+    "react-json-view-lite": "^2.4.1",
     "uuid": "^11.1.0",
     "zod": "^4.0.5",
     "zod-form-data": "^3.0.0"

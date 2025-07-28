@@ -23,9 +23,9 @@ import type { CollectionDefinition } from '@byline/byline'
 import { getCollectionDefinition, getCollectionSchemasForPath } from '@byline/byline'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
-import { EditView } from '@/modules/collections/edit'
+import { ApiView } from '@/modules/collections/api'
 
-export const Route = createFileRoute('/collections/$collection/$id')({
+export const Route = createFileRoute('/collections/$collection/$id/api')({
   loader: async ({ params }) => {
     const collectionDef = getCollectionDefinition(params.collection)
     if (!collectionDef) {
@@ -70,9 +70,13 @@ function RouteComponent() {
             label: 'Edit',
             href: `/collections/${collection}/${id}`,
           },
+          {
+            label: 'API',
+            href: `/collections/${collection}/${id}/api`,
+          },
         ]}
       />
-      <EditView collectionDefinition={collectionDef} initialData={data} />
+      <ApiView collectionDefinition={collectionDef} initialData={data} />
     </>
   )
 }

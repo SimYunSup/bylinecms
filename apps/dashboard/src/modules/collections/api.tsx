@@ -23,9 +23,10 @@ import type { CollectionDefinition } from '@byline/byline'
 import type { AnyCollectionSchemaTypes } from '@byline/byline/zod-schemas'
 import { Button, Container, Section } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
-import { FormRenderer } from '@/ui/fields/form-renderer'
+import { allExpanded, darkStyles, defaultStyles, JsonView } from 'react-json-view-lite'
+import 'react-json-view-lite/dist/index.css'
 
-export const EditView = ({
+export const ApiView = ({
   collectionDefinition,
   initialData,
 }: {
@@ -33,37 +34,13 @@ export const EditView = ({
   initialData: AnyCollectionSchemaTypes['UpdateType']
 }) => {
   const navigate = useNavigate()
-  const { labels, path, fields } = collectionDefinition
-
-  const handleSubmit = async (data: any) => {
-    try {
-      const response = await fetch(`http://localhost:3001/api/${path}/${initialData.document_id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        console.error('Failed to update page:', error)
-        // TODO: Show error to user
-      } else {
-        navigate({
-          to: '/collections/$collection',
-          params: { collection: path },
-        })
-      }
-    } catch (err) {
-      console.error('Network error:', err)
-      // TODO: Show error to user
-    }
-  }
+  const { labels, path } = collectionDefinition
 
   return (
     <Section>
       <Container>
-        <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between">
-          <h2 className="mb-2">Edit {labels.singular}</h2>
+        <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between mb-2">
+          <h2 className="mb-2">{labels.singular} API</h2>
           <div className="flex items-center gap-2">
             <Button
               size="sm"
@@ -93,14 +70,13 @@ export const EditView = ({
             </Button>
           </div>
         </div>
-        <FormRenderer
-          fields={fields}
-          onSubmit={handleSubmit}
-          initialData={initialData}
-          onCancel={() =>
-            navigate({ to: '/collections/$collection', params: { collection: path } })
-          }
-        />
+        <div className="border bg-canvas-800 rounded p-1 font-mono text-sm font-weight-normal">
+          <JsonView
+            data={initialData}
+            shouldExpandNode={allExpanded}
+            style={{ ...darkStyles, container: 'api-json-view' }}
+          />
+        </div>
       </Container>
     </Section>
   )
