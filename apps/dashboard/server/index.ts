@@ -132,8 +132,6 @@ app.get<{ Params: { collection: string } }>('/api/:collection', async (request, 
  */
 app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:collection', async (request, reply) => {
   const { collection: path } = request.params
-  const body = request.body
-
   // Ensure we have a collection
   const config = await ensureCollection(path)
   if (config == null) {
@@ -141,32 +139,26 @@ app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:c
     return
   }
 
-  try {
-    // Create document
-    // const documentResults = await commands.documents.createDocument({
-    //   collectionId: collectionRecord.id,
-    //   collectionConfig: collectionConfig,
-    //   action: string,
-    //   documentData: any,
-    //   path: string,
-    //   locale?: string
-    //       status?: 'draft' | 'published' | 'archived'
-    // })
-    // const document = documentResults[0]
+  const documentData = structuredClone(request.body)
 
-    // biome-ignore lint/correctness/noUnreachable: TODO
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      reply.code(400).send({
-        error: 'Validation failed',
-        details: z.treeifyError(error)
-      })
-      return
-    }
-    app.log.error(error)
-    reply.code(500).send({ error: 'Internal app error' })
-    return
-  }
+  // TODO: Validate the documentData against the collection schema and
+  // coerce values to the correct types.
+  if (documentData.created_at) documentData.created_at = new Date(documentData.created_at)
+  if (documentData.updated_at) documentData.updated_at = new Date(documentData.updated_at)
+  if (documentData.publishedOn) documentData.publishedOn = new Date(documentData.publishedOn)
+
+  await commands.documents.createDocument({
+    collectionId: config.collection.id,
+    collectionConfig: config.definition,
+    action: 'create',
+    documentData,
+    path: documentData.path,
+    status: documentData.status,
+    locale: 'en',
+  })
+
+  reply.code(200).send({ status: 'ok' })
+  return
 })
 
 /**
@@ -221,8 +213,6 @@ app.put<{ Params: { collection: string; id: string }; Body: Record<string, any> 
   if (documentData.created_at) documentData.created_at = new Date(documentData.created_at)
   if (documentData.updated_at) documentData.updated_at = new Date(documentData.updated_at)
   if (documentData.publishedOn) documentData.publishedOn = new Date(documentData.publishedOn)
-
-  // console.log('Updating document', JSON.stringify({ path, id, documentData }, null, 2))
 
   await commands.documents.createDocument({
     documentId: id,

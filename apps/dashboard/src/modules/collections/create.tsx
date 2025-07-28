@@ -35,14 +35,15 @@ export const CreateView = ({
 
   const handleSubmit = async (data: any) => {
     try {
-      const postRes = await fetch(`http://localhost:3001/api/${path}`, {
+      const response = await fetch(`http://localhost:3001/api/${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentData: data }),
+        body: JSON.stringify(data),
       })
-      if (!postRes.ok) {
-        const errorData = await postRes.json()
-        console.error(`Failed to create document: ${postRes.statusText}`, errorData)
+      if (!response.ok) {
+        const error = await response.json()
+        console.error('Failed to create document:', error)
+        // TODO: Show error to user
       } else {
         navigate({
           to: '/collections/$collection',
