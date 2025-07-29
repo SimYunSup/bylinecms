@@ -45,7 +45,7 @@ function Index() {
                   <Card.Description>{`${collection.labels.plural} collection`}</Card.Description>
                 </Card.Header>
                 <Card.Content>
-                  <p>Docs collection description or stats here...</p>
+                  <p>{collection.labels.plural} collection description or stats here...</p>
                 </Card.Content>
               </Link>
             </Card>
