@@ -19,6 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { ToastProvider, ToastViewport } from '@byline/uikit/react'
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { BreadcrumbsProvider } from '@/context/breadcrumbs/breadcrumbs-provider'
@@ -31,15 +32,18 @@ export const Route = createRootRoute({
   component: () => {
     return (
       <TranslationsProvider>
-        <BreadcrumbsProvider>
-          <div className="layout flex flex-col w-full max-w-full min-h-screen h-full selection:text-white selection:bg-primary-400">
-            <AppBar />
-            <main className="flex flex-col flex-1 pt-[55px] w-full max-w-full">
-              <Outlet />
-            </main>
-          </div>
-          <TanStackRouterDevtools />
-        </BreadcrumbsProvider>
+        <ToastProvider swipeDirection="right">
+          <BreadcrumbsProvider>
+            <div className="layout flex flex-col w-full max-w-full min-h-screen h-full selection:text-white selection:bg-primary-400">
+              <AppBar />
+              <main className="flex flex-col flex-1 pt-[55px] w-full max-w-full">
+                <Outlet />
+              </main>
+            </div>
+            <TanStackRouterDevtools />
+          </BreadcrumbsProvider>
+          <ToastViewport className="toast-viewport" />
+        </ToastProvider>
       </TranslationsProvider>
     )
   },

@@ -34,6 +34,7 @@ interface FormContextType {
   getFieldValue: (name: string) => any
   getFieldValues: () => Record<string, any>
   hasChanges: () => boolean
+  resetHasChanges: () => void
   validateForm: (fields: Field[]) => FormError[]
   errors: FormError[]
   clearErrors: () => void
@@ -89,6 +90,10 @@ export const FormProvider = ({
 
   const hasChanges = useCallback(() => {
     return dirtyFields.current.size > 0
+  }, [])
+
+  const resetHasChanges = useCallback(() => {
+    dirtyFields.current.clear()
   }, [])
 
   const isDirty = useCallback((fieldName: string) => {
@@ -171,6 +176,7 @@ export const FormProvider = ({
         getFieldValue,
         getFieldValues,
         hasChanges,
+        resetHasChanges,
         validateForm,
         errors,
         clearErrors,

@@ -64,7 +64,7 @@ const FormContent = ({
   onCancel: () => void
   initialData?: Record<string, any>
 }) => {
-  const { getFieldValues, validateForm, errors, hasChanges } = useFormContext()
+  const { getFieldValues, validateForm, errors, hasChanges, resetHasChanges } = useFormContext()
 
   const handleCancel = () => {
     if (onCancel && typeof onCancel === 'function') {
@@ -86,6 +86,7 @@ const FormContent = ({
 
     if (onSubmit && typeof onSubmit === 'function') {
       onSubmit(data)
+      resetHasChanges()
     }
   }
 
@@ -119,7 +120,7 @@ const FormContent = ({
             onClick={handleCancel}
             className="min-w-[70px]"
           >
-            Cancel
+            {hasChanges() === false ? 'Close' : 'Cancel'}
           </Button>
           <Button
             size="sm"

@@ -21,9 +21,15 @@
 
 import type { CollectionDefinition } from '@byline/byline'
 import type { AnyCollectionSchemaTypes } from '@byline/byline/zod-schemas'
-import { Button, Container, HistoryIcon, IconButton, Section } from '@byline/uikit/react'
+import { Button, Container, HistoryIcon, IconButton, Section, Toast } from '@byline/uikit/react'
 import { useNavigate } from '@tanstack/react-router'
+import { useState } from 'react'
 import { FormRenderer } from '@/ui/fields/form-renderer'
+
+type EditState = {
+  status: 'success' | 'failed' | 'busy' | 'idle'
+  message: string
+}
 
 export const EditView = ({
   collectionDefinition,
@@ -32,6 +38,11 @@ export const EditView = ({
   collectionDefinition: CollectionDefinition
   initialData: AnyCollectionSchemaTypes['UpdateType']
 }) => {
+  const [toast, setToast] = useState(false)
+  const [editState, setEditState] = useState<EditState>({
+    status: 'idle',
+    message: '',
+  })
   const navigate = useNavigate()
   const { labels, path, fields } = collectionDefinition
 
@@ -46,75 +57,93 @@ export const EditView = ({
       if (!response.ok) {
         const error = await response.json()
         console.error('Failed to update page:', error)
-        // TODO: Show error to user
+        setEditState({
+          status: 'failed',
+          message: `Failed to update ${labels.singular.toLowerCase()}`,
+        })
       } else {
-        navigate({
-          to: '/collections/$collection',
-          params: { collection: path },
+        setEditState({
+          status: 'success',
+          message: `Successfully updated ${labels.singular.toLowerCase()}`,
         })
       }
     } catch (err) {
       console.error('Network error:', err)
-      // TODO: Show error to user
+      setEditState({
+        status: 'failed',
+        message: `An error occurred while updating ${labels.singular.toLowerCase()}`,
+      })
     }
+    setToast(true)
   }
 
   return (
-    <Section>
-      <Container>
-        <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between">
-          <h2 className="mb-2">Edit {labels.singular}</h2>
-          <div className="flex items-center gap-2">
-            <IconButton
-              className="min-w-[24px] min-h-[24px]"
-              size="sm"
-              variant="text"
-              onClick={() =>
-                navigate({
-                  to: '/collections/$collection/$id/history',
-                  params: { collection: path, id: String(initialData.document_id) },
-                })
-              }
-            >
-              <HistoryIcon className="w-4 h-4" />
-            </IconButton>
-            <Button
-              size="sm"
-              variant="filled"
-              className="min-w-[50px] min-h-[28px]"
-              onClick={() =>
-                navigate({
-                  to: '/collections/$collection/$id',
-                  params: { collection: path, id: String(initialData.document_id) },
-                })
-              }
-            >
-              Edit
-            </Button>
-            <Button
-              size="sm"
-              variant="outlined"
-              className="min-w-[50px] min-h-[28px]"
-              onClick={() =>
-                navigate({
-                  to: '/collections/$collection/$id/api',
-                  params: { collection: path, id: String(initialData.document_id) },
-                })
-              }
-            >
-              API
-            </Button>
+    <>
+      <Section>
+        <Container>
+          <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between">
+            <h2 className="mb-2">Edit {labels.singular}</h2>
+            <div className="flex items-center gap-2">
+              <IconButton
+                className="min-w-[24px] min-h-[24px]"
+                size="sm"
+                variant="text"
+                onClick={() =>
+                  navigate({
+                    to: '/collections/$collection/$id/history',
+                    params: { collection: path, id: String(initialData.document_id) },
+                  })
+                }
+              >
+                <HistoryIcon className="w-4 h-4" />
+              </IconButton>
+              <Button
+                size="sm"
+                variant="filled"
+                className="min-w-[50px] min-h-[28px]"
+                onClick={() =>
+                  navigate({
+                    to: '/collections/$collection/$id',
+                    params: { collection: path, id: String(initialData.document_id) },
+                  })
+                }
+              >
+                Edit
+              </Button>
+              <Button
+                size="sm"
+                variant="outlined"
+                className="min-w-[50px] min-h-[28px]"
+                onClick={() =>
+                  navigate({
+                    to: '/collections/$collection/$id/api',
+                    params: { collection: path, id: String(initialData.document_id) },
+                  })
+                }
+              >
+                API
+              </Button>
+            </div>
           </div>
-        </div>
-        <FormRenderer
-          fields={fields}
-          onSubmit={handleSubmit}
-          initialData={initialData}
-          onCancel={() =>
-            navigate({ to: '/collections/$collection', params: { collection: path } })
-          }
-        />
-      </Container>
-    </Section>
+          <FormRenderer
+            fields={fields}
+            onSubmit={handleSubmit}
+            initialData={initialData}
+            onCancel={() =>
+              navigate({ to: '/collections/$collection', params: { collection: path } })
+            }
+          />
+        </Container>
+      </Section>
+      <Toast
+        title={`${labels.singular} Update`}
+        iconType={editState.status === 'success' ? 'success' : 'danger'}
+        intent={editState.status === 'success' ? 'success' : 'danger'}
+        position="bottom-right"
+        message={editState.message}
+        open={toast}
+        onOpenChange={setToast}
+      />
+    </>
   )
 }
