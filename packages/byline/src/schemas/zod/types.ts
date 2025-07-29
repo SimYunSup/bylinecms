@@ -6,6 +6,7 @@ export type CollectionSchemaTypes<T extends ReturnType<typeof getCollectionSchem
   BaseType: z.infer<T['base']>
   FullType: z.infer<T['full']>
   ListType: z.infer<T['list']>
+  HistoryType: z.infer<T['history']>
   CreateType: z.infer<T['create']>
   GetType: z.infer<T['get']>
   UpdateType: z.infer<T['update']>

@@ -22,31 +22,68 @@
 import type { CollectionDefinition } from '@byline/byline'
 import { getCollectionDefinition, getCollectionSchemasForPath } from '@byline/byline'
 import { createFileRoute, notFound } from '@tanstack/react-router'
+import { z } from 'zod'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { HistoryView } from '@/modules/collections/history'
 
+const searchSchema = z.object({
+  page: z.coerce.number().min(1).optional(),
+  page_size: z.coerce.number().max(100).optional(),
+  order: z.string().optional(),
+  desc: z.coerce.boolean().optional(),
+  locale: z.string().optional(),
+})
+
 export const Route = createFileRoute('/collections/$collection/$id/history')({
-  loader: async ({ params }) => {
+  validateSearch: searchSchema,
+  loaderDeps: ({ search: { page, page_size, order, desc, locale } }) => ({
+    page,
+    page_size,
+    order,
+    desc,
+    locale,
+  }),
+  loader: async ({ params, deps: { page, page_size, order, desc, locale } }) => {
     const collectionDef = getCollectionDefinition(params.collection)
     if (!collectionDef) {
       throw notFound()
     }
-
     // Get typed schemas for better type inference
-    const schemas = getCollectionSchemasForPath(params.collection)
+    const { history } = getCollectionSchemasForPath(params.collection)
 
-    const response = await fetch(`http://localhost:3001/api/${params.collection}/${params.id}`)
+    // // Parse search parameters from location
+    const searchParams = new URLSearchParams()
+
+    if (page != null) {
+      searchParams.set('page', page.toString())
+    }
+    if (page_size != null) {
+      searchParams.set('page_size', page_size.toString())
+    }
+    if (order != null) {
+      searchParams.set('order', order)
+    }
+    if (desc != null) {
+      searchParams.set('desc', desc.toString())
+    }
+
+    if (locale != null) {
+      searchParams.set('locale', locale)
+    }
+
+    const queryString = searchParams.toString()
+    console.log('Query string:', queryString)
+    const url = `http://localhost:3001/api/${params.collection}/${params.id}/history${queryString ? `?${queryString}` : ''}`
+    console.log('Fetching URL:', url)
+
+    const response = await fetch(url)
     if (!response.ok) {
-      if (response.status === 404) {
-        throw notFound()
-      }
-      throw new Error('Failed to fetch record')
+      throw new Error('Failed to fetch collection')
     }
 
     const rawData = await response.json()
     // Validate with schema for runtime type safety
-    const data = schemas.get.parse(rawData.document)
-    console.log('Fetched data:', JSON.stringify(data, null, 2))
+    const data = history.parse(rawData)
 
     return data
   },
@@ -76,7 +113,7 @@ function RouteComponent() {
           },
         ]}
       />
-      <HistoryView collectionDefinition={collectionDef} initialData={data} />
+      <HistoryView collectionDefinition={collectionDef} data={data} />
     </>
   )
 }

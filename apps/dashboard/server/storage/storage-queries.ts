@@ -596,87 +596,6 @@ export class DocumentQueries {
   }
 
   /** 
-   * getFieldsForDocuments (multiple)
-   * 
-   * Retrieve field values and reconstruct multiple documents
-   *
-   * @param documents 
-   * @param locale 
-   * @returns 
-   */
-  async reconstructDocuments({
-    documents,
-    locale = 'all'
-  }: {
-    documents: Document[];
-    locale?: string;
-  }): Promise<any[]> {
-    if (documents.length === 0) return [];
-
-    // Get current documents
-    // Again here we can use the documents table directly
-    // since its primary key is the document version, and we are 
-    // supplying an array of document version IDs (as opposed to 
-    // logical document IDs).
-    // const docs = await this.db.select({
-    //   document_version_id: documents.id,
-    //   document_id: documents.document_id,
-    //   path: documents.path,
-    //   status: documents.status,
-    //   created_at: documents.created_at,
-    //   updated_at: documents.updated_at,
-    // })
-    //   .from(documents)
-    //   .where(inArray(documents.id, document_version_ids));
-
-    // if (docs.length === 0) return [];
-
-    // Get all field values for all versions in one query
-    const versionIds = documents.map(v => v.id);
-
-    const allFieldValues = await this.getAllFieldValuesForMultipleVersions(
-      versionIds,
-      locale
-    );
-
-    // Group field values by document version
-    const fieldValuesByVersion = new Map<string, UnionRowValue[]>();
-    for (const fieldValue of allFieldValues) {
-      if (!fieldValuesByVersion.has(fieldValue.document_version_id)) {
-        fieldValuesByVersion.set(fieldValue.document_version_id, []);
-      }
-      fieldValuesByVersion.get(fieldValue.document_version_id)?.push(fieldValue);
-    }
-
-    // Reconstruct each document with document data at root level
-    const result: any[] = [];
-    for (const doc of documents) {
-      const versionFieldValues = fieldValuesByVersion.get(doc.id) || [];
-      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(versionFieldValues);
-
-      const reconstructedFields = reconstructFields(
-        flattenedFieldValues,
-        locale
-      );
-
-      // Add document data at root level
-      const documentWithFields = {
-        document_version_id: doc.id,
-        document_id: doc.document_id,
-        path: doc.path,
-        status: doc.status,
-        created_at: doc.created_at,
-        updated_at: doc.updated_at,
-        ...reconstructedFields
-      };
-
-      result.push(documentWithFields);
-    }
-
-    return result
-  }
-
-  /** 
    * getDocuments (multiple)
    * 
    * Primary used to get documents that have been selected by page,
@@ -770,38 +689,146 @@ export class DocumentQueries {
    */
   async getDocumentHistory({
     collection_id,
-    document_id
+    document_id,
+    locale = 'all',
+    page = 1,
+    page_size = 20,
+    order = 'updated_at',
+    desc = true,
   }: {
     collection_id: string;
     document_id: string;
-  }): Promise<any[]> {
-    // Get all versions of the document
-    const docs = await this.db.select({
-      document_version_id: documents.id,
-      document_id: documents.document_id,
-      action: documents.event_type,
-      is_deleted: documents.is_deleted,
-      path: documents.path,
-      status: documents.status,
-      created_at: documents.created_at,
-      updated_at: documents.updated_at,
-    }).from(documents)
+    locale?: string;
+    page?: number;
+    page_size?: number;
+    order?: string;
+    desc?: boolean;
+    query?: string;
+  }): Promise<{
+    documents: any[];
+    meta: {
+      total: number;
+      page: number;
+      page_size: number;
+      total_pages: number;
+      order: string;
+      desc: boolean;
+    }
+  }> {
+    const collection = await this.db.query.collections.findFirst({
+      where: eq(collections.id, collection_id)
+    });
+
+    if (collection == null || collection.config == null
+    ) {
+      throw new Error(`Collection with ID ${collection_id} not found or missing collection config.`);
+    }
+
+    // const config = collection.config as CollectionDefinition;
+
+    const totalResult: { count: number; }[] = await this.db.select({
+      count: sql<number>`count(*)`,
+    })
+      .from(documents)
       .where(
         and(
+          eq(documents.collection_id, collection_id),
           eq(documents.document_id, document_id),
-          eq(documents.collection_id, collection_id)
         )
-      ).orderBy(desc(documents.id));
-    // Since document version ids are UUID7s we can order descending 
-    // by version ID to get the most recent first
+      )
 
-    return docs
+    const total = Number(totalResult[0]?.count) || 0;
+    const total_pages = Math.ceil(total / page_size);
+    const offset = (page - 1) * page_size;
+    const orderColumn = order === 'path' ? documents.path : documents.created_at;
+    const orderFunc = desc === true ? sql`DESC` : sql`ASC`;
+
+    const result: Document[] = await this.db.select()
+      .from(documents)
+      .where(
+        and(
+          eq(documents.collection_id, collection_id),
+          eq(documents.document_id, document_id),
+        )
+      )
+      .orderBy(sql`${orderColumn} ${orderFunc}`)
+      .limit(page_size)
+      .offset(offset);
+
+    const history = await this.reconstructDocuments({ documents: result, locale });
+
+    return {
+      documents: history,
+      meta: { total, page, page_size, total_pages, order, desc },
+    };
+  }
+
+
+  /** 
+   * reconstructDocuments (multiple)
+   * 
+   * Retrieve field values and reconstruct multiple documents
+   *
+   * @param documents 
+   * @param locale 
+   * @returns 
+   */
+  private async reconstructDocuments({
+    documents,
+    locale = 'all'
+  }: {
+    documents: Document[];
+    locale?: string;
+  }): Promise<any[]> {
+    if (documents.length === 0) return [];
+    const versionIds = documents.map(v => v.id);
+    // Get all field values for all versions in one query
+    const allFieldValues = await this.getAllFieldValuesForMultipleVersions(
+      versionIds,
+      locale
+    );
+
+    // Group field values by document version
+    const fieldValuesByVersion = new Map<string, UnionRowValue[]>();
+    for (const fieldValue of allFieldValues) {
+      if (!fieldValuesByVersion.has(fieldValue.document_version_id)) {
+        fieldValuesByVersion.set(fieldValue.document_version_id, []);
+      }
+      fieldValuesByVersion.get(fieldValue.document_version_id)?.push(fieldValue);
+    }
+
+    // Reconstruct each document with document data at root level
+    const result: any[] = [];
+    for (const doc of documents) {
+      const versionFieldValues = fieldValuesByVersion.get(doc.id) || [];
+      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(versionFieldValues);
+
+      const reconstructedFields = reconstructFields(
+        flattenedFieldValues,
+        locale
+      );
+
+      // Add document data at root level
+      const documentWithFields = {
+        document_version_id: doc.id,
+        document_id: doc.document_id,
+        path: doc.path,
+        status: doc.status,
+        created_at: doc.created_at,
+        updated_at: doc.updated_at,
+        ...reconstructedFields
+      };
+
+      result.push(documentWithFields);
+    }
+
+    return result
   }
 
   /**
- * Helper method to group results by document and reconstruct each document
- * Returns an array of complete documents
- */
+   * Helper method to group results by document and reconstruct each document
+   * Returns an array of complete documents
+   */
   private groupAndReconstructDocuments(
     rows: Record<string, unknown>[],
     locale: string

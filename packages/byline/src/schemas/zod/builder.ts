@@ -186,6 +186,10 @@ export const createCollectionSchemas = (collection: CollectionDefinition) => {
         collection: createCollectionMetaSchema(collection),
       }),
     }),
+    history: z.object({
+      documents: z.array(fullSchema),
+      meta: createListMetaSchema(),
+    }),
     create: fieldsSchema,
     get: fullSchema,
     update: fieldsSchema.partial(),

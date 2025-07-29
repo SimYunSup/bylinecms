@@ -57,12 +57,21 @@ const db = drizzle(pool, { schema })
 const queries: ReturnType<typeof createQueryBuilders> = createQueryBuilders(db)
 const commands: ReturnType<typeof createCommandBuilders> = createCommandBuilders(db)
 
-const metaSchema = z.object({
+const collectionListSchema = z.object({
   page: z.coerce.number().min(1).optional(),
   page_size: z.coerce.number().min(1).max(100).optional(),
   order: z.string().optional(),
   desc: booleanSchema(true),
   query: z.string().optional(),
+  locale: z.string().optional(),
+})
+
+const historySchema = z.object({
+  document_id: z.string(),
+  page: z.coerce.number().min(1).optional(),
+  page_size: z.coerce.number().min(1).max(100).optional(),
+  order: z.string().optional(),
+  desc: booleanSchema(true),
   locale: z.string().optional(),
 })
 
@@ -113,7 +122,7 @@ app.get<{ Params: { collection: string } }>('/api/:collection', async (request, 
     return
   }
 
-  const searchParams = metaSchema.safeParse(search)
+  const searchParams = collectionListSchema.safeParse(search)
 
   const result = await queries.documents.getDocumentsByPage({
     collection_id: config.collection.id,
@@ -166,8 +175,7 @@ app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:c
  * GET /api/:collection/:id
  *
  * Get a specific document by ID from a collection. 
- * Note: this expects a logical document_id, and not a 
- * document version ID.
+ * Note: this expects a logical document_id, and not a document version ID.
  */
 app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', async (request, reply) => {
   const { collection: path, id } = request.params
@@ -185,6 +193,34 @@ app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', 
   }
   reply.code(200).send({ document })
   return
+})
+
+/**
+ * GET /api/:collection/:id/history
+ *
+ * Get the version history for a specific document by ID in a collection.
+ * Note: this expects a logical document_id, and not a document version ID.
+ */
+app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id/history', async (request, reply) => {
+  const { collection: path, id } = request.params
+  const search = request.query as Record<string, any>
+
+  // Ensure we have a collection
+  const config = await ensureCollection(path)
+  if (config == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
+    return
+  }
+
+  const params = historySchema.safeParse(search)
+
+  const result = await queries.documents.getDocumentHistory({
+    collection_id: config.collection.id,
+    document_id: id,
+    locale: 'en',
+    ...params.data
+  })
+  return result
 })
 
 /**
