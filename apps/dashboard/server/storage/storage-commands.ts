@@ -147,6 +147,7 @@ export class DocumentCommands {
     };
 
     switch (fieldValue.field_type) {
+      case 'select':
       case 'text':
         // Handle both simple string values and localized object values
         if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
