@@ -22,6 +22,7 @@
  *
  */
 
+import type { ICollectionQueries, IDocumentQueries } from "@byline/core";
 import { and, desc, eq, ilike, inArray, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from '../../database/schema/index.js'
@@ -49,7 +50,7 @@ import { reconstructFields } from './storage-utils.js';
 /**
  * CollectionQueries
  */
-export class CollectionQueries {
+export class CollectionQueries implements ICollectionQueries {
   constructor(private db: DatabaseConnection) { }
 
   /**
@@ -86,7 +87,7 @@ export class CollectionQueries {
 /**
  * DocumentQueries
  */
-export class DocumentQueries {
+export class DocumentQueries implements IDocumentQueries {
   constructor(private db: DatabaseConnection) { }
 
   /**

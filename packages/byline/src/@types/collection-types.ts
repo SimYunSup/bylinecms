@@ -19,9 +19,23 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-export * from './collection-types.js';
-export * from './db-types.js';
-export * from './field-types.js';
-export * from './site-config.js';
-export * from './store-types.js';
+import type { Field } from './field-types.js';
 
+export interface ColumnDefinition<T = any> {
+  fieldName: keyof T
+  label: string
+  sortable?: boolean
+  align?: 'left' | 'center' | 'right'
+  className?: string
+  formatter?: (value: any, record: T) => React.ReactNode
+}
+
+export interface CollectionDefinition {
+  labels: {
+    singular: string
+    plural: string
+  }
+  path: string
+  fields: Field[]
+  columns?: ColumnDefinition[]
+}

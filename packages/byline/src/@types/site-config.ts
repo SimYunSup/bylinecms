@@ -19,9 +19,21 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-export * from './collection-types.js';
-export * from './db-types.js';
-export * from './field-types.js';
-export * from './site-config.js';
-export * from './store-types.js';
+import type { CollectionDefinition } from './collection-types.js';
+
+export interface SiteConfig {
+  serverURL: string
+  i18n: {
+    interface: {
+      defaultLocale: string;
+      locales: string[];
+    }
+    content: {
+      defaultLocale: string;
+      locales: string[];
+    }
+  }
+  collections: CollectionDefinition[]
+}
+
 
