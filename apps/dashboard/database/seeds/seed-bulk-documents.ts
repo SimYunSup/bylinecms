@@ -4,7 +4,7 @@
 // and will be changed once we refactor our Byline packages.
 import '../../byline.config.js';
 
-import { getCollectionDefinition } from '@byline/byline'
+import { getCollectionDefinition } from '@byline/core'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import { v7 as uuidv7 } from 'uuid'

@@ -23,7 +23,7 @@
 
 import assert from 'node:assert';
 import { describe, it } from 'node:test'
-import type { CollectionDefinition } from '@byline/byline'
+import type { CollectionDefinition } from '@byline/core'
 import { v7 as uuidv7 } from 'uuid'
 import { flattenFields, reconstructFields } from '../storage-utils.js'
 

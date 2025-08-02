@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { SelectField as FieldType } from '@byline/byline'
+import type { SelectField as FieldType } from '@byline/core'
 import { Select, SelectItem } from '@byline/uikit/react'
 
 export const SelectField = ({

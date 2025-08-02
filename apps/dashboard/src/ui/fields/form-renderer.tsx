@@ -22,7 +22,7 @@
 // NOTE: Before you dunk on this, this is a totally naïve  and "weekend hack"
 // implementation of a form renderer used only for prototype development.
 
-import type { Field } from '@byline/byline'
+import type { Field } from '@byline/core'
 import { Button } from '@byline/uikit/react'
 import { formatDateTime } from '../../utils/utils.general'
 import { FieldRenderer } from '../fields/field-renderer'

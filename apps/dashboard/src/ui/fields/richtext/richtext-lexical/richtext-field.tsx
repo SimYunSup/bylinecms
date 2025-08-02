@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { RichTextField as FieldType } from '@byline/byline'
+import type { RichTextField as FieldType } from '@byline/core'
 import { RichTextField as LexicalRichTextField } from './field'
 import { defaultEditorConfig } from './field/config/default'
 

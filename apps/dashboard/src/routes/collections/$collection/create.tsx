@@ -19,8 +19,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition } from '@byline/byline'
-import { getCollectionDefinition } from '@byline/byline'
+import type { CollectionDefinition } from '@byline/core'
+import { getCollectionDefinition } from '@byline/core'
 import { createFileRoute, notFound } from '@tanstack/react-router'
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { CreateView } from '@/modules/collections/create'

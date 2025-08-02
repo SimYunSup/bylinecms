@@ -24,7 +24,7 @@ importers:
 
   apps/dashboard:
     dependencies:
-      '@byline/byline':
+      '@byline/core':
         specifier: workspace:*
         version: link:../../packages/byline
       '@byline/shared':

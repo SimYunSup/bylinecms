@@ -1,4 +1,4 @@
-import { defineConfig } from '@byline/byline';
+import { defineConfig } from '@byline/core';
 import { Docs } from './byline/collections/docs.js';
 import { News } from './byline/collections/news.js';
 import { Pages } from './byline/collections/pages.js';

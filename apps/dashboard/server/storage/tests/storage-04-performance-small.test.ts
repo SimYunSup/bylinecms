@@ -22,7 +22,7 @@
 
 import assert from 'node:assert';
 import { after, before, describe, it } from 'node:test'
-import type { CollectionDefinition } from '@byline/byline'
+import type { CollectionDefinition } from '@byline/core'
 import { v7 as uuidv7 } from 'uuid'
 import { setupTestDB, teardownTestDB } from '../../lib/test-helper.js';
 

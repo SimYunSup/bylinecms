@@ -30,7 +30,7 @@ import { collections, currentDocumentsView, documents, textStore } from '../../d
 type DatabaseConnection = NodePgDatabase<typeof schema>;
 type Document = Omit<typeof documents.$inferSelect, 'doc'>;
 
-import type { CollectionDefinition } from "@byline/byline";
+import type { CollectionDefinition } from "@byline/core";
 import type {
   FlattenedStore,
   UnionRowValue

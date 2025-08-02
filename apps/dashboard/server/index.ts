@@ -30,7 +30,7 @@
 // and will be changed once we refactor our Byline packages.
 import '../byline.config.js';
 
-import { type CollectionDefinition, getCollectionDefinition } from '@byline/byline'
+import { type CollectionDefinition, getCollectionDefinition } from '@byline/core'
 // TODO: Remove direct dependency on the getCollectionDefinition
 import { booleanSchema } from '@byline/shared/schemas'
 import cors from '@fastify/cors'

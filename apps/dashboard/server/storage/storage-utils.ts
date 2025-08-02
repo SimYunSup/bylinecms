@@ -22,7 +22,7 @@
 // TODO - this must come from site config for content collections.
 const CONTENT_LOCALES = ['en', 'es', 'fr'];
 
-import type { CollectionDefinition, Field, ValueField } from '@byline/byline'
+import type { CollectionDefinition, Field, ValueField } from '@byline/core'
 
 import type {
   DateTimeStore,

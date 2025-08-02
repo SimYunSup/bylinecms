@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { getConfig } from '@byline/byline'
+import { getConfig } from '@byline/core'
 import { Card, Container, Section } from '@byline/uikit/react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 

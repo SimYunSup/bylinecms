@@ -40,7 +40,7 @@
     "test:one": "LOG_LEVEL=off tsx --no-warnings --env-file=.env --test"
   },
   "dependencies": {
-    "@byline/byline": "workspace:*",
+    "@byline/core": "workspace:*",
     "@byline/shared": "workspace:*",
     "@byline/uikit": "workspace:*",
     "@fastify/cors": "^11.0.1",
