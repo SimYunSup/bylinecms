@@ -1,0 +1,110 @@
+{
+  "name": "@byline/db-postgres",
+  "private": false,
+  "license": "AGPL",
+  "version": "0.1.0",
+  "description": "Byline CMS db postgres package",
+  "keywords": [
+    "cms",
+    "headless cms",
+    "content management"
+  ],
+  "homepage": "https://github.com/Byline-CMS/bylinecms.dev",
+  "bugs": {
+    "url": "https://github.com/Byline-CMS/bylinecms.dev/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Byline-CMS/bylinecms.dev.git",
+    "directory": "packages/db-postgres"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "index": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "chokidar 'src/**/*' -c 'npm-run-all build'",
+    "build": "tsc -p tsconfig.json && tsc-alias",
+    "clean": "rimraf node_modules dist build .turbo",
+    "skip": "tsx ./scripts/task-watch.js",
+    "db:init": "cd src/database && ./db_init.sh",
+    "drizzle:generate": "tsc -p tsconfig.json && drizzle-kit generate --config=drizzle.config.ts",
+    "drizzle:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
+    "drizzle:push": "tsc -p tsconfig.json && drizzle-kit push --config=drizzle.config.ts",
+    "drizzle:drop": "drizzle-kit drop --config=drizzle.config.ts",
+    "drizzle:seed": "tsx --no-warnings --env-file=.env ./src/database/seeds/index.ts",
+    "test": "LOG_LEVEL=off tsx --env-file=.env --test $(find . -name \"*.test.ts\")",
+    "test:one": "LOG_LEVEL=off tsx --no-warnings --env-file=.env --test"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./zod-schemas": {
+      "types": "./dist/schemas/zod/index.d.ts",
+      "import": "./dist/schemas/zod/index.js",
+      "require": "./dist/schemas/zod/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@byline/core": "workspace:*",
+    "@byline/shared": "workspace:*",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.3",
+    "intl-messageformat": "^10.7.16",
+    "jose": "^6.0.12",
+    "npm-run-all": "^4.1.5",
+    "pg": "^8.16.3",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-error-boundary": "^6.0.0",
+    "react-hook-form": "^7.60.0",
+    "uuid": "^11.1.0",
+    "zod": "^4.0.5",
+    "zod-form-data": "^3.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.1.2",
+    "@types/node": "^24.0.15",
+    "@types/nodemailer": "^6.4.17",
+    "@types/nodemailer-html-to-text": "^3.1.3",
+    "@types/pg": "^8.15.4",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@types/uuid": "^10.0.0",
+    "chokidar": "^4.0.3",
+    "chokidar-cli": "^3.0.0",
+    "classnames": "^2.5.1",
+    "drizzle-kit": "^0.31.4",
+    "drizzle-orm": "^0.44.3",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.3",
+    "typescript": "5.8.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js",
+        "require": "./dist/index.js"
+      },
+      "./zod-schemas": {
+        "types": "./dist/schemas/zod/index.d.ts",
+        "import": "./dist/schemas/zod/index.js",
+        "require": "./dist/schemas/zod/index.js"
+      },
+      "./package.json": "./package.json"
+    },
+    "main": "dist/index.js",
+    "index": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

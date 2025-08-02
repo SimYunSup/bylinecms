@@ -29,7 +29,7 @@ import type {
   FlattenedStore,
   NumericStore,
   RelationStore, ValueField,
-} from '@byline/core';
+} from '@byline/core'
 
 
 export function flattenFields(
@@ -59,10 +59,12 @@ export function flattenFields(
           if (typeof item === 'object' && item !== null && fieldConfig.fields) {
             // The item is an object with a single key, which is the field name.
             const fieldName = Object.keys(item)[0];
-            const fieldValue = item[fieldName];
-            const subField = fieldConfig.fields.find(f => f.name === fieldName);
-            if (subField) {
-              flatten({ [fieldName]: fieldValue }, [subField], arrayElementPath);
+            if (fieldName != null) {
+              const fieldValue = item[fieldName];
+              const subField = fieldConfig.fields.find(f => f.name === fieldName);
+              if (subField) {
+                flatten({ [fieldName]: fieldValue }, [subField], arrayElementPath);
+              }
             }
           }
         });
@@ -229,13 +231,13 @@ export function reconstructFields(
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       const nextKey = keys[i + 1];
-      const isNextKeyIndex = !Number.isNaN(Number.parseInt(nextKey, 10));
+      const isNextKeyIndex = nextKey !== undefined && !Number.isNaN(Number.parseInt(nextKey, 10));
 
       if (isNextKeyIndex) {
-        if (!current[key] || !Array.isArray(current[key])) {
+        if (key && (!current[key] || !Array.isArray(current[key]))) {
           current[key] = [];
         }
-      } else if (!current[key] || typeof current[key] !== 'object') {
+      } else if (key && (!current[key] || typeof current[key] !== 'object')) {
         if (Array.isArray(current) && typeof key === 'string' && !Number.isNaN(Number.parseInt(key, 10))) {
           const index = Number.parseInt(key, 10);
           if (!current[index]) {
@@ -245,18 +247,22 @@ export function reconstructFields(
           current[key] = {};
         }
       }
-      current = current[key];
+      if (key) {
+        current = current[key];
+      }
     }
     const lastKey = keys[keys.length - 1];
-    if (Array.isArray(current) && typeof lastKey === 'string' && !Number.isNaN(Number.parseInt(lastKey, 10))) {
-      const index = Number.parseInt(lastKey, 10);
-      if (current[index] && typeof current[index] === 'object') {
-        Object.assign(current[index], value);
+    if (lastKey !== undefined) {
+      if (Array.isArray(current) && typeof lastKey === 'string' && !Number.isNaN(Number.parseInt(lastKey, 10))) {
+        const index = Number.parseInt(lastKey, 10);
+        if (current[index] && typeof current[index] === 'object') {
+          Object.assign(current[index], value);
+        } else {
+          current[index] = value;
+        }
       } else {
-        current[index] = value;
+        current[lastKey] = value;
       }
-    } else {
-      current[lastKey] = value;
     }
   };
 
@@ -265,11 +271,12 @@ export function reconstructFields(
     if (!fieldValuesByPath[fv.field_path]) {
       fieldValuesByPath[fv.field_path] = [];
     }
-    fieldValuesByPath[fv.field_path].push(fv);
+    fieldValuesByPath[fv.field_path]!.push(fv);
   }
 
   for (const path in fieldValuesByPath) {
     const values = fieldValuesByPath[path];
+    if (!values) continue;
     const preferredValue = values.find(v => v.locale === locale) || values.find(v => v.locale === 'default') || values[0];
 
     if (values.length > 1 && values.some(v => v.locale !== 'all')) { // Localized
