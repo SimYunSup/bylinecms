@@ -2,4 +2,4 @@
 
 ### TODO
 
-Extract our generalized Drizzle schema and storage API from apps/dashboard and create db-level implemented storage API.
+Create Drizzle schema and storage API for MySQL

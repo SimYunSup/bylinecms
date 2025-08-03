@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Initialize Byline config by importing the shared config package
+// Initialize Byline config by importing the browser-safe client config.
 import '../byline.config.ts'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'

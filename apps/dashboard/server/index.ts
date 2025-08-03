@@ -25,9 +25,7 @@
  * We'll extract a properly configured API server soon.
  */
 
-// Initialize Byline config by importing the shared config package
-// NOTE: This is a temporary workaround to ensure the config is loaded
-// and will be changed once we refactor our Byline packages.
+// Initialize Byline config by importing the server config
 import '../byline.server.config.js';
 
 import { type CollectionDefinition, getCollectionDefinition, getServerConfig } from '@byline/core'
