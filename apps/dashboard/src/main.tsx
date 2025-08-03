@@ -20,7 +20,7 @@
  */
 
 // Initialize Byline config by importing the shared config package
-import '../byline.config.ts'
+// import '../byline.config.ts'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
