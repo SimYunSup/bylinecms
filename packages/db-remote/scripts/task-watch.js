@@ -54,18 +54,18 @@ const runTypeScriptCompilation = () => {
 
 const run = async () => {
   try {
-    console.log('🚀 Building new Byline core configuration...')
+    console.log('🚀 Building new Byline db-remote configuration...')
 
     // Ensure output directory exists
     fs.mkdirSync(outputDir, { recursive: true })
 
     await runTypeScriptCompilation()
 
-    console.log('✅ Byline core building complete...')
+    console.log('✅ Byline db-remote building complete...')
   }
 
   catch (error) {
-    console.error('Error during Byline core build:', error)
+    console.error('Error during Byline db-remote build:', error)
   }
 }
 
@@ -92,4 +92,4 @@ watcher
 // Initial run to bundle existing files
 run()
 
-console.log(`👁️ Watching for Byline core changes in ${srcDir}...`)
+console.log(`👁️ Watching for Byline db-remote changes in ${srcDir}...`)

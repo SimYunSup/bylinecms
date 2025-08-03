@@ -1,9 +1,9 @@
 {
-  "name": "@byline/core",
+  "name": "@byline/db-remote",
   "private": false,
   "license": "AGPL",
   "version": "0.1.0",
-  "description": "Byline CMS core package",
+  "description": "Byline CMS db remote package",
   "keywords": [
     "cms",
     "headless cms",
@@ -16,7 +16,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Byline-CMS/bylinecms.dev.git",
-    "directory": "packages/byline"
+    "directory": "packages/db-remote"
   },
   "type": "module",
   "main": "dist/index.js",
@@ -27,8 +27,8 @@
     "build": "tsc -p tsconfig.json && tsc-alias",
     "clean": "rimraf node_modules dist build .turbo",
     "skip": "tsx ./scripts/task-watch.js",
-    "test": "LOG_LEVEL=off tsx --test $(find . -name \"*.test.ts\")",
-    "test:one": "LOG_LEVEL=off tsx --no-warnings --test"
+    "test": "LOG_LEVEL=off tsx --env-file=.env --test $(find . -name \"*.test.ts\")",
+    "test:one": "LOG_LEVEL=off tsx --no-warnings --env-file=.env --test"
   },
   "exports": {
     ".": {
@@ -36,17 +36,13 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
-    "./zod-schemas": {
-      "types": "./dist/schemas/zod/index.d.ts",
-      "import": "./dist/schemas/zod/index.js",
-      "require": "./dist/schemas/zod/index.js"
-    },
     "./package.json": "./package.json"
   },
   "files": [
     "dist"
   ],
   "dependencies": {
+    "@byline/core": "workspace:*",
     "@byline/shared": "workspace:*",
     "jose": "^6.0.12",
     "npm-run-all": "^4.1.5",
@@ -70,11 +66,6 @@
         "types": "./dist/index.d.ts",
         "import": "./dist/index.js",
         "require": "./dist/index.js"
-      },
-      "./zod-schemas": {
-        "types": "./dist/schemas/zod/index.d.ts",
-        "import": "./dist/schemas/zod/index.js",
-        "require": "./dist/schemas/zod/index.js"
       },
       "./package.json": "./package.json"
     },
