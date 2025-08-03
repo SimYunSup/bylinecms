@@ -39,7 +39,7 @@ export interface ClientConfig {
   collections: CollectionDefinition[]
 }
 
-export interface SiteConfig extends ClientConfig {
+export interface ServerConfig extends ClientConfig {
   db: IDbAdapter;
 }
 

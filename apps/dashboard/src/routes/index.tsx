@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { getConfig } from '@byline/core'
+import { getClientConfig } from '@byline/core'
 import { Card, Container, Section } from '@byline/uikit/react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 
@@ -28,7 +28,7 @@ export const Route = createFileRoute('/')({
 })
 
 function Index() {
-  const config = getConfig()
+  const config = getClientConfig()
   return (
     <Section className="py-6">
       <Container>

@@ -1,12 +1,12 @@
-import type { CollectionDefinition, SiteConfig, ClientConfig } from "@/@types/index.js";
+import type { ClientConfig, CollectionDefinition, ServerConfig } from "@/@types/index.js";
 
-let configInstance: SiteConfig | null = null;
+let serverConfigInstance: ServerConfig | null = null;
 let clientConfigInstance: ClientConfig | null = null;
 
 export const getCollectionDefinition = (path: string): CollectionDefinition | null => {
-  const config = clientConfigInstance ?? configInstance;
+  const config = clientConfigInstance ?? serverConfigInstance;
   if (config == null) {
-    throw new Error("Byline has not been configured yet. Please call defineConfig in byline.config.ts first.");
+    throw new Error("Byline has not been configured yet. Please call defineClientConfig or defineServerConfig in byline.client.config.ts or byline.server.config.ts first.");
   }
 
   return config.collections.find((collection) => collection.path === path) ?? null;
@@ -16,29 +16,23 @@ export function defineClientConfig(config: ClientConfig) {
   clientConfigInstance = config;
 }
 
-export function defineConfig(config: SiteConfig) {
-  configInstance = config;
-  // Also set client config from server config.
-  const { db, ...clientConfig } = config;
-  clientConfigInstance = clientConfig;
+export function defineServerConfig(config: ServerConfig) {
+  serverConfigInstance = config;
 }
 
-export function getConfig(): ClientConfig {
-  const config = clientConfigInstance ?? configInstance;
-  if (config == null) {
-    throw new Error("Byline has not been configured yet. Please call defineConfig in byline.config.ts first.");
+export function getClientConfig(): ClientConfig {
+  if (clientConfigInstance == null) {
+    throw new Error("Byline has not been configured yet. Please call defineClientConfig in byline.config.ts first.");
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { db, ...clientConfig } = config as SiteConfig;
-  return clientConfig;
+  return clientConfigInstance;
 }
 
-export function getServerConfig(): SiteConfig {
+export function getServerConfig(): ServerConfig {
   if (typeof globalThis !== 'undefined' && 'window' in globalThis) {
     throw new Error("getServerConfig cannot be called on the client.");
   }
-  if (configInstance == null) {
-    throw new Error("Byline has not been configured yet. Please call defineConfig in byline.config.ts first.");
+  if (serverConfigInstance == null) {
+    throw new Error("Byline has not been configured yet. Please call defineServerConfig in byline.config.ts first.");
   }
-  return configInstance;
+  return serverConfigInstance;
 }
