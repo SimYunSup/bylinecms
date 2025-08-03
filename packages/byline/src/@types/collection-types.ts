@@ -27,7 +27,7 @@ export interface ColumnDefinition<T = any> {
   sortable?: boolean
   align?: 'left' | 'center' | 'right'
   className?: string
-  formatter?: (value: any, record: T) => React.ReactNode
+  formatter?: (value: any, record: T) => any
 }
 
 export interface CollectionDefinition {
