@@ -42,11 +42,6 @@
       "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
-    "./zod-schemas": {
-      "types": "./dist/schemas/zod/index.d.ts",
-      "import": "./dist/schemas/zod/index.js",
-      "require": "./dist/schemas/zod/index.js"
-    },
     "./package.json": "./package.json"
   },
   "files": [
