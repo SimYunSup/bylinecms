@@ -19,7 +19,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition } from './collection-types.js';
+import type { CollectionDefinition } from './collection-types.js'
+import type { IDbAdapter } from './db-types.js'
+
+export type DbAdapterFn = (args: { connectionString: string }) => IDbAdapter;
 
 export interface SiteConfig {
   serverURL: string
@@ -34,6 +37,7 @@ export interface SiteConfig {
     }
   }
   collections: CollectionDefinition[]
+  db: IDbAdapter;
 }
 
 

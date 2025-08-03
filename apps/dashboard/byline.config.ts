@@ -3,6 +3,9 @@ import { Docs } from './byline/collections/docs.js';
 import { News } from './byline/collections/news.js';
 import { Pages } from './byline/collections/pages.js';
 
+import { pgAdapter } from '@byline/db-postgres'
+
+
 defineConfig({
   serverURL: 'http://localhost:5173/',
   i18n: {
@@ -20,4 +23,7 @@ defineConfig({
     News,
     Pages
   ],
+  db: pgAdapter({
+    connectionString: process.env.DB_CONNECTION_STRING || '',
+  }),
 })

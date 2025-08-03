@@ -27,6 +27,9 @@ importers:
       '@byline/core':
         specifier: workspace:*
         version: link:../../packages/byline
+      '@byline/db-postgres':
+        specifier: workspace:*
+        version: link:../../packages/db-postgres
       '@byline/shared':
         specifier: workspace:*
         version: link:../../packages/shared

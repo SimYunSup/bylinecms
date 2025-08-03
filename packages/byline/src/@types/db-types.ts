@@ -1,6 +1,15 @@
 import type { CollectionDefinition } from '@byline/core';
 
-// From: /apps/dashboard/server/storage/storage-commands.ts
+export interface IDbAdapter {
+  commands: {
+    collections: ICollectionCommands;
+    documents: IDocumentCommands;
+  };
+  queries: {
+    collections: ICollectionQueries;
+    documents: IDocumentQueries;
+  };
+}
 
 export interface ICollectionCommands {
   create(path: string, config: CollectionDefinition): Promise<any>;

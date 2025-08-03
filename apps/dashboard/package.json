@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@byline/core": "workspace:*",
+    "@byline/db-postgres": "workspace:*",
     "@byline/shared": "workspace:*",
     "@byline/uikit": "workspace:*",
     "@fastify/cors": "^11.0.1",
