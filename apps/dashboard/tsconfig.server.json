@@ -16,6 +16,6 @@
     "baseUrl": "./",
     "strict": true
   },
-  "include": ["database/**/*", "server/**/*", "byline/**/*", "byline.config.ts"],
+  "include": ["database/**/*", "server/**/*", "byline/**/*", "byline.config.ts", "byline.server.config.ts"],
   "exclude": ["node_modules", "dist", "build"]
 }

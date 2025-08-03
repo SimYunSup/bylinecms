@@ -28,19 +28,18 @@
 // Initialize Byline config by importing the shared config package
 // NOTE: This is a temporary workaround to ensure the config is loaded
 // and will be changed once we refactor our Byline packages.
-import '../byline.config.js';
+import '../byline.server.config.js';
 
-import { type CollectionDefinition, getCollectionDefinition } from '@byline/core'
+import { type CollectionDefinition, getCollectionDefinition, getServerConfig } from '@byline/core'
 // TODO: Remove direct dependency on the getCollectionDefinition
 import { booleanSchema } from '@byline/shared/schemas'
 import cors from '@fastify/cors'
-import { drizzle } from 'drizzle-orm/node-postgres'
+// import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
-import { Pool } from 'pg'
+// import { Pool } from 'pg'
 import * as z from "zod";
-import * as schema from '../database/schema/index.js'
-import { createCommandBuilders } from './storage/storage-commands.js'
-import { createQueryBuilders } from './storage/storage-queries.js'
+// import { createCommandBuilders } from './storage/storage-commands.js'
+// import { createQueryBuilders } from './storage/storage-queries.js'
 
 const app = Fastify({
   logger: true,
@@ -52,10 +51,10 @@ await app.register(cors, {
   allowedHeaders: ['Content-Type', 'Authorization']
 })
 
-const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
-const db = drizzle(pool, { schema })
-const queries: ReturnType<typeof createQueryBuilders> = createQueryBuilders(db)
-const commands: ReturnType<typeof createCommandBuilders> = createCommandBuilders(db)
+// const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
+// const db = drizzle(pool, { schema })
+// const queries: ReturnType<typeof createQueryBuilders> = createQueryBuilders(db)
+// const commands: ReturnType<typeof createCommandBuilders> = createCommandBuilders(db)
 
 const collectionListSchema = z.object({
   page: z.coerce.number().min(1).optional(),
@@ -75,7 +74,7 @@ const historySchema = z.object({
   locale: z.string().optional(),
 })
 
-type Collection = typeof schema.collections.$inferSelect
+// type Collection = typeof schema.collections.$inferSelect
 
 /**
  * ensureCollection
@@ -86,20 +85,22 @@ type Collection = typeof schema.collections.$inferSelect
  * @param {string} path - The path of the collection to ensure.
  * @returns {Promise<{definition: CollectionDefinition, collection: Collection}>} The existing or newly created collection.
  */
-async function ensureCollection(path: string): Promise<{ definition: CollectionDefinition, collection: Collection } | null> {
+async function ensureCollection(path: string): Promise<{ definition: CollectionDefinition, collection } | null> {
   const collectionDefinition = getCollectionDefinition(path)
   if (collectionDefinition == null) {
     return null
   }
 
-  let collection = await queries.collections.getCollectionByPath(collectionDefinition.path)
+  const db = getServerConfig().db
+
+  let collection = await db.queries.collections.getCollectionByPath(collectionDefinition.path)
   if (collection == null) {
     // Collection doesn't exist in database yet, create it
-    await commands.collections.create(collectionDefinition.path, collectionDefinition)
-    collection = await queries.collections.getCollectionByPath(collectionDefinition.path)
+    await db.commands.collections.create(collectionDefinition.path, collectionDefinition)
+    collection = await db.queries.collections.getCollectionByPath(collectionDefinition.path)
   }
 
-  return { definition: collectionDefinition, collection: collection as Collection }
+  return { definition: collectionDefinition, collection }
 }
 
 /**
@@ -124,7 +125,9 @@ app.get<{ Params: { collection: string } }>('/api/:collection', async (request, 
 
   const searchParams = collectionListSchema.safeParse(search)
 
-  const result = await queries.documents.getDocumentsByPage({
+  const db = getServerConfig().db
+
+  const result = await db.queries.documents.getDocumentsByPage({
     collection_id: config.collection.id,
     locale: 'en',
     ...searchParams.data
@@ -157,7 +160,9 @@ app.post<{ Params: { collection: string }; Body: Record<string, any> }>('/api/:c
   if (documentData.updated_at) documentData.updated_at = new Date(documentData.updated_at)
   if (documentData.publishedOn) documentData.publishedOn = new Date(documentData.publishedOn)
 
-  await commands.documents.createDocument({
+  const db = getServerConfig().db
+
+  await db.commands.documents.createDocument({
     collectionId: config.collection.id,
     collectionConfig: config.definition,
     action: 'create',
@@ -186,7 +191,9 @@ app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id', 
     return
   }
 
-  const document = await queries.documents.getDocumentById({ collection_id: config.collection.id, document_id: id, locale: 'en' })
+  const db = getServerConfig().db
+
+  const document = await db.queries.documents.getDocumentById({ collection_id: config.collection.id, document_id: id, locale: 'en' })
   if (document == null) {
     reply.code(404).send({ error: 'Document not found' })
     return
@@ -214,7 +221,9 @@ app.get<{ Params: { collection: string; id: string } }>('/api/:collection/:id/hi
 
   const params = historySchema.safeParse(search)
 
-  const result = await queries.documents.getDocumentHistory({
+  const db = getServerConfig().db
+
+  const result = await db.queries.documents.getDocumentHistory({
     collection_id: config.collection.id,
     document_id: id,
     locale: 'en',
@@ -251,7 +260,9 @@ app.put<{ Params: { collection: string; id: string }; Body: Record<string, any> 
   if (documentData.updated_at) documentData.updated_at = new Date(documentData.updated_at)
   if (documentData.publishedOn) documentData.publishedOn = new Date(documentData.publishedOn)
 
-  await commands.documents.createDocument({
+  const db = getServerConfig().db
+
+  await db.commands.documents.createDocument({
     documentId: id,
     collectionId: config.collection.id,
     collectionConfig: config.definition,

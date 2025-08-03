@@ -24,7 +24,7 @@ import type { IDbAdapter } from './db-types.js'
 
 export type DbAdapterFn = (args: { connectionString: string }) => IDbAdapter;
 
-export interface SiteConfig {
+export interface ClientConfig {
   serverURL: string
   i18n: {
     interface: {
@@ -37,6 +37,9 @@ export interface SiteConfig {
     }
   }
   collections: CollectionDefinition[]
+}
+
+export interface SiteConfig extends ClientConfig {
   db: IDbAdapter;
 }
 

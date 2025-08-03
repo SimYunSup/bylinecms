@@ -2,19 +2,10 @@
 // Initialize Byline config by importing the shared config package
 // NOTE: This is a temporary workaround to ensure the config is loaded
 // and will be changed once we refactor our Byline packages.
-import '../../byline.config.js';
+import '../byline.server.config.js';
 
-import { getCollectionDefinition } from '@byline/core'
-import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
+import { getCollectionDefinition, getServerConfig } from '@byline/core'
 import { v7 as uuidv7 } from 'uuid'
-import { createCommandBuilders } from '../../server/storage/storage-commands.js'
-import * as schema from '../schema/index.js'
-
-// Test database setup
-let pool: Pool
-let db: NodePgDatabase<typeof schema>
-let commandBuilders: ReturnType<typeof createCommandBuilders>
 
 // Complex test document with many fields and arrays
 const sampleDocument = {
@@ -274,12 +265,10 @@ const sampleDocument = {
 };
 
 async function run() {
-  // Connect to test database
-  pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
-  db = drizzle(pool, { schema })
+
+  const db = getServerConfig().db
 
   const collectionDefinition = getCollectionDefinition('docs')
-  commandBuilders = createCommandBuilders(db)
 
   if (!collectionDefinition) {
     console.error('Collection definition not found for "docs"')
@@ -287,7 +276,7 @@ async function run() {
   }
 
   // Create bulk documents to populate the database.
-  const bulkDocsCollectionResult = await commandBuilders.collections.create(
+  const bulkDocsCollectionResult = await db.commands.collections.create(
     'docs',
     collectionDefinition
   )
@@ -300,7 +289,7 @@ async function run() {
     const docData = structuredClone(sampleDocument)
     docData.path = `my-first-bulk-document-${12345 + i}`
     docData.title.en = `A bulk created document. ${i + 1}` // Ensure unique names  
-    await commandBuilders.documents.createDocument({
+    await db.commands.documents.createDocument({
       collectionId: bulkDocsCollection.id,
       collectionConfig: collectionDefinition,
       action: 'create',
