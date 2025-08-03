@@ -150,16 +150,21 @@ mkdir data
 ```
 
 2.2. Initialize the database and schema
+
+We've just started to refactor db and other components into packages and adapters, with
+only the postgres adapter available at the moment.
+
 ```sh
 # Copy .env.example to .env in the apps/dashboard directory. 
 # Read the notes in .env.example.
-cd apps/dashboard
+cd packages/db-postgres
 cp .env.example .env
 
 # Again, the default database root password is 'test' 
 # (assuming you're using our docker-compose.yml file).
-cd database && ./db_init
-cd ..
+cd src/database 
+./db_init.sh
+cd ../..
 
 # IMPORTANT: our ./db_init script sources (imports) common.sh, 
 # which has a hardcoded value for the name of the development database.
@@ -167,6 +172,7 @@ cd ..
 # and recreate this database name. If you'd like to use a database
 # name other than byline_dev - change the last line in common.sh, 
 # as well as your corresponding .env settings.
+
 # NOTE: While this project is in prototype development,
 # you can optionally skip drizzle:generate since the latest
 # migration will be included in the repo.
@@ -174,8 +180,10 @@ pnpm drizzle:generate
 pnpm drizzle:migrate
 
 # Optionally seed the database with documents.
-# from /apps/dashboard
-tsx --env-file=.env database/seeds/seed-bulk-documents.ts 
+# from /apps/dashboard. Note that our seed script is in 
+# apps/dashboard (for now and for 'reasons')
+cd apps/dashboard
+tsx --env-file=.env server/seed-bulk-documents.ts
 ```
 
 ### 3. Start dev mode
