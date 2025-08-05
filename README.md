@@ -23,7 +23,7 @@ Our mission statement pretty much sums up the 'why', but we also think there's a
 
 <details>
 <summary>2. Who are you?</summary>
-We’re pretty much nobody — at least not within the usual spheres of influence. We're a couple of developers at an agency based in Southeast Asia, and we're fairly certain you've never heard of us. That said, a lot of experience building content solutions for clients — and we’re tired of fighting frameworks for core features our clients need and expect.
+We’re pretty much nobody — at least not within the usual spheres of influence. We're a couple of developers at an agency based in Southeast Asia, and we're fairly certain you've never heard of us. That said, we have a lot of experience building content solutions for clients — and we’re tired of fighting frameworks for core features our clients need and expect.
 </details>
 
 <details>
@@ -44,7 +44,7 @@ Yes!
 
 <details>
 <summary>6. Would you accept venture or seed-round investment?</summary>
-Probably not — at least not at this stage. We still have a lot to figure out. What we do feel strongly about, however, is that community contributions should remain within the community — and not locked behind an 'enterprise' or paywalled solution.
+We're not sure yet, and likely not at this early stage. We still have a lot to figure out. What we do feel strongly about, however, is that community contributions should remain within the community and not locked behind an 'enterprise' or paywalled solution.
 </details>
 
 <details>
@@ -54,7 +54,7 @@ Not much: The embryo of a 'proof of concept' CMS - but there will be more soon.
 
 <details>
 <summary>8. Will you fork Payload CMS? </summary>
-Absolutely not. The initial maintainers of this project were also Payload CMS users. Payload is a great CMS, with a couple of caveats and one recent event. The main caveat is Payload's tight integration with Next.js and resulting complexity, and so there would be no point in taking on the complexity of Payload when it's the complexity of the project itself we'd like to avoid. The 'event' is Payload's recent acquisition by Figma. We're not 100% sure yet what this means for the future of Payload, and so we felt there would be no harm (and maybe even some fun) in considering an alternative approach.
+Absolutely not. The initial maintainers of this project were also Payload CMS users. Payload is a great CMS, with a couple of caveats and one recent event. The main caveat is Payload's tight integration with Next.js and resulting complexity, and so there would be no point in taking on the complexity of Payload when it's the complexity of the project itself we'd like to avoid. The 'event' is Payload's recent acquisition by Figma. We're not 100% sure yet what this means for the future of Payload, and so we felt there would be no harm (and maybe even some fun) in considering an alternative.
 </details>
 
 <details>
@@ -71,7 +71,7 @@ While we're still finding our feet in terms of overall strategy, we felt it woul
 
 4. We plan to support separate localization for the default admin dashboard interface and for content. In our past work, we’ve often built solutions where content is available in multiple languages, while the admin dashboard remains in just one or two locales. More importantly, changing a content field from non-localized to localized should not require a document collection migration.
 
-5. We’re making it easy to create alternative collection list views — whether for regular collections or media. You’ll also be able to reduce the selected fields for any list view, so there’s no need to retrieve full collection documents just to render a paginated list in the admin dashboard.
+5. We’ll make it easy to create alternative collection list views — whether for regular collections or media. You’ll also be able to reduce the selected fields for any list view, so there’s no need to retrieve full collection documents just to render a paginated list in the admin dashboard.
 
 6. We're going to enable parent / child document relationships by default — ideal for creating documentation sites, or sub-areas in a site where navigation components can be built from child documents.
 
@@ -208,8 +208,8 @@ Copyright © 2025 Anthony Bouch and contributors.
 
 ### Major Contributors
 
-* Anthony Bouch
-* David Lipsky
+* Anthony Bouch https://www.linkedin.com/in/anthonybouch/ 
+* David Lipsky https://www.linkedin.com/in/david-lipsky-4391862a8/
 
 
 
