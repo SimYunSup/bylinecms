@@ -49,7 +49,7 @@ We're not sure yet, and likely not at this early stage. We still have a lot to f
 
 <details>
 <summary>7. What's here now?</summary>
-Not much: The embryo of a 'proof of concept' CMS - but there will be more soon.
+We're working on a prototype as a 'proof of concept' for our design goals. It runs, and you're more than welcome to follow along, but it will almost certain change significantly over time.
 </details>
 
 <details>
@@ -86,7 +86,7 @@ While we're still finding our feet in terms of overall strategy, we felt it woul
 8. And more....
 
 ## What's Next?
-We need to find our feet, choose license, publish a roadmap, code of conduct, as well as settle on a governance model and likely stewardship entity. We've published the prototype under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.en.html) license - for now, as we understand this has implications. Before we accept contributions, we'll revisit licensing, looking closely at the [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/), or possibly even a more permissive license like Apache 2.0. Changing the project's license will require consent or a CLA from contributors, which is fine while there's just a few of us.
+We need to find our feet, choose a license, publish a roadmap, code of conduct, as well as settle on a governance model and likely stewardship entity. We've published the prototype under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.en.html) license - for now, as we understand this has implications. Before we accept contributions, we'll revisit licensing, looking closely at the [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/), or possibly even a more permissive license like Apache 2.0. Changing the project's license will require consent or a CLA from contributors, which is fine while there's just a few of us.
 
 ## What is there to do?
 
