@@ -5,35 +5,36 @@
 
 Welcome to Byline CMS. We're new!
 
-We're hoping to build a developer-friendly, customer-friendly, AI-first headless CMS.
+We're hoping to build a developer-friendly, open-source and community-driven AI-first headless CMS.
 
 <img width="734" alt="byline-screeenshot-03" src="https://github.com/user-attachments/assets/c7d6efa1-71bb-4add-b0a2-34611f17be4c" />
 
 <p style="font-size: 0.8rem;"><em>Tiny steps - the Byline prototype.</em></p>
 
-Here's a no-frills FAQ.
+## Mission / Vision
+Our experience working with non-profits and NGOs has shown us the profound value of certain freedoms: the freedom to own, control, and share content that deserves to be seen — freedoms that align perfectly with our vision for an open-source, community-driven platform for content management.
 
 ## FAQ
 
 <details>
 <summary>1. Why are you doing this?</summary>
-The initial maintainers of this project are also users of Payload CMS — which is a great project, with a few caveats and one recent development. One caveat is that as of version 3.0 Payload CMS has become a technically complex project, in particular after its integration with Next.js (we like Next.js, but are not sure about Payload's integration). More importantly, Payload CMS was just acquired by Figma. And so we felt there would be no harm (and maybe even some fun) in exploring an alternative while we try to understand more about what this means for the future of Payload.
+Our mission statement pretty much sums up the 'why', but we also think there's a need. We're convinced that the three pillars of content management: 1) Workflow (draft, needs review, published, archived, etc.), 2) Versioning / history, and 3) Content language translation, are not mutually exclusive and that we can build a core framework that offers a foundation for all three without compromise. A 'headless' and 'structured content' architecture will also give developers (and ultimately users) the freedom to choose a framework or implementation approach that best suits their needs.
 </details>
 
 <details>
 <summary>2. Who are you?</summary>
-We’re pretty much nobody — at least not within the usual spheres of influence. We're a couple of developers at an agency based in Southeast Asia, and we're fairly certain you've never heard of us. That said, we have over a decade of experience building content solutions for clients — and we’re tired of fighting frameworks for core features our clients need and expect.
+We’re pretty much nobody — at least not within the usual spheres of influence. We're a couple of developers at an agency based in Southeast Asia, and we're fairly certain you've never heard of us. That said, a lot of experience building content solutions for clients — and we’re tired of fighting frameworks for core features our clients need and expect.
 </details>
 
 <details>
 <summary>3. Will this work?</summary>
-We have no idea.
+Obviously we hope so - but at this early stage, we have no idea.
 </details>
 
 
 <details>
 <summary>4. What governance structures are you considering? </summary> 
-We really like the governance structure of the [Fastify project](https://github.com/fastify/.github/blob/main/GOVERNANCE.md). We're going to look for advice over the coming days and weeks and try to find a governance structure that reflects our hopes and values.
+We really like the governance structure of [Penpot](https://community.penpot.app/t/penpots-upcoming-business-model-for-2025/7328), [Zulip](https://zulip.com/) and [Fastify](https://github.com/fastify/.github/blob/main/GOVERNANCE.md). We're committed to 100% open-source software, with no "open core" or 'freemium' gotchas.
 </details>
 
 <details>
@@ -52,8 +53,8 @@ Not much: The embryo of a 'proof of concept' CMS - but there will be more soon.
 </details>
 
 <details>
-<summary>8. Will you fork Payload CMS?</summary>
-Absolutely not. There would be no point in taking on the complexity of Payload when it's the complexity of the project itself we'd like to avoid. 
+<summary>8. Will you fork Payload CMS? </summary>
+Absolutely not. The initial maintainers of this project were also Payload CMS users. Payload is a great CMS, with a couple of caveats and one recent event. The main caveat is Payload's tight integration with Next.js and resulting complexity, and so there would be no point in taking on the complexity of Payload when it's the complexity of the project itself we'd like to avoid. The 'event' is Payload's recent acquisition by Figma. We're not 100% sure yet what this means for the future of Payload, and so we felt there would be no harm (and maybe even some fun) in considering an alternative approach.
 </details>
 
 <details>
@@ -85,7 +86,7 @@ While we're still finding our feet in terms of overall strategy, we felt it woul
 8. And more....
 
 ## What's Next?
-We need to find our feet, choose license, publish a roadmap, code of conduct, our values and mission statement, as well as settle on a governance model and likely stewardship entity. We've published the prototype under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.en.html) license - for now, as we understand this has implications. Before we accept contributions, we'll likely switch to a more permissive license like Apache 2.0 (this requires consent or a CLA from contributors, which is fine while there's just a few of us).
+We need to find our feet, choose license, publish a roadmap, code of conduct, as well as settle on a governance model and likely stewardship entity. We've published the prototype under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.en.html) license - for now, as we understand this has implications. Before we accept contributions, we'll revisit licensing, looking closely at the [MPL 2.0](https://www.mozilla.org/en-US/MPL/2.0/), or possibly even a more permissive license like Apache 2.0. Changing the project's license will require consent or a CLA from contributors, which is fine while there's just a few of us.
 
 ## What is there to do?
 
