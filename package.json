@@ -11,6 +11,7 @@
     "drizzle:generate": "turbo run drizzle:generate",
     "drizzle:migrate": "turbo run drizzle:migrate",
     "build": "turbo run build",
+    "build:packages": "turbo run build --filter=\"./packages/*\"",
     "preview": "turbo run preview",
     "storybook": "turbo run storybook",
     "dev": "turbo run dev --parallel",

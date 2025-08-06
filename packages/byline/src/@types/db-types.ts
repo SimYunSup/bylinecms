@@ -1,128 +1,119 @@
-import type { CollectionDefinition } from '@byline/core';
+import type { CollectionDefinition } from '@byline/core'
 
 export interface IDbAdapter {
   commands: {
-    collections: ICollectionCommands;
-    documents: IDocumentCommands;
-  };
+    collections: ICollectionCommands
+    documents: IDocumentCommands
+  }
   queries: {
-    collections: ICollectionQueries;
-    documents: IDocumentQueries;
-  };
+    collections: ICollectionQueries
+    documents: IDocumentQueries
+  }
 }
 
 export interface ICollectionCommands {
-  create(path: string, config: CollectionDefinition): Promise<any>;
-  delete(id: string): Promise<any>;
+  create(path: string, config: CollectionDefinition): Promise<any>
+  delete(id: string): Promise<any>
 }
 
 export interface IDocumentCommands {
-  createDocument(params: {
-    documentId?: string;
-    collectionId: string;
-    collectionConfig: CollectionDefinition;
-    action: string;
-    documentData: any;
-    path: string;
-    locale?: string;
-    status?: 'draft' | 'published' | 'archived';
-    createdBy?: string;
-  }): Promise<{ document: any; fieldCount: number }>;
+  createDocumentVersion(params: {
+    documentId?: string
+    collectionId: string
+    collectionConfig: CollectionDefinition
+    action: string
+    documentData: any
+    path: string
+    locale?: string
+    status?: 'draft' | 'published' | 'archived'
+    createdBy?: string
+  }): Promise<{ document: any; fieldCount: number }>
 }
 
 // From: /apps/dashboard/server/storage/storage-queries.ts
 
 export interface ICollectionQueries {
-  getAllCollections(): Promise<any[]>;
-  getCollectionByPath(path: string): Promise<any>;
-  getCollectionById(id: string): Promise<any>;
+  getAllCollections(): Promise<any[]>
+  getCollectionByPath(path: string): Promise<any>
+  getCollectionById(id: string): Promise<any>
 }
 
 export interface IDocumentQueries {
-  getAllDocuments(params: {
-    collection_id: string;
-    locale?: string;
-  }): Promise<any[]>;
+  getAllDocuments(params: { collection_id: string; locale?: string }): Promise<any[]>
 
   getDocumentsByBatch(params: {
-    collection_id: string;
-    batch_size?: number;
-    locale?: string;
-  }): Promise<any[]>;
+    collection_id: string
+    batch_size?: number
+    locale?: string
+  }): Promise<any[]>
 
   getDocumentsByPage(params: {
-    collection_id: string;
-    locale?: string;
-    page?: number;
-    page_size?: number;
-    order?: string;
-    desc?: boolean;
-    query?: string;
+    collection_id: string
+    locale?: string
+    page?: number
+    page_size?: number
+    order?: string
+    desc?: boolean
+    query?: string
   }): Promise<{
-    documents: any[];
+    documents: any[]
     meta: {
-      total: number;
-      page: number;
-      page_size: number;
-      total_pages: number;
-      order: string;
-      desc: boolean;
-      query?: string;
-    };
+      total: number
+      page: number
+      page_size: number
+      total_pages: number
+      order: string
+      desc: boolean
+      query?: string
+    }
     included: {
       collection: {
-        id: string;
-        path: string;
+        id: string
+        path: string
         labels: {
-          singular: string;
-          plural: string;
-        };
-      };
-    };
-  }>;
+          singular: string
+          plural: string
+        }
+      }
+    }
+  }>
 
   getDocumentById(params: {
-    collection_id: string;
-    document_id: string;
-    locale?: string;
-    reconstruct?: boolean;
-  }): Promise<any | null>;
+    collection_id: string
+    document_id: string
+    locale?: string
+    reconstruct?: boolean
+  }): Promise<any | null>
 
   getDocumentByPath(params: {
-    collection_id: string;
-    path: string;
-    locale?: string;
-    reconstruct: boolean;
-  }): Promise<any>;
+    collection_id: string
+    path: string
+    locale?: string
+    reconstruct: boolean
+  }): Promise<any>
 
-  getDocumentByVersion(params: {
-    document_version_id: string;
-    locale?: string;
-  }): Promise<any>;
+  getDocumentByVersion(params: { document_version_id: string; locale?: string }): Promise<any>
 
-  getDocuments(params: {
-    document_version_ids: string[];
-    locale?: string;
-  }): Promise<any[]>;
+  getDocuments(params: { document_version_ids: string[]; locale?: string }): Promise<any[]>
 
   getDocumentHistory(params: {
-    collection_id: string;
-    document_id: string;
-    locale?: string;
-    page?: number;
-    page_size?: number;
-    order?: string;
-    desc?: boolean;
-    query?: string;
+    collection_id: string
+    document_id: string
+    locale?: string
+    page?: number
+    page_size?: number
+    order?: string
+    desc?: boolean
+    query?: string
   }): Promise<{
-    documents: any[];
+    documents: any[]
     meta: {
-      total: number;
-      page: number;
-      page_size: number;
-      total_pages: number;
-      order: string;
-      desc: boolean;
-    };
-  }>;
+      total: number
+      page: number
+      page_size: number
+      total_pages: number
+      order: string
+      desc: boolean
+    }
+  }>
 }

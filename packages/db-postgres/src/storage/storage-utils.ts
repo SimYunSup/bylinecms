@@ -31,6 +31,15 @@ import type {
   RelationStore, ValueField,
 } from '@byline/core'
 
+export const getFirstOrThrow =
+  <T>(message: string) =>
+  (values: T[]): T => {
+    const value = values[0]
+    if (value == null) {
+      throw new Error(message)
+    }
+    return value
+  }
 
 export function flattenFields(
   documentData: any,

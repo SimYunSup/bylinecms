@@ -19,10 +19,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition, ICollectionCommands, IDocumentCommands } from '@byline/core';
+import type { CollectionDefinition, ICollectionCommands, IDocumentCommands } from '@byline/core'
 import { isFileStore, isJsonStore, isNumericStore, isRelationStore } from '@byline/core'
-import { eq } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { eq } from 'drizzle-orm'
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { v7 as uuidv7 } from 'uuid'
 import type * as schema from '../database/schema/index.js'
 import {
@@ -30,34 +30,38 @@ import {
   collections,
   datetimeStore,
   documents,
+  documentVersions,
   fileStore,
   jsonStore,
   numericStore,
   relationStore,
-  textStore
-} from '../database/schema/index.js';
-import { flattenFields } from './storage-utils.js';
+  textStore,
+} from '../database/schema/index.js'
+import { flattenFields, getFirstOrThrow } from './storage-utils.js'
 
-type DatabaseConnection = NodePgDatabase<typeof schema>;
+type DatabaseConnection = NodePgDatabase<typeof schema>
 
 /**
  * CollectionCommands
  */
 export class CollectionCommands implements ICollectionCommands {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private db: DatabaseConnection) {}
 
   async create(path: string, config: CollectionDefinition) {
-    return await this.db.insert(collections).values({
-      id: uuidv7(),
-      path,
-      singular: config.labels.singular || path, // Default to path if singular not provided
-      plural: config.labels.plural || `${path}s`, // Default to pluralized path if not
-      config,
-    }).returning();
+    return await this.db
+      .insert(collections)
+      .values({
+        id: uuidv7(),
+        path,
+        singular: config.labels.singular || path, // Default to path if singular not provided
+        plural: config.labels.plural || `${path}s`, // Default to pluralized path if not
+        config,
+      })
+      .returning()
   }
 
   async delete(id: string) {
-    return await this.db.delete(collections).where(eq(collections.id, id));
+    return await this.db.delete(collections).where(eq(collections.id, id))
   }
 }
 
@@ -65,79 +69,89 @@ export class CollectionCommands implements ICollectionCommands {
  * DocumentCommands
  */
 export class DocumentCommands implements IDocumentCommands {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private db: DatabaseConnection) {}
 
   /**
-   * createDocument
-   * 
+   * createDocumentVersion
+   *
    * Creates a new document or a new version of an existing document.
-   * 
+   *
    * @param params - Options for creating the document
    * @returns The created document and the number of field values inserted
    */
-  async createDocument(params: {
-    documentId?: string, // Optional logical document ID when creating a new version for the same logical document
-    collectionId: string,
-    collectionConfig: CollectionDefinition,
-    action: string,
-    documentData: any,
-    path: string,
+  async createDocumentVersion(params: {
+    documentId?: string // Optional logical document ID when creating a new version for the same logical document
+    collectionId: string
+    collectionConfig: CollectionDefinition
+    action: string
+    documentData: any
+    path: string
     locale?: string
     status?: 'draft' | 'published' | 'archived'
     createdBy?: string
   }) {
     return await this.db.transaction(async (tx) => {
-      // 1. Create the document - new version for logical document_id or new document
-      const insertedDocs = await tx.insert(documents).values({
-        id: uuidv7(), // Document version
-        document_id: params.documentId ?? uuidv7(),
-        collection_id: params.collectionId,
-        path: params.path,
-        event_type: params.action ?? 'create',
-        status: params.status ?? 'draft',
-      }).returning();
+      let documentId = params.documentId
 
-      const document = insertedDocs[0];
-
-      if (document == null) {
-        // This should not happen if the insert is successful, but it's a good practice to check.
-        // We can either throw an error or handle it gracefully.
-        throw new Error('Failed to create document.');
+      // 1. Create the main document if needed
+      if (documentId == null) {
+        documentId = uuidv7()
+        const _document = await tx
+          .insert(documents)
+          .values({
+            id: documentId,
+            collection_id: params.collectionId,
+          })
+          .returning()
+          .then(getFirstOrThrow('Failed to create document'))
       }
 
+      // 2. Create the document version
+      const documentVersion = await tx
+        .insert(documentVersions)
+        .values({
+          id: uuidv7(), // Document version id
+          document_id: documentId,
+          collection_id: params.collectionId,
+          path: params.path,
+          event_type: params.action ?? 'create',
+          status: params.status ?? 'draft',
+        })
+        .returning()
+        .then(getFirstOrThrow('Failed to create document version'))
 
       // 2. Flatten the document data to field values
       const flattenedFields = flattenFields(
         params.documentData,
         params.collectionConfig,
         params.locale ?? 'all'
-      );
+      )
 
       // 3. Insert all field values
       for (const fieldValue of flattenedFields) {
         await this.insertFieldValueByType(
           tx,
-          document.id, // Use the document version ID
+          documentVersion.id, // Use the document version ID
           params.collectionId,
           fieldValue
-        );
+        )
       }
 
       return {
-        document: document,
-        fieldCount: flattenedFields.length
-      };
-    });
+        document: documentVersion,
+        fieldCount: flattenedFields.length,
+      }
+    })
   }
 
   /**
    * insertFieldValueByType
-   * 
-   * @param tx 
-   * @param documentVersionId 
-   * @param collectionId 
-   * @param fieldValue 
-   * @returns 
+   *
+   * @param tx
+   * @param documentVersionId
+   * @param collectionId
+   * @param fieldValue
+   * @returns
    */
   private async insertFieldValueByType(
     tx: DatabaseConnection,
@@ -153,15 +167,15 @@ export class DocumentCommands implements IDocumentCommands {
       field_name: fieldValue.field_name,
       locale: fieldValue.locale,
       parent_path: fieldValue.parent_path,
-    };
+    }
 
     switch (fieldValue.field_type) {
       case 'select':
       case 'text':
         // Handle both simple string values and localized object values
         if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
-          const values: any[] = [];
-          const entries = Object.entries<string>(fieldValue.value);
+          const values: any[] = []
+          const entries = Object.entries<string>(fieldValue.value)
           for (const [locale, localizedValue] of entries) {
             values.push({
               ...baseData,
@@ -170,14 +184,14 @@ export class DocumentCommands implements IDocumentCommands {
               value: localizedValue as string,
             })
           }
-          return await tx.insert(textStore).values(values);
+          return await tx.insert(textStore).values(values)
         }
 
         // Simple string value
         return await tx.insert(textStore).values({
           ...baseData,
           value: fieldValue.value as string,
-        });
+        })
 
       case 'float':
       case 'integer':
@@ -189,16 +203,16 @@ export class DocumentCommands implements IDocumentCommands {
             value_float: fieldValue.value_float, // For 'number' type
             value_integer: fieldValue.value_integer,
             value_decimal: fieldValue.value_decimal,
-          });
+          })
         }
-        throw new Error(`Invalid numeric field value for ${baseData.field_path}`);
+        throw new Error(`Invalid numeric field value for ${baseData.field_path}`)
 
       case 'checkbox':
       case 'boolean':
         return await tx.insert(booleanStore).values({
           ...baseData,
           value: fieldValue.value,
-        });
+        })
 
       case 'time':
       case 'date':
@@ -209,7 +223,7 @@ export class DocumentCommands implements IDocumentCommands {
           value_time: fieldValue.value_time,
           value_date: fieldValue.value_date,
           value_timestamp_tz: fieldValue.value_timestamp_tz,
-        });
+        })
 
       case 'file':
       case 'image':
@@ -230,9 +244,9 @@ export class DocumentCommands implements IDocumentCommands {
             image_format: fieldValue.image_format,
             processing_status: fieldValue.processing_status || 'pending',
             thumbnail_generated: fieldValue.thumbnail_generated || false,
-          });
+          })
         }
-        throw new Error(`Invalid file field value for ${baseData.field_path}`);
+        throw new Error(`Invalid file field value for ${baseData.field_path}`)
 
       case 'relation':
         if (isRelationStore(fieldValue)) {
@@ -242,9 +256,9 @@ export class DocumentCommands implements IDocumentCommands {
             target_collection_id: fieldValue.target_collection_id,
             relationship_type: fieldValue.relationship_type || 'reference',
             cascade_delete: fieldValue.cascade_delete || false,
-          });
+          })
         }
-        throw new Error(`Invalid relation field value for ${baseData.field_path}`);
+        throw new Error(`Invalid relation field value for ${baseData.field_path}`)
 
       case 'richText':
         // TODO: What does a localized version of rich text look like?
@@ -267,15 +281,15 @@ export class DocumentCommands implements IDocumentCommands {
         return await tx.insert(jsonStore).values({
           ...baseData,
           value: fieldValue.value,
-        });
+        })
 
       case 'json':
       case 'object':
         if (isJsonStore(fieldValue)) {
           // Handle localized JSON/object fields
           if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
-            const values: any[] = [];
-            const entries = Object.entries<string>(fieldValue.value);
+            const values: any[] = []
+            const entries = Object.entries<string>(fieldValue.value)
             for (const [locale, localizedValue] of entries) {
               values.push({
                 ...baseData,
@@ -284,7 +298,7 @@ export class DocumentCommands implements IDocumentCommands {
                 value: localizedValue as string,
               })
             }
-            return await tx.insert(jsonStore).values(values);
+            return await tx.insert(jsonStore).values(values)
           }
           // If not a localized object, treat as regular JSON content
           return await tx.insert(jsonStore).values({
@@ -292,25 +306,25 @@ export class DocumentCommands implements IDocumentCommands {
             value: fieldValue.value,
             json_schema: fieldValue.json_schema,
             object_keys: fieldValue.object_keys,
-          });
+          })
         }
-        throw new Error(`Invalid JSON field value for ${baseData.field_path}`);
+        throw new Error(`Invalid JSON field value for ${baseData.field_path}`)
 
       default:
-        throw new Error('Unsupported field type');
+        throw new Error('Unsupported field type')
     }
   }
 }
 
 /**
  * Factory function
- * @param siteConfig 
- * @param db 
- * @returns 
+ * @param siteConfig
+ * @param db
+ * @returns
  */
 export function createCommandBuilders(db: DatabaseConnection) {
   return {
     collections: new CollectionCommands(db),
     documents: new DocumentCommands(db),
-  };
+  }
 }

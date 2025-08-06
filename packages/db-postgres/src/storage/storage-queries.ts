@@ -1,6 +1,6 @@
 /**
  * Byline CMS Server Tests
- * 
+ *
  * Optimized Storage Queries - Single Query Approach with UNION ALL
  *
  * Copyright © 2025 Anthony Bouch and contributors.
@@ -22,20 +22,21 @@
  *
  */
 
-import type { ICollectionQueries, IDocumentQueries } from "@byline/core";
-import { and, desc, eq, ilike, inArray, sql } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type { ICollectionQueries, IDocumentQueries } from '@byline/core'
+import { and, eq, ilike, inArray, sql } from 'drizzle-orm'
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import type * as schema from '../database/schema/index.js'
-import { collections, currentDocumentsView, documents, textStore } from '../database/schema/index.js';
+import {
+  collections,
+  currentDocumentsView,
+  documentVersions,
+  textStore,
+} from '../database/schema/index.js'
 
-type DatabaseConnection = NodePgDatabase<typeof schema>;
-type Document = Omit<typeof documents.$inferSelect, 'doc'>;
+type DatabaseConnection = NodePgDatabase<typeof schema>
+type Document = Omit<typeof documentVersions.$inferSelect, 'doc'>
 
-import type {
-  CollectionDefinition,
-  FlattenedStore,
-  UnionRowValue
-} from "@byline/core"
+import type { CollectionDefinition, FlattenedStore, UnionRowValue } from '@byline/core'
 import {
   booleanFields,
   datetimeFields,
@@ -43,72 +44,70 @@ import {
   jsonFields,
   numericFields,
   relationFields,
-  textFields
-} from './storage-template-queries.js';
-import { reconstructFields } from './storage-utils.js';
+  textFields,
+} from './storage-template-queries.js'
+import { reconstructFields } from './storage-utils.js'
 
 /**
  * CollectionQueries
  */
 export class CollectionQueries implements ICollectionQueries {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private db: DatabaseConnection) {}
 
   /**
    * getAllCollections
-   * 
-   * @returns 
+   *
+   * @returns
    */
   async getAllCollections() {
-    return await this.db.select().from(collections);
+    return await this.db.select().from(collections)
   }
 
   /**
    * getCollectionByPath
-   * 
-   * @param path 
-   * @returns 
+   *
+   * @param path
+   * @returns
    */
   async getCollectionByPath(path: string) {
-    return this.db.query.collections.findFirst({ where: eq(collections.path, path) });
+    return this.db.query.collections.findFirst({ where: eq(collections.path, path) })
   }
 
   /**
    * getCollectionById
-   * 
-   * @param id 
-   * @returns 
+   *
+   * @param id
+   * @returns
    */
   async getCollectionById(id: string) {
-    return this.db.query.collections.findFirst({ where: eq(collections.id, id) });
+    return this.db.query.collections.findFirst({ where: eq(collections.id, id) })
   }
 }
-
 
 /**
  * DocumentQueries
  */
 export class DocumentQueries implements IDocumentQueries {
-  constructor(private db: DatabaseConnection) { }
+  constructor(private db: DatabaseConnection) {}
 
   /**
    * getAllDocuments
-   * 
+   *
    * Unlikely to use this. Here mainly for testing.
-   * 
-   * @param collectionId 
-   * @param locale 
-   * @returns 
+   *
+   * @param collectionId
+   * @param locale
+   * @returns
    */
   async getAllDocuments({
     collection_id,
-    locale = 'all'
+    locale = 'all',
   }: {
-    collection_id: string;
-    locale?: string;
+    collection_id: string
+    locale?: string
   }): Promise<any[]> {
-    const localeCondition = locale === 'all'
-      ? sql`TRUE`
-      : sql`(fv.locale = ${locale} OR fv.locale = 'all')`;
+    const localeCondition =
+      locale === 'all' ? sql`TRUE` : sql`(fv.locale = ${locale} OR fv.locale = 'all')`
 
     // Optimized single query with direct JOINs
     const query = sql`
@@ -206,71 +205,72 @@ export class DocumentQueries implements IDocumentQueries {
     ) fv ON d.id = fv.document_version_id AND ${localeCondition}
     WHERE d.collection_id = ${collection_id}
     ORDER BY d.id, fv.field_path NULLS LAST, fv.locale
-  `;
+  `
 
-    const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
+    const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query)
 
-    return this.groupAndReconstructDocuments(rows, locale);
+    return this.groupAndReconstructDocuments(rows, locale)
   }
 
   /**
    * getDocumentsByBatch
-   * 
+   *
    * Also unlikely to use often. Mainly for testing and perhaps migration scripts.
-   * 
-   * @param collectionId 
-   * @param locale 
-   * @param batchSize 
-   * @returns 
+   *
+   * @param collectionId
+   * @param locale
+   * @param batchSize
+   * @returns
    */
   async getDocumentsByBatch({
     collection_id,
     batch_size = 50,
-    locale = 'all'
+    locale = 'all',
   }: {
-    collection_id: string;
-    batch_size?: number;
-    locale?: string;
+    collection_id: string
+    batch_size?: number
+    locale?: string
   }): Promise<any[]> {
     // First, get all current document version IDs for the collection
-    const currentDocuments = await this.db.select({
-      document_version_id: currentDocumentsView.id,
-      document_id: currentDocumentsView.document_id,
-      path: currentDocumentsView.path,
-      status: currentDocumentsView.status,
-    })
+    const currentDocuments = await this.db
+      .select({
+        document_version_id: currentDocumentsView.id,
+        document_id: currentDocumentsView.document_id,
+        path: currentDocumentsView.path,
+        status: currentDocumentsView.status,
+      })
       .from(currentDocumentsView)
       .where(eq(currentDocumentsView.collection_id, collection_id))
-      .orderBy(currentDocumentsView.path); // Add consistent ordering
+      .orderBy(currentDocumentsView.path) // Add consistent ordering
 
-    if (currentDocuments.length === 0) return [];
+    if (currentDocuments.length === 0) return []
 
     // Process documents in batches
-    const result: any[] = [];
-    const documentVersionIds = currentDocuments.map(doc => doc.document_version_id);
+    const result: any[] = []
+    const documentVersionIds = currentDocuments.map((doc) => doc.document_version_id)
 
     for (let i = 0; i < documentVersionIds.length; i += batch_size) {
-      const batch = documentVersionIds.slice(i, i + batch_size);
-      const batchResults = await this.getDocuments({ document_version_ids: batch, locale });
+      const batch = documentVersionIds.slice(i, i + batch_size)
+      const batchResults = await this.getDocuments({ document_version_ids: batch, locale })
 
       // Add batch results to final result array
-      result.push(...batchResults);
+      result.push(...batchResults)
     }
 
-    return result;
+    return result
   }
 
   /**
    * getDocumentsByPage
-   * 
+   *
    * Paginated query to get current documents for a collection
-   * 
+   *
    * TODO: We're currently hard coding the query parameter to search by title.
    * However, we can pass the field store name and field_name as options
-   * 
-   * @param collectionId 
-   * @param options 
-   * @returns 
+   *
+   * @param collectionId
+   * @param options
+   * @returns
    */
   async getDocumentsByPage({
     collection_id,
@@ -279,53 +279,53 @@ export class DocumentQueries implements IDocumentQueries {
     page_size = 20,
     order = 'created_at',
     desc = true,
-    query
+    query,
   }: {
-    collection_id: string;
-    locale?: string;
-    page?: number;
-    page_size?: number;
-    order?: string;
-    desc?: boolean;
-    query?: string;
+    collection_id: string
+    locale?: string
+    page?: number
+    page_size?: number
+    order?: string
+    desc?: boolean
+    query?: string
   }): Promise<{
-    documents: any[];
+    documents: any[]
     meta: {
-      total: number;
-      page: number;
-      page_size: number;
-      total_pages: number;
-      order: string;
-      desc: boolean;
+      total: number
+      page: number
+      page_size: number
+      total_pages: number
+      order: string
+      desc: boolean
       query?: string
-    };
+    }
     included: {
       collection: {
-        id: string;
-        path: string,
+        id: string
+        path: string
         labels: {
-          singular: string;
-          plural: string;
+          singular: string
+          plural: string
         }
       }
     }
   }> {
     const collection = await this.db.query.collections.findFirst({
-      where: eq(collections.id, collection_id)
-    });
+      where: eq(collections.id, collection_id),
+    })
 
-    if (collection == null || collection.config == null
-    ) {
-      throw new Error(`Collection with ID ${collection_id} not found or missing collection config.`);
+    if (collection == null || collection.config == null) {
+      throw new Error(`Collection with ID ${collection_id} not found or missing collection config.`)
     }
 
-    const config = collection.config as CollectionDefinition;
+    const config = collection.config as CollectionDefinition
 
-    let totalResult: { count: number; }[];
+    let totalResult: { count: number }[]
     if (query) {
-      totalResult = await this.db.select({
-        count: sql<number>`count(DISTINCT ${currentDocumentsView.id})`,
-      })
+      totalResult = await this.db
+        .select({
+          count: sql<number>`count(DISTINCT ${currentDocumentsView.id})`,
+        })
         .from(currentDocumentsView)
         .leftJoin(textStore, eq(currentDocumentsView.id, textStore.document_version_id))
         .where(
@@ -334,38 +334,39 @@ export class DocumentQueries implements IDocumentQueries {
             eq(textStore.field_name, 'title'),
             ilike(textStore.value, `%${query}%`)
           )
-        );
+        )
     } else {
-      totalResult = await this.db.select({
-        count: sql<number>`count(*)`,
-      })
+      totalResult = await this.db
+        .select({
+          count: sql<number>`count(*)`,
+        })
         .from(currentDocumentsView)
-        .where(eq(currentDocumentsView.collection_id, collection_id)
-        );
+        .where(eq(currentDocumentsView.collection_id, collection_id))
     }
 
+    const total = Number(totalResult[0]?.count) || 0
+    const total_pages = Math.ceil(total / page_size)
+    const offset = (page - 1) * page_size
+    const orderColumn =
+      order === 'path' ? currentDocumentsView.path : currentDocumentsView.created_at
+    const orderFunc = desc === true ? sql`DESC` : sql`ASC`
 
-    const total = Number(totalResult[0]?.count) || 0;
-    const total_pages = Math.ceil(total / page_size);
-    const offset = (page - 1) * page_size;
-    const orderColumn = order === 'path' ? currentDocumentsView.path : currentDocumentsView.created_at;
-    const orderFunc = desc === true ? sql`DESC` : sql`ASC`;
-
-    let currentDocuments: Document[] = [];
+    let currentDocuments: Document[] = []
     if (query) {
-      currentDocuments = await this.db.select({
-        id: currentDocumentsView.id,
-        document_id: currentDocumentsView.document_id,
-        collection_id: currentDocumentsView.collection_id,
-        path: currentDocumentsView.path,
-        event_type: currentDocumentsView.event_type,
-        status: currentDocumentsView.status,
-        is_deleted: currentDocumentsView.is_deleted,
-        created_at: currentDocumentsView.created_at,
-        updated_at: currentDocumentsView.updated_at,
-        created_by: currentDocumentsView.created_by,
-        change_summary: currentDocumentsView.change_summary,
-      })
+      currentDocuments = await this.db
+        .select({
+          id: currentDocumentsView.id,
+          document_id: currentDocumentsView.document_id,
+          collection_id: currentDocumentsView.collection_id,
+          path: currentDocumentsView.path,
+          event_type: currentDocumentsView.event_type,
+          status: currentDocumentsView.status,
+          is_deleted: currentDocumentsView.is_deleted,
+          created_at: currentDocumentsView.created_at,
+          updated_at: currentDocumentsView.updated_at,
+          created_by: currentDocumentsView.created_by,
+          change_summary: currentDocumentsView.change_summary,
+        })
         .from(currentDocumentsView)
         .leftJoin(textStore, eq(currentDocumentsView.id, textStore.document_version_id))
         .where(
@@ -377,18 +378,18 @@ export class DocumentQueries implements IDocumentQueries {
         )
         .orderBy(sql`${orderColumn} ${orderFunc}`)
         .limit(page_size)
-        .offset(offset);
+        .offset(offset)
     } else {
-      currentDocuments = await this.db.select()
+      currentDocuments = await this.db
+        .select()
         .from(currentDocumentsView)
-        .where(eq(currentDocumentsView.collection_id, collection_id),
-        )
+        .where(eq(currentDocumentsView.collection_id, collection_id))
         .orderBy(sql`${orderColumn} ${orderFunc}`)
         .limit(page_size)
-        .offset(offset);
+        .offset(offset)
     }
 
-    const documents = await this.reconstructDocuments({ documents: currentDocuments, locale });
+    const documents = await this.reconstructDocuments({ documents: currentDocuments, locale })
 
     return {
       documents,
@@ -400,34 +401,35 @@ export class DocumentQueries implements IDocumentQueries {
           labels: {
             singular: config.labels.singular || collection.path,
             plural: config.labels.plural || collection.path,
-          }
-        }
-      }
-    };
+          },
+        },
+      },
+    }
   }
 
   /**
    * getDocumentById
-   * 
+   *
    * Get's the current version of a document by its logical document ID.
-   * 
-   * @param collection_id 
-   * @param document_id 
-   * @returns 
+   *
+   * @param collection_id
+   * @param document_id
+   * @returns
    */
   async getDocumentById({
     collection_id,
     document_id,
     locale = 'en',
-    reconstruct = true
+    reconstruct = true,
   }: {
-    collection_id: string;
-    document_id: string;
-    locale?: string;
-    reconstruct?: boolean;
+    collection_id: string
+    document_id: string
+    locale?: string
+    reconstruct?: boolean
   }) {
     // 1. Get current version
-    const [document] = await this.db.select()
+    const [document] = await this.db
+      .select()
       .from(currentDocumentsView)
       .where(
         and(
@@ -441,20 +443,14 @@ export class DocumentQueries implements IDocumentQueries {
     }
 
     // 2. Get all field values for this document
-    const unifiedFieldValues = await this.getAllFieldValues(
-      document.id,
-      locale
-    );
+    const unifiedFieldValues = await this.getAllFieldValues(document.id, locale)
 
     // 3. Convert unified values back to FlattenedStore format
-    const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
+    const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues)
 
     // 4. If reconstruct is true, reconstruct the fields
     if (reconstruct === true) {
-      const reconstructedFields = reconstructFields(
-        fieldValues,
-        locale
-      );
+      const reconstructedFields = reconstructFields(fieldValues, locale)
 
       return {
         document_version_id: document.id,
@@ -463,8 +459,8 @@ export class DocumentQueries implements IDocumentQueries {
         status: document.status,
         created_at: document.created_at,
         updated_at: document.updated_at,
-        ...reconstructedFields
-      };
+        ...reconstructedFields,
+      }
     }
     return {
       document_version_id: document.id,
@@ -473,30 +469,31 @@ export class DocumentQueries implements IDocumentQueries {
       status: document.status,
       created_at: document.created_at,
       updated_at: document.updated_at,
-      fields: fieldValues
-    };
+      fields: fieldValues,
+    }
   }
 
   /**
    * getDocumentByPath
-   * 
-   * @param collection_id 
-   * @param path 
-   * @returns 
+   *
+   * @param collection_id
+   * @param path
+   * @returns
    */
   async getDocumentByPath({
     collection_id,
     path,
     locale = 'en',
-    reconstruct = true
+    reconstruct = true,
   }: {
-    collection_id: string;
-    path: string;
-    locale?: string;
-    reconstruct: boolean;
+    collection_id: string
+    path: string
+    locale?: string
+    reconstruct: boolean
   }) {
     // 1. Get current version
-    const [document] = await this.db.select()
+    const [document] = await this.db
+      .select()
       .from(currentDocumentsView)
       .where(
         and(
@@ -506,25 +503,19 @@ export class DocumentQueries implements IDocumentQueries {
       )
 
     if (document == null) {
-      throw new Error(`Document not found at path: ${path}`);
+      throw new Error(`Document not found at path: ${path}`)
     }
 
     // 2. Get all field values for this document
-    const unifiedFieldValues = await this.getAllFieldValues(
-      document.id,
-      locale
-    );
+    const unifiedFieldValues = await this.getAllFieldValues(document.id, locale)
 
     // 3. Convert unified values back to FlattenedStore format
-    const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
+    const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues)
 
     // 4. If reconstruct is true, reconstruct the fields
     if (reconstruct === true) {
       // 4. Reconstruct field values for document
-      const reconstructedFields = reconstructFields(
-        fieldValues,
-        locale
-      );
+      const reconstructedFields = reconstructFields(fieldValues, locale)
 
       return {
         document_version_id: document.id,
@@ -533,8 +524,8 @@ export class DocumentQueries implements IDocumentQueries {
         status: document.status,
         created_at: document.created_at,
         updated_at: document.updated_at,
-        ...reconstructedFields
-      };
+        ...reconstructedFields,
+      }
     }
     return {
       document_version_id: document.id,
@@ -543,8 +534,8 @@ export class DocumentQueries implements IDocumentQueries {
       status: document.status,
       created_at: document.created_at,
       updated_at: document.updated_at,
-      fields: fieldValues
-    };
+      fields: fieldValues,
+    }
   }
 
   /**
@@ -552,35 +543,29 @@ export class DocumentQueries implements IDocumentQueries {
    */
   async getDocumentByVersion({
     document_version_id,
-    locale = 'all'
+    locale = 'all',
   }: {
-    document_version_id: string;
-    locale?: string;
+    document_version_id: string
+    locale?: string
   }): Promise<any> {
     // 1. Get current version. We can query the documents table directly
     // since its primary key is the document version (no need to use
     // the currentDocumentsView).
-    const document = await this.db.query.documents.findFirst({
-      where: eq(documents.id, document_version_id)
-    });
+    const document = await this.db.query.documentVersions.findFirst({
+      where: eq(documentVersions.id, document_version_id),
+    })
 
     if (document == null) {
-      throw new Error(`No current version found for document ${document_version_id}`);
+      throw new Error(`No current version found for document ${document_version_id}`)
     }
 
     // 2. Get all field values in a single query using UNION ALL
-    const unifiedFieldValues = await this.getAllFieldValues(
-      document.id,
-      locale
-    );
+    const unifiedFieldValues = await this.getAllFieldValues(document.id, locale)
 
     // 3. Convert unified values back to FlattenedStore format
-    const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues);
+    const fieldValues = this.convertUnionRowToFlattenedStores(unifiedFieldValues)
 
-    const reconstructedFields = reconstructFields(
-      fieldValues,
-      locale
-    );
+    const reconstructedFields = reconstructFields(fieldValues, locale)
 
     // Add document properties at root level
     const documentWithFields = {
@@ -590,76 +575,71 @@ export class DocumentQueries implements IDocumentQueries {
       status: document.status,
       created_at: document.created_at,
       updated_at: document.updated_at,
-      ...reconstructedFields
-    };
+      ...reconstructedFields,
+    }
 
     return documentWithFields
   }
 
-  /** 
+  /**
    * getDocuments (multiple)
-   * 
+   *
    * Primary used to get documents that have been selected by page,
    * batch, or cursor.
    *
-   * @param documentVersionIds 
-   * @param locale 
-   * @returns 
+   * @param documentVersionIds
+   * @param locale
+   * @returns
    */
   async getDocuments({
     document_version_ids,
-    locale = 'all'
+    locale = 'all',
   }: {
-    document_version_ids: string[];
-    locale?: string;
+    document_version_ids: string[]
+    locale?: string
   }): Promise<any[]> {
-    if (document_version_ids.length === 0) return [];
+    if (document_version_ids.length === 0) return []
 
     // Get current documents
     // Again here we can use the documents table directly
-    // since its primary key is the document version, and we are 
-    // supplying an array of document version IDs (as opposed to 
+    // since its primary key is the document version, and we are
+    // supplying an array of document version IDs (as opposed to
     // logical document IDs).
-    const docs = await this.db.select({
-      document_version_id: documents.id,
-      document_id: documents.document_id,
-      path: documents.path,
-      status: documents.status,
-      created_at: documents.created_at,
-      updated_at: documents.updated_at,
-    })
-      .from(documents)
-      .where(inArray(documents.id, document_version_ids));
+    const docs = await this.db
+      .select({
+        document_version_id: documentVersions.id,
+        document_id: documentVersions.document_id,
+        path: documentVersions.path,
+        status: documentVersions.status,
+        created_at: documentVersions.created_at,
+        updated_at: documentVersions.updated_at,
+      })
+      .from(documentVersions)
+      .where(inArray(documentVersions.id, document_version_ids))
 
-    if (docs.length === 0) return [];
+    if (docs.length === 0) return []
 
     // Get all field values for all versions in one query
-    const versionIds = docs.map(v => v.document_version_id);
+    const versionIds = docs.map((v) => v.document_version_id)
 
-    const allFieldValues = await this.getAllFieldValuesForMultipleVersions(
-      versionIds,
-      locale
-    );
+    const allFieldValues = await this.getAllFieldValuesForMultipleVersions(versionIds, locale)
 
     // Group field values by document version
-    const fieldValuesByVersion = new Map<string, UnionRowValue[]>();
+    const fieldValuesByVersion = new Map<string, UnionRowValue[]>()
     for (const fieldValue of allFieldValues) {
       if (!fieldValuesByVersion.has(fieldValue.document_version_id)) {
-        fieldValuesByVersion.set(fieldValue.document_version_id, []);
+        fieldValuesByVersion.set(fieldValue.document_version_id, [])
       }
-      fieldValuesByVersion.get(fieldValue.document_version_id)?.push(fieldValue);
+      fieldValuesByVersion.get(fieldValue.document_version_id)?.push(fieldValue)
     }
 
     // Reconstruct each document with document data at root level
-    const result: any[] = [];
+    const result: any[] = []
     for (const doc of docs) {
-      const versionFieldValues = fieldValuesByVersion.get(doc.document_version_id) || [];
-      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(versionFieldValues);
+      const versionFieldValues = fieldValuesByVersion.get(doc.document_version_id) || []
+      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(versionFieldValues)
 
-      const reconstructedFields = reconstructFields(
-        flattenedFieldValues,
-        locale
-      );
+      const reconstructedFields = reconstructFields(flattenedFieldValues, locale)
 
       // Add document data at root level
       const documentWithFields = {
@@ -669,10 +649,10 @@ export class DocumentQueries implements IDocumentQueries {
         status: doc.status,
         created_at: doc.created_at,
         updated_at: doc.updated_at,
-        ...reconstructedFields
-      };
+        ...reconstructedFields,
+      }
 
-      result.push(documentWithFields);
+      result.push(documentWithFields)
     }
 
     return result
@@ -680,13 +660,13 @@ export class DocumentQueries implements IDocumentQueries {
 
   /**
    * getDocumentHistory
-   * 
+   *
    * Gets the history of a document version by its logical document ID. This will
    * included any 'soft deleted' documents as well.
-   * 
-   * @param documentId 
-   * @param collectionId 
-   * @returns 
+   *
+   * @param documentId
+   * @param collectionId
+   * @returns
    */
   async getDocumentHistory({
     collection_id,
@@ -697,117 +677,111 @@ export class DocumentQueries implements IDocumentQueries {
     order = 'updated_at',
     desc = true,
   }: {
-    collection_id: string;
-    document_id: string;
-    locale?: string;
-    page?: number;
-    page_size?: number;
-    order?: string;
-    desc?: boolean;
-    query?: string;
+    collection_id: string
+    document_id: string
+    locale?: string
+    page?: number
+    page_size?: number
+    order?: string
+    desc?: boolean
+    query?: string
   }): Promise<{
-    documents: any[];
+    documents: any[]
     meta: {
-      total: number;
-      page: number;
-      page_size: number;
-      total_pages: number;
-      order: string;
-      desc: boolean;
+      total: number
+      page: number
+      page_size: number
+      total_pages: number
+      order: string
+      desc: boolean
     }
   }> {
     const collection = await this.db.query.collections.findFirst({
-      where: eq(collections.id, collection_id)
-    });
+      where: eq(collections.id, collection_id),
+    })
 
-    if (collection == null || collection.config == null
-    ) {
-      throw new Error(`Collection with ID ${collection_id} not found or missing collection config.`);
+    if (collection == null || collection.config == null) {
+      throw new Error(`Collection with ID ${collection_id} not found or missing collection config.`)
     }
 
     // const config = collection.config as CollectionDefinition;
 
-    const totalResult: { count: number; }[] = await this.db.select({
-      count: sql<number>`count(*)`,
-    })
-      .from(documents)
+    const totalResult: { count: number }[] = await this.db
+      .select({
+        count: sql<number>`count(*)`,
+      })
+      .from(documentVersions)
       .where(
         and(
-          eq(documents.collection_id, collection_id),
-          eq(documents.document_id, document_id),
+          eq(documentVersions.collection_id, collection_id),
+          eq(documentVersions.document_id, document_id)
         )
       )
 
-    const total = Number(totalResult[0]?.count) || 0;
-    const total_pages = Math.ceil(total / page_size);
-    const offset = (page - 1) * page_size;
-    const orderColumn = order === 'path' ? documents.path : documents.created_at;
-    const orderFunc = desc === true ? sql`DESC` : sql`ASC`;
+    const total = Number(totalResult[0]?.count) || 0
+    const total_pages = Math.ceil(total / page_size)
+    const offset = (page - 1) * page_size
+    const orderColumn = order === 'path' ? documentVersions.path : documentVersions.created_at
+    const orderFunc = desc === true ? sql`DESC` : sql`ASC`
 
-    const result: Document[] = await this.db.select()
-      .from(documents)
+    const result: Document[] = await this.db
+      .select()
+      .from(documentVersions)
       .where(
         and(
-          eq(documents.collection_id, collection_id),
-          eq(documents.document_id, document_id),
+          eq(documentVersions.collection_id, collection_id),
+          eq(documentVersions.document_id, document_id)
         )
       )
       .orderBy(sql`${orderColumn} ${orderFunc}`)
       .limit(page_size)
-      .offset(offset);
+      .offset(offset)
 
-    const history = await this.reconstructDocuments({ documents: result, locale });
+    const history = await this.reconstructDocuments({ documents: result, locale })
 
     return {
       documents: history,
       meta: { total, page, page_size, total_pages, order, desc },
-    };
+    }
   }
 
-
-  /** 
+  /**
    * reconstructDocuments (multiple)
-   * 
+   *
    * Retrieve field values and reconstruct multiple documents
    *
-   * @param documents 
-   * @param locale 
-   * @returns 
+   * @param documents
+   * @param locale
+   * @returns
    */
   private async reconstructDocuments({
     documents,
-    locale = 'all'
+    locale = 'all',
   }: {
-    documents: Document[];
-    locale?: string;
+    documents: Document[]
+    locale?: string
   }): Promise<any[]> {
-    if (documents.length === 0) return [];
-    const versionIds = documents.map(v => v.id);
+    if (documents.length === 0) return []
+    const versionIds = documents.map((v) => v.id)
     // Get all field values for all versions in one query
-    const allFieldValues = await this.getAllFieldValuesForMultipleVersions(
-      versionIds,
-      locale
-    );
+    const allFieldValues = await this.getAllFieldValuesForMultipleVersions(versionIds, locale)
 
     // Group field values by document version
-    const fieldValuesByVersion = new Map<string, UnionRowValue[]>();
+    const fieldValuesByVersion = new Map<string, UnionRowValue[]>()
     for (const fieldValue of allFieldValues) {
       if (!fieldValuesByVersion.has(fieldValue.document_version_id)) {
-        fieldValuesByVersion.set(fieldValue.document_version_id, []);
+        fieldValuesByVersion.set(fieldValue.document_version_id, [])
       }
-      fieldValuesByVersion.get(fieldValue.document_version_id)?.push(fieldValue);
+      fieldValuesByVersion.get(fieldValue.document_version_id)?.push(fieldValue)
     }
 
     // Reconstruct each document with document data at root level
-    const result: any[] = [];
+    const result: any[] = []
     for (const doc of documents) {
-      const versionFieldValues = fieldValuesByVersion.get(doc.id) || [];
-      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(versionFieldValues);
+      const versionFieldValues = fieldValuesByVersion.get(doc.id) || []
+      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(versionFieldValues)
 
-      const reconstructedFields = reconstructFields(
-        flattenedFieldValues,
-        locale
-      );
+      const reconstructedFields = reconstructFields(flattenedFieldValues, locale)
 
       // Add document data at root level
       const documentWithFields = {
@@ -817,10 +791,10 @@ export class DocumentQueries implements IDocumentQueries {
         status: doc.status,
         created_at: doc.created_at,
         updated_at: doc.updated_at,
-        ...reconstructedFields
-      };
+        ...reconstructedFields,
+      }
 
-      result.push(documentWithFields);
+      result.push(documentWithFields)
     }
 
     return result
@@ -830,18 +804,18 @@ export class DocumentQueries implements IDocumentQueries {
    * Helper method to group results by document and reconstruct each document
    * Returns an array of complete documents
    */
-  private groupAndReconstructDocuments(
-    rows: Record<string, unknown>[],
-    locale: string
-  ): any[] {
+  private groupAndReconstructDocuments(rows: Record<string, unknown>[], locale: string): any[] {
     // Group rows by document ID
-    const documentGroups = new Map<string, {
-      document: { document_version_id: string; document_id: string; path: string; status: string };
-      fieldValues: UnionRowValue[];
-    }>();
+    const documentGroups = new Map<
+      string,
+      {
+        document: { document_version_id: string; document_id: string; path: string; status: string }
+        fieldValues: UnionRowValue[]
+      }
+    >()
 
     for (const row of rows) {
-      const documentVersionId = row.document_version_id as string;
+      const documentVersionId = row.document_version_id as string
 
       if (!documentGroups.has(documentVersionId)) {
         documentGroups.set(documentVersionId, {
@@ -851,8 +825,8 @@ export class DocumentQueries implements IDocumentQueries {
             path: row.document_path as string,
             status: row.document_status as string,
           },
-          fieldValues: []
-        });
+          fieldValues: [],
+        })
       }
 
       // Only add field values if they exist (LEFT JOIN can return null field values)
@@ -897,35 +871,32 @@ export class DocumentQueries implements IDocumentQueries {
           value_integer: row.value_integer as number | null,
           value_decimal: row.value_decimal as string | null,
           value_float: row.value_float as number | null,
-        };
+        }
 
-        documentGroups.get(documentVersionId)?.fieldValues.push(fieldValue);
+        documentGroups.get(documentVersionId)?.fieldValues.push(fieldValue)
       }
     }
 
     // Reconstruct each document and return as array
-    const result: any[] = [];
+    const result: any[] = []
 
     for (const [documentId, group] of documentGroups) {
-      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(group.fieldValues);
+      const flattenedFieldValues = this.convertUnionRowToFlattenedStores(group.fieldValues)
 
       const head = {
         document_version_id: group.document.document_version_id,
         document_id: group.document.document_id,
         path: group.document.path,
-        status: group.document.status
+        status: group.document.status,
       }
 
-      const document = reconstructFields(
-        flattenedFieldValues,
-        locale
-      );
+      const document = reconstructFields(flattenedFieldValues, locale)
 
-      result.push({ ...head, ...document });
+      result.push({ ...head, ...document })
     }
 
     // Sort by document path for consistent ordering
-    return result.sort((a, b) => (a.__meta?.path || '').localeCompare(b.__meta?.path || ''));
+    return result.sort((a, b) => (a.__meta?.path || '').localeCompare(b.__meta?.path || ''))
   }
 
   /**
@@ -935,9 +906,8 @@ export class DocumentQueries implements IDocumentQueries {
     documentVersionId: string,
     locale = 'all'
   ): Promise<UnionRowValue[]> {
-    const localeCondition = locale === 'all'
-      ? sql``
-      : sql`AND (locale = ${locale} OR locale = 'all')`;
+    const localeCondition =
+      locale === 'all' ? sql`` : sql`AND (locale = ${locale} OR locale = 'all')`
 
     const query = sql`
       -- Text fields (41 columns total)
@@ -995,10 +965,10 @@ export class DocumentQueries implements IDocumentQueries {
       WHERE document_version_id = ${documentVersionId} ${localeCondition}
 
       ORDER BY field_path, locale
-    `;
+    `
 
-    const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
-    return rows as unknown as UnionRowValue[];
+    const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query)
+    return rows as unknown as UnionRowValue[]
   }
 
   /**
@@ -1008,13 +978,15 @@ export class DocumentQueries implements IDocumentQueries {
     documentVersionIds: string[],
     locale = 'all'
   ): Promise<UnionRowValue[]> {
-    if (documentVersionIds.length === 0) return [];
+    if (documentVersionIds.length === 0) return []
 
-    const localeCondition = locale === 'all'
-      ? sql``
-      : sql`AND (locale = ${locale} OR locale = 'all')`;
+    const localeCondition =
+      locale === 'all' ? sql`` : sql`AND (locale = ${locale} OR locale = 'all')`
 
-    const documentCondition = sql`document_version_id = ANY(ARRAY[${sql.join(documentVersionIds.map(id => sql`${id}::uuid`), sql`, `)}])`;
+    const documentCondition = sql`document_version_id = ANY(ARRAY[${sql.join(
+      documentVersionIds.map((id) => sql`${id}::uuid`),
+      sql`, `
+    )}])`
 
     // Use the same UNION ALL query but with IN clause for multiple versions
     const query = sql`
@@ -1073,26 +1045,24 @@ export class DocumentQueries implements IDocumentQueries {
       WHERE ${documentCondition} ${localeCondition}
 
       ORDER BY document_version_id, field_path, locale
-    `;
+    `
 
-    const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query);
-    return rows as unknown as UnionRowValue[];
+    const { rows }: { rows: Record<string, unknown>[] } = await this.db.execute(query)
+    return rows as unknown as UnionRowValue[]
   }
 
   /**
    * Converts a union field row - back into an array of FlattenedStore
    * that the reconstruction utilities expect
    */
-  private convertUnionRowToFlattenedStores(
-    unionRowValues: UnionRowValue[]
-  ): FlattenedStore[] {
-    return unionRowValues.map(row => {
+  private convertUnionRowToFlattenedStores(unionRowValues: UnionRowValue[]): FlattenedStore[] {
+    return unionRowValues.map((row) => {
       const baseValue = {
         field_path: row.field_path,
         field_name: row.field_name,
         locale: row.locale,
         parent_path: row.parent_path ?? undefined,
-      };
+      }
 
       switch (row.field_type) {
         case 'text':
@@ -1100,14 +1070,14 @@ export class DocumentQueries implements IDocumentQueries {
             ...baseValue,
             field_type: 'text' as const,
             value: row.text_value,
-          };
+          }
 
         case 'richText':
           return {
             ...baseValue,
             field_type: 'richText' as const,
             value: row.json_value,
-          };
+          }
 
         case 'numeric':
           return {
@@ -1117,14 +1087,14 @@ export class DocumentQueries implements IDocumentQueries {
             value_integer: row.value_integer,
             value_decimal: row.value_decimal,
             value_float: row.value_float,
-          };
+          }
 
         case 'boolean':
           return {
             ...baseValue,
             field_type: 'boolean' as const,
             value: row.boolean_value,
-          };
+          }
 
         case 'time':
         case 'date':
@@ -1136,7 +1106,7 @@ export class DocumentQueries implements IDocumentQueries {
             value_time: row.value_time,
             value_date: row.value_date,
             value_timestamp_tz: row.value_timestamp_tz,
-          };
+          }
 
         case 'image':
         case 'file':
@@ -1157,7 +1127,7 @@ export class DocumentQueries implements IDocumentQueries {
             image_format: row.image_format,
             processing_status: row.processing_status,
             thumbnail_generated: row.thumbnail_generated,
-          };
+          }
 
         case 'relation':
           return {
@@ -1167,24 +1137,24 @@ export class DocumentQueries implements IDocumentQueries {
             target_collection_id: row.target_collection_id,
             relationship_type: row.relationship_type,
             cascade_delete: row.cascade_delete,
-          };
+          }
 
         default:
-          throw new Error(`Unknown field type: ${row.field_type}`);
+          throw new Error(`Unknown field type: ${row.field_type}`)
       }
-    }) as FlattenedStore[];
+    }) as FlattenedStore[]
   }
 }
 
 /**
  * Factory function
- * @param siteConfig 
- * @param db 
- * @returns 
+ * @param siteConfig
+ * @param db
+ * @returns
  */
 export function createQueryBuilders(db: DatabaseConnection) {
   return {
     collections: new CollectionQueries(db),
     documents: new DocumentQueries(db),
-  };
+  }
 }

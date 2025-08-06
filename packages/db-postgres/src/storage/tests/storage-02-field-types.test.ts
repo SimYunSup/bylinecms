@@ -20,11 +20,11 @@
  *
  */
 
-import assert from 'node:assert';
+import assert from 'node:assert'
 import { after, before, describe, it } from 'node:test'
 import type { CollectionDefinition } from '@byline/core'
 import { v7 as uuidv7 } from 'uuid'
-import { setupTestDB, teardownTestDB } from '../../lib/test-helper.js';
+import { setupTestDB, teardownTestDB } from '../../lib/test-helper.js'
 
 // Test database setup
 let commandBuilders: ReturnType<typeof import('../storage-commands.js').createCommandBuilders>
@@ -45,40 +45,40 @@ const FieldTypesCollectionConfig: CollectionDefinition = {
     { name: 'price', type: 'decimal', required: false },
     { name: 'attachment', type: 'file', required: false },
   ],
-};
+}
 
 let filedId = uuidv7()
 
 // Complex test document with many fields and arrays
 const sampleDocument = {
-  path: "my-first-document",
+  path: 'my-first-document',
   title: {
-    en: "My First Document",
-    es: "Mi Primer Documento",
-    fr: "Mon Premier Document"
+    en: 'My First Document',
+    es: 'Mi Primer Documento',
+    fr: 'Mon Premier Document',
   },
   summary: {
-    en: "This is a sample document for testing purposes.",
-    es: "Este es un documento de muestra para fines de prueba.",
-    fr: "Il s'agit d'un document d'exemple à des fins de test."
+    en: 'This is a sample document for testing purposes.',
+    es: 'Este es un documento de muestra para fines de prueba.',
+    fr: "Il s'agit d'un document d'exemple à des fins de test.",
   },
   // category: {
   //   target_collection_id: "cat-123",
   //   target_document_id: "electronics-audio"
   // },
-  publishedOn: new Date("2024-01-15T10:00:00"),
+  publishedOn: new Date('2024-01-15T10:00:00'),
   views: 100,
   price: '19.99',
   attachment: {
     file_id: filedId,
-    filename: "sample-attachment.pdf",
-    original_filename: "sample-document.pdf",
+    filename: 'sample-attachment.pdf',
+    original_filename: 'sample-document.pdf',
     file_size: 102400, // 100 KB
-    mime_type: "application/pdf",
+    mime_type: 'application/pdf',
     storage_provider: 'local',
     storage_path: 'uploads/attachments/sample-attachment.pdf',
   },
-};
+}
 
 // Global test variables
 let testCollection: { id: string; name: string } = {} as any
@@ -120,11 +120,10 @@ describe('02 Field Types', () => {
   })
 
   it('should create and return a field type document', async () => {
-
     const sourceDocument = structuredClone(sampleDocument)
     sourceDocument.path = `my-first-field-types-document-${Date.now()}` // Ensure unique path
 
-    const result = await commandBuilders.documents.createDocument({
+    const result = await commandBuilders.documents.createDocumentVersion({
       collectionId: testCollection.id,
       collectionConfig: FieldTypesCollectionConfig,
       action: 'create',
@@ -135,7 +134,7 @@ describe('02 Field Types', () => {
     console.log('Created document:', result)
 
     const document = await queryBuilders.documents.getDocumentByVersion({
-      document_version_id: result.document.id
+      document_version_id: result.document.id,
     })
 
     console.log('Retrieved document:', document)

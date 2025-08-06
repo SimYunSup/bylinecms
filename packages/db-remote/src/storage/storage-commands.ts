@@ -19,19 +19,18 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { CollectionDefinition, ICollectionCommands, IDocumentCommands } from '@byline/core';
+import type { CollectionDefinition, ICollectionCommands, IDocumentCommands } from '@byline/core'
 
 /**
  * CollectionCommands
  */
 export class CollectionCommands implements ICollectionCommands {
-
   async create(path: string, config: CollectionDefinition) {
-    throw new Error('db-remote method not implemented');
+    throw new Error('db-remote method not implemented')
   }
 
   async delete(id: string) {
-    throw new Error('db-remote method not implemented');
+    throw new Error('db-remote method not implemented')
   }
 }
 
@@ -39,39 +38,38 @@ export class CollectionCommands implements ICollectionCommands {
  * DocumentCommands
  */
 export class DocumentCommands implements IDocumentCommands {
-
   /**
-   * createDocument
-   * 
+   * createDocumentVersion
+   *
    * Creates a new document or a new version of an existing document.
-   * 
+   *
    * @param params - Options for creating the document
    * @returns The created document and the number of field values inserted
    */
   // @ts-ignore
-  async createDocument(params: {
-    documentId?: string, // Optional logical document ID when creating a new version for the same logical document
-    collectionId: string,
-    collectionConfig: CollectionDefinition,
-    action: string,
-    documentData: any,
-    path: string,
+  async createDocumentVersion(params: {
+    documentId?: string // Optional logical document ID when creating a new version for the same logical document
+    collectionId: string
+    collectionConfig: CollectionDefinition
+    action: string
+    documentData: any
+    path: string
     locale?: string
     status?: 'draft' | 'published' | 'archived'
     createdBy?: string
   }) {
-    throw new Error('db-remote method not implemented');
+    throw new Error('db-remote method not implemented')
   }
 }
 /**
  * Factory function
- * @param siteConfig 
- * @param db 
- * @returns 
+ * @param siteConfig
+ * @param db
+ * @returns
  */
 export function createCommandBuilders(db: null) {
   return {
     collections: new CollectionCommands(),
     documents: new DocumentCommands(),
-  };
+  }
 }
