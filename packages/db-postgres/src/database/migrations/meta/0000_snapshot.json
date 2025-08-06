@@ -1,5 +1,5 @@
 {
-  "id": "4627adec-2bd3-48fc-9a7e-005afb3cd5ea",
+  "id": "4bcb951b-1154-41d7-9c86-30341f15221f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -138,10 +138,10 @@
         }
       },
       "foreignKeys": {
-        "store_boolean_document_version_id_documents_id_fk": {
-          "name": "store_boolean_document_version_id_documents_id_fk",
+        "store_boolean_document_version_id_document_versions_id_fk": {
+          "name": "store_boolean_document_version_id_document_versions_id_fk",
           "tableFrom": "store_boolean",
-          "tableTo": "documents",
+          "tableTo": "document_versions",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -407,10 +407,10 @@
         }
       },
       "foreignKeys": {
-        "store_datetime_document_version_id_documents_id_fk": {
-          "name": "store_datetime_document_version_id_documents_id_fk",
+        "store_datetime_document_version_id_document_versions_id_fk": {
+          "name": "store_datetime_document_version_id_document_versions_id_fk",
           "tableFrom": "store_datetime",
-          "tableTo": "documents",
+          "tableTo": "document_versions",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -506,7 +506,34 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "document_relationships_parent_document_id_documents_id_fk": {
+          "name": "document_relationships_parent_document_id_documents_id_fk",
+          "tableFrom": "document_relationships",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "parent_document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "document_relationships_child_document_id_documents_id_fk": {
+          "name": "document_relationships_child_document_id_documents_id_fk",
+          "tableFrom": "document_relationships",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "child_document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "document_relationships_parent_document_id_child_document_id_unique": {
@@ -522,8 +549,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.documents": {
-      "name": "documents",
+    "public.document_versions": {
+      "name": "document_versions",
       "schema": "",
       "columns": {
         "id": {
@@ -746,6 +773,88 @@
               "asc": true,
               "nulls": "last"
             },
+            {
+              "expression": "collection_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "document_versions_document_id_documents_id_fk": {
+          "name": "document_versions_document_id_documents_id_fk",
+          "tableFrom": "document_versions",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "document_versions_collection_id_collections_id_fk": {
+          "name": "document_versions_collection_id_collections_id_fk",
+          "tableFrom": "document_versions",
+          "tableTo": "collections",
+          "columnsFrom": [
+            "collection_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.documents": {
+      "name": "documents",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "collection_id": {
+          "name": "collection_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_documents_collection": {
+          "name": "idx_documents_collection",
+          "columns": [
             {
               "expression": "collection_id",
               "isExpression": false,
@@ -1042,10 +1151,10 @@
         }
       },
       "foreignKeys": {
-        "store_file_document_version_id_documents_id_fk": {
-          "name": "store_file_document_version_id_documents_id_fk",
+        "store_file_document_version_id_document_versions_id_fk": {
+          "name": "store_file_document_version_id_document_versions_id_fk",
           "tableFrom": "store_file",
-          "tableTo": "documents",
+          "tableTo": "document_versions",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1213,10 +1322,10 @@
         }
       },
       "foreignKeys": {
-        "store_json_document_version_id_documents_id_fk": {
-          "name": "store_json_document_version_id_documents_id_fk",
+        "store_json_document_version_id_document_versions_id_fk": {
+          "name": "store_json_document_version_id_document_versions_id_fk",
           "tableFrom": "store_json",
-          "tableTo": "documents",
+          "tableTo": "document_versions",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1432,10 +1541,10 @@
         }
       },
       "foreignKeys": {
-        "store_numeric_document_version_id_documents_id_fk": {
-          "name": "store_numeric_document_version_id_documents_id_fk",
+        "store_numeric_document_version_id_document_versions_id_fk": {
+          "name": "store_numeric_document_version_id_document_versions_id_fk",
           "tableFrom": "store_numeric",
-          "tableTo": "documents",
+          "tableTo": "document_versions",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1653,10 +1762,10 @@
         }
       },
       "foreignKeys": {
-        "store_relation_document_version_id_documents_id_fk": {
-          "name": "store_relation_document_version_id_documents_id_fk",
+        "store_relation_document_version_id_document_versions_id_fk": {
+          "name": "store_relation_document_version_id_document_versions_id_fk",
           "tableFrom": "store_relation",
-          "tableTo": "documents",
+          "tableTo": "document_versions",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1677,6 +1786,19 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "store_relation_target_document_id_documents_id_fk": {
+          "name": "store_relation_target_document_id_documents_id_fk",
+          "tableFrom": "store_relation",
+          "tableTo": "documents",
+          "columnsFrom": [
+            "target_document_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         },
         "store_relation_target_collection_id_collections_id_fk": {
@@ -1858,10 +1980,10 @@
         }
       },
       "foreignKeys": {
-        "store_text_document_version_id_documents_id_fk": {
-          "name": "store_text_document_version_id_documents_id_fk",
+        "store_text_document_version_id_document_versions_id_fk": {
+          "name": "store_text_document_version_id_document_versions_id_fk",
           "tableFrom": "store_text",
-          "tableTo": "documents",
+          "tableTo": "document_versions",
           "columnsFrom": [
             "document_version_id"
           ],
@@ -1982,7 +2104,7 @@
           "notNull": false
         }
       },
-      "definition": "with \"sq\" as (select \"id\", \"document_id\", \"collection_id\", \"path\", \"event_type\", \"status\", \"is_deleted\", \"created_at\", \"updated_at\", \"created_by\", \"change_summary\", row_number() OVER (PARTITION BY \"document_id\" ORDER BY \"id\" DESC) as \"rn\" from \"documents\" where \"documents\".\"is_deleted\" = false) select \"id\", \"document_id\", \"collection_id\", \"path\", \"event_type\", \"status\", \"is_deleted\", \"created_at\", \"updated_at\", \"created_by\", \"change_summary\" from \"sq\" where \"rn\" = 1",
+      "definition": "with \"sq\" as (select \"id\", \"document_id\", \"collection_id\", \"path\", \"event_type\", \"status\", \"is_deleted\", \"created_at\", \"updated_at\", \"created_by\", \"change_summary\", row_number() OVER (PARTITION BY \"document_id\" ORDER BY \"id\" DESC) as \"rn\" from \"document_versions\" where \"document_versions\".\"is_deleted\" = false) select \"id\", \"document_id\", \"collection_id\", \"path\", \"event_type\", \"status\", \"is_deleted\", \"created_at\", \"updated_at\", \"created_by\", \"change_summary\" from \"sq\" where \"rn\" = 1",
       "name": "current_documents",
       "schema": "public",
       "isExisting": false,
