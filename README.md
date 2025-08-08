@@ -128,6 +128,9 @@ At the moment, the project is a prototype, but it builds and runs if you wanted 
 # git clone this repo
 git clone git@github.com:Byline-CMS/bylinecms.dev.git
 cd bylinecms.dev
+# install rimraf global
+pnpm install -g rimraf
+# or npm install -g rimraf
 # install deps
 pnpm install
 # build once so that all workspace packages and apps have their deps
