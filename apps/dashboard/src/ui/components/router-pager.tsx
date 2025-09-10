@@ -40,7 +40,7 @@ interface RouterPageProps extends PaginationProps {
 }
 
 /**
- * A convenience Next.js pager, wrapped around Pagination with
+ * A convenience pager, wrapped around Pagination with
  * example render methods and 'asChild' props. 'asChild' will allow you
  * supply a new child to render while also merging the existing props
  * (including styles) of the default component (First, Previous, PageNumber,
