@@ -19,6 +19,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type * as React from 'react'
+
 import { BlockWithAlignableContents } from '@lexical/react/LexicalBlockWithAlignableContents'
 import {
   DecoratorBlockNode,
@@ -35,7 +37,6 @@ import type {
   NodeKey,
   Spread,
 } from 'lexical'
-import type * as React from 'react'
 
 type YouTubeComponentProps = Readonly<{
   className: Readonly<{

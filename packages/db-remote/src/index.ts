@@ -20,15 +20,14 @@
  */
 
 import type { IDbAdapter } from '@byline/core'
-import { createCommandBuilders } from './storage/storage-commands.js';
-import { createQueryBuilders } from './storage/storage-queries.js';
+
+import { createCommandBuilders } from './storage/storage-commands.js'
+import { createQueryBuilders } from './storage/storage-queries.js'
 
 export const remoteAdapter = ({ apiUrl }: { apiUrl: string }): IDbAdapter => {
+  const commandBuilders = createCommandBuilders(null)
+  const queryBuilders = createQueryBuilders(null)
 
-  const commandBuilders = createCommandBuilders(null);
-  const queryBuilders = createQueryBuilders(null);
-
-  // @ts-ignore
-  return { commands: commandBuilders, queries: queryBuilders };
+  // @ts-expect-error
+  return { commands: commandBuilders, queries: queryBuilders }
 }
-

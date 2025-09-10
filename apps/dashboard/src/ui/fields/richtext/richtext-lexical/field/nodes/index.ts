@@ -27,6 +27,7 @@ import { HorizontalRuleNode } from '@lexical/react/LexicalHorizontalRuleNode'
 import { HeadingNode, QuoteNode } from '@lexical/rich-text'
 import { TableCellNode, TableNode, TableRowNode } from '@lexical/table'
 import type { Klass, LexicalNode } from 'lexical'
+
 import { AdmonitionNode } from './admonition-node/admonition-node'
 // import { InlineImageNode } from './inline-image-node/inline-image-node'
 import { LayoutContainerNode } from './layout-container-node/layout-container-node'
@@ -55,5 +56,5 @@ export const Nodes: Array<Klass<LexicalNode>> = [
   YouTubeNode,
   VimeoNode,
   LayoutContainerNode,
-  LayoutItemNode
+  LayoutItemNode,
 ]

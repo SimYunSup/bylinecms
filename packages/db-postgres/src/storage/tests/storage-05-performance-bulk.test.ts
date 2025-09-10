@@ -20,25 +20,28 @@
  *
  */
 
-// IMPORTANT NOTE!: depends on seed-bulk-documents.ts to have run 
+// IMPORTANT NOTE!: depends on seed-bulk-documents.ts to have run
 // first to create the bulk collection and documents.
 
 import { after, before, describe, it } from 'node:test'
-import { setupTestDB, teardownTestDB } from '../../lib/test-helper.js';
+
+import { setupTestDB, teardownTestDB } from '../../lib/test-helper.js'
 
 // Test database setup
 let queryBuilders: ReturnType<typeof import('../storage-queries.js').createQueryBuilders>
 
 // Global test variables
-let collection: {
-  id: string;
-  path: string;
-  singular: string;
-  plural: string;
-  config: unknown;
-  created_at: Date | null;
-  updated_at: Date | null;
-} | undefined
+let collection:
+  | {
+      id: string
+      path: string
+      singular: string
+      plural: string
+      config: unknown
+      created_at: Date | null
+      updated_at: Date | null
+    }
+  | undefined
 
 describe('05 Performance Bulk Tests', () => {
   before(async () => {
@@ -66,11 +69,10 @@ describe('05 Performance Bulk Tests', () => {
 
       const startTime = performance.now()
 
-      const documents = await queryBuilders.documents.getAllDocuments
-        ({
-          collection_id: collection.id,
-          locale: 'all'
-        })
+      const documents = await queryBuilders.documents.getAllDocuments({
+        collection_id: collection.id,
+        locale: 'all',
+      })
 
       const endTime = performance.now()
       const duration = endTime - startTime
@@ -86,16 +88,14 @@ describe('05 Performance Bulk Tests', () => {
 
       const startTime = performance.now()
 
-      const result = await queryBuilders.documents.getDocumentsByPage(
-        {
-          collection_id: collection.id,
-          locale: 'en',
-          page: 1,
-          page_size: 50,
-          order: 'created_at',
-          desc: true
-        }
-      )
+      const result = await queryBuilders.documents.getDocumentsByPage({
+        collection_id: collection.id,
+        locale: 'en',
+        page: 1,
+        page_size: 50,
+        order: 'created_at',
+        desc: true,
+      })
 
       const endTime = performance.now()
       const duration = endTime - startTime

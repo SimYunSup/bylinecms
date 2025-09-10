@@ -1,14 +1,14 @@
-import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
-import pg from 'pg';
-import * as schema from '../database/schema/index.js';
-import { createCommandBuilders } from '../storage/storage-commands.js';
-import { createQueryBuilders } from '../storage/storage-queries.js';
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
+import pg from 'pg'
 
+import * as schema from '../database/schema/index.js'
+import { createCommandBuilders } from '../storage/storage-commands.js'
+import { createQueryBuilders } from '../storage/storage-queries.js'
 
-let pool: pg.Pool;
-let db: NodePgDatabase<typeof schema>;
-let commandBuilders: ReturnType<typeof createCommandBuilders>;
-let queryBuilders: ReturnType<typeof createQueryBuilders>;
+let pool: pg.Pool
+let db: NodePgDatabase<typeof schema>
+let commandBuilders: ReturnType<typeof createCommandBuilders>
+let queryBuilders: ReturnType<typeof createQueryBuilders>
 
 export function setupTestDB() {
   if (!pool) {
@@ -17,30 +17,30 @@ export function setupTestDB() {
       max: 20,
       idleTimeoutMillis: 2000,
       connectionTimeoutMillis: 1000,
-    });
+    })
   }
 
   if (!db) {
-    db = drizzle(pool, { schema });
+    db = drizzle(pool, { schema })
   }
 
   if (!commandBuilders) {
-    commandBuilders = createCommandBuilders(db);
+    commandBuilders = createCommandBuilders(db)
   }
 
   if (!queryBuilders) {
-    queryBuilders = createQueryBuilders(db);
+    queryBuilders = createQueryBuilders(db)
   }
 
-  return { pool, db, commandBuilders, queryBuilders };
+  return { pool, db, commandBuilders, queryBuilders }
 }
 
 export async function teardownTestDB() {
   if (pool) {
-    await pool.end();
-    pool = undefined as any;
-    db = undefined as any;
-    commandBuilders = undefined as any;
-    queryBuilders = undefined as any;
+    await pool.end()
+    pool = undefined as any
+    db = undefined as any
+    commandBuilders = undefined as any
+    queryBuilders = undefined as any
   }
 }

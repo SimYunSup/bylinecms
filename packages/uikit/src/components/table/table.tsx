@@ -19,8 +19,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import cx from 'classnames'
 import type * as React from 'react'
+
+import cx from 'classnames'
 
 import styles from './table.module.css'
 

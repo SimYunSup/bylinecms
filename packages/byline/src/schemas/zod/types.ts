@@ -1,4 +1,5 @@
 import type { z } from 'zod'
+
 import type { getCollectionSchemasForPath } from './cache.js'
 
 // Helper type to infer all schema types from a collection schemas object
@@ -13,4 +14,6 @@ export type CollectionSchemaTypes<T extends ReturnType<typeof getCollectionSchem
 }
 
 // Generic type for any collection's schema types
-export type AnyCollectionSchemaTypes = CollectionSchemaTypes<ReturnType<typeof getCollectionSchemasForPath>>
+export type AnyCollectionSchemaTypes = CollectionSchemaTypes<
+  ReturnType<typeof getCollectionSchemasForPath>
+>

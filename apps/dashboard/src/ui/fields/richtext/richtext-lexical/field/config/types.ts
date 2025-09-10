@@ -1,4 +1,3 @@
-
 import type { EditorConfig as LexicalEditorConfig } from 'lexical'
 
 export type OptionName =
@@ -49,4 +48,3 @@ export interface EditorConfig {
   settings: EditorSettings
   lexical: LexicalEditorConfig
 }
-

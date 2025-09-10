@@ -26,9 +26,11 @@
  *
  */
 
-import { Shimmer } from '@byline/uikit/react'
 import type * as React from 'react'
 import { lazy, Suspense } from 'react'
+
+import { Shimmer } from '@byline/uikit/react'
+
 import type { LexicalRichTextFieldProps } from '../types'
 
 const RichTextEditor = lazy(() =>

@@ -1,11 +1,11 @@
 'use client'
 
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import type * as React from 'react'
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 
-import { DEFAULT_EDITOR_SETTINGS } from './default'
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 
+import { DEFAULT_EDITOR_SETTINGS } from './default'
 import type { EditorSettings, OptionName } from './types'
 
 // Should always produce a 20 character pseudo-random string
@@ -19,7 +19,7 @@ interface ContextType {
 }
 
 const Context: React.Context<ContextType> = createContext({
-  setOption: (name: OptionName, value: boolean) => {},
+  setOption: (_name: OptionName, _value: boolean) => {},
   config: DEFAULT_EDITOR_SETTINGS,
   uuid: generateQuickGuid(),
 })

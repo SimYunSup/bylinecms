@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -20,6 +21,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type React from 'react'
+import { useEffect, useState } from 'react'
+
 import {
   Button,
   CloseIcon,
@@ -29,10 +33,9 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from '@byline/uikit/react'
-import type React from 'react'
-import { useEffect, useState } from 'react'
-import type { AdmonitionType } from '../../nodes/admonition-node/types'
+
 import { admonitionTypeOptions, getInitialState, validateFields } from './fields'
+import type { AdmonitionType } from '../../nodes/admonition-node/types'
 import type { AdmonitionDrawerProps, AdmonitionFormState } from './types'
 
 import './admonition-modal.css'
@@ -73,7 +76,7 @@ export function AdmonitionModal({
   }: {
     formState: AdmonitionFormState
   }): Promise<AdmonitionFormState> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       validateFields(formState)
       resolve(formState)
     })

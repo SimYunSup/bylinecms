@@ -23,7 +23,6 @@ import type { CollectionDefinition, ColumnDefinition } from '@byline/core'
 
 // import { formatDateTime } from '../utils/formatDateTime'
 
-
 const newsColumns: ColumnDefinition[] = [
   {
     fieldName: 'title',
@@ -37,7 +36,7 @@ const newsColumns: ColumnDefinition[] = [
     label: 'Status',
     align: 'center',
     className: 'w-[15%]',
-    formatter: (value) => value ? 'Published' : 'Draft',
+    formatter: (value) => (value ? 'Published' : 'Draft'),
   },
   {
     fieldName: 'updated_at',
@@ -56,7 +55,7 @@ export const News: CollectionDefinition = {
     plural: 'News',
   },
   fields: [
-    { name: 'path', label: "Path", type: 'text', required: true, admin: { position: 'sidebar' } },
+    { name: 'path', label: 'Path', type: 'text', required: true, admin: { position: 'sidebar' } },
     { name: 'title', label: 'Title', type: 'text', required: true },
     {
       name: 'content',
@@ -65,8 +64,14 @@ export const News: CollectionDefinition = {
       helpText: 'Enter the main content for this page.',
       required: true,
     },
-    { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', required: true, admin: { position: 'sidebar' } },
+    {
+      name: 'publishedOn',
+      label: 'Published On',
+      type: 'datetime',
+      mode: 'datetime',
+      required: true,
+      admin: { position: 'sidebar' },
+    },
   ],
   columns: newsColumns,
 }
-

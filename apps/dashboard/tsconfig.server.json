@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "composite": true,
-    "lib": ["es2020"],
+    "lib": ["es2022"],
     "module": "NodeNext",
-    "target": "es2020",
+    "target": "es2022",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "incremental": true,

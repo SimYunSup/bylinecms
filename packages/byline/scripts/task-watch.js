@@ -23,6 +23,7 @@ import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+
 import chokidar from 'chokidar'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -37,7 +38,7 @@ const runTypeScriptCompilation = () => {
     console.log('🔧 Running TypeScript compilation...')
     const tsc = spawn('tsc', ['-p', 'tsconfig.json'], {
       stdio: 'inherit',
-      cwd: path.join(__dirname, '..')
+      cwd: path.join(__dirname, '..'),
     })
 
     tsc.on('close', (code) => {
@@ -62,9 +63,7 @@ const run = async () => {
     await runTypeScriptCompilation()
 
     console.log('✅ Byline core building complete...')
-  }
-
-  catch (error) {
+  } catch (error) {
     console.error('Error during Byline core build:', error)
   }
 }

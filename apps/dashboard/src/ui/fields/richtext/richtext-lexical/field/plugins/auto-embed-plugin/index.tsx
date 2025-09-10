@@ -8,6 +8,9 @@
  *
  */
 
+import type * as React from 'react'
+import { useState } from 'react'
+
 import {
   AutoEmbedOption,
   type EmbedConfig,
@@ -15,11 +18,11 @@ import {
   LexicalAutoEmbedPlugin,
 } from '@lexical/react/LexicalAutoEmbedPlugin'
 import type { LexicalEditor } from 'lexical'
-import type * as React from 'react'
-import { useState } from 'react'
 import * as ReactDOM from 'react-dom'
+
 import { INSERT_VIMEO_COMMAND } from '../vimeo-plugin'
 import { INSERT_YOUTUBE_COMMAND } from '../youtube-plugin'
+
 // import { INSERT_FIGMA_COMMAND } from '../FigmaPlugin'
 // import { INSERT_TWEET_COMMAND } from '../TwitterPlugin'
 

@@ -22,25 +22,23 @@
 import type { CollectionDefinition } from './collection-types.js'
 import type { IDbAdapter } from './db-types.js'
 
-export type DbAdapterFn = (args: { connectionString: string }) => IDbAdapter;
+export type DbAdapterFn = (args: { connectionString: string }) => IDbAdapter
 
 export interface ClientConfig {
   serverURL: string
   i18n: {
     interface: {
-      defaultLocale: string;
-      locales: string[];
+      defaultLocale: string
+      locales: string[]
     }
     content: {
-      defaultLocale: string;
-      locales: string[];
+      defaultLocale: string
+      locales: string[]
     }
   }
   collections: CollectionDefinition[]
 }
 
 export interface ServerConfig extends ClientConfig {
-  db: IDbAdapter;
+  db: IDbAdapter
 }
-
-

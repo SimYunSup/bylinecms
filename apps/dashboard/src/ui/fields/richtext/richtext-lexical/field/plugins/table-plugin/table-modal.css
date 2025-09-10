@@ -4,11 +4,10 @@
 }
 
 .table-modal-header {
-  margin-bottom: 0.5rem
+  margin-bottom: 0.5rem;
 }
 
 @media screen and (min-width: 640px) {
-
   .table-modal-select {
     margin: 1rem 0 0.5rem;
     width: 100%;

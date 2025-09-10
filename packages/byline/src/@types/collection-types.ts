@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { Field } from './field-types.js';
+import type { Field } from './field-types.js'
 
 export interface ColumnDefinition<T = any> {
   fieldName: keyof T

@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { desc, eq, relations, sql } from 'drizzle-orm'
+import { eq, relations, sql } from 'drizzle-orm'
 import {
   bigint,
   boolean,

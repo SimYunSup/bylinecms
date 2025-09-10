@@ -49,7 +49,7 @@ export class LayoutItemNode extends ElementNode {
     return {
       ...super.exportJSON(),
       type: 'layout-item',
-      version: 1
+      version: 1,
     }
   }
 }

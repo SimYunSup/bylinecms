@@ -10,6 +10,9 @@
  *
  */
 
+import type * as React from 'react'
+import { type ReactPortal, useCallback, useEffect, useRef, useState } from 'react'
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { useLexicalEditable } from '@lexical/react/useLexicalEditable'
 import {
@@ -43,9 +46,8 @@ import {
   $isRangeSelection,
   $isTextNode,
 } from 'lexical'
-import type * as React from 'react'
-import { type ReactPortal, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+
 import useModal from '../../hooks/use-modal'
 import invariant from '../../shared/invariant'
 import ColorPicker from '../../ui/color-picker'

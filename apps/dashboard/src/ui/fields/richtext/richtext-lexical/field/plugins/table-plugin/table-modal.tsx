@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -28,12 +29,12 @@
  *
  */
 
+import type * as React from 'react'
+import { useEffect, useState } from 'react'
+
 import { Button, CloseIcon, IconButton, Input, Modal } from '@byline/uikit/react'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { INSERT_TABLE_COMMAND } from '@lexical/table'
-
-import type * as React from 'react'
-import { useEffect, useState } from 'react'
 
 import './table-modal.css'
 

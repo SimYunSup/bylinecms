@@ -19,10 +19,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { Field } from '@byline/core'
-import { get as getNestedValue, set as setNestedValue } from 'lodash-es'
 import type React from 'react'
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
+
+import type { Field } from '@byline/core'
+import { get as getNestedValue, set as setNestedValue } from 'lodash-es'
 
 interface FormError {
   field: string

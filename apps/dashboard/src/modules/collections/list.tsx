@@ -19,6 +19,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { useState } from 'react'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
+
 import type { ColumnDefinition } from '@byline/core'
 import type { AnyCollectionSchemaTypes } from '@byline/core/zod-schemas'
 import {
@@ -32,12 +35,11 @@ import {
   SelectItem,
   Table,
 } from '@byline/uikit/react'
-import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import cx from 'classnames'
-import { useState } from 'react'
+
 import { RouterPager } from '@/ui/components/router-pager'
 import { TableHeadingCellSortable } from '@/ui/components/th-sortable.tsx'
-import { formatDateTime, formatNumber } from '@/utils/utils.general.ts'
+import { formatNumber } from '@/utils/utils.general.ts'
 
 function Stats({ total }: { total: number }) {
   const [showLoader, _] = useState(false)
@@ -110,7 +112,7 @@ export const ListView = ({
     if (value != null && value.length > 0) {
       const params = structuredClone(location.search)
       delete params.page
-      params.page_size = Number.parseInt(value)
+      params.page_size = Number.parseInt(value, 10)
       navigate({
         to: '/collections/$collection',
         params: { collection: data.included.collection.path },

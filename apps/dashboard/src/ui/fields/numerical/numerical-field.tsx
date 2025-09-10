@@ -21,6 +21,7 @@
 
 import type { DecimalField, FloatField, IntegerField } from '@byline/core'
 import { Input } from '@byline/uikit/react'
+
 import { useFormContext } from '../form-context'
 
 export const NumericalField = ({

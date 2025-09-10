@@ -1,7 +1,9 @@
+import { useMemo, useState } from 'react'
+
 import { Button, CloseIcon, IconButton, Input, Modal } from '@byline/uikit/react'
 import { type EmbedMatchResult, URL_MATCHER } from '@lexical/react/LexicalAutoEmbedPlugin'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
-import { useMemo, useState } from 'react'
+
 import type { AutoEmbedConfig } from './index'
 
 const debounce = (callback: (text: string) => void, delay: number): ((text: string) => void) => {

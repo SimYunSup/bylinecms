@@ -21,11 +21,13 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Table } from '@byline/uikit/react'
-import { useNavigate, useRouterState } from '@tanstack/react-router'
-import cx from 'classnames'
 import type React from 'react'
 import { useEffect, useState } from 'react'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
+
+import { Table } from '@byline/uikit/react'
+import cx from 'classnames'
+
 import {
   SortAscendingIcon,
   SortDescendingIcon,

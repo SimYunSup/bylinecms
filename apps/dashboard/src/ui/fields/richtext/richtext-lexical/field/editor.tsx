@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -20,6 +21,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type * as React from 'react'
+import { useEffect, useState } from 'react'
+
 import { TRANSFORMERS } from '@lexical/markdown'
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin'
 import { CheckListPlugin } from '@lexical/react/LexicalCheckListPlugin'
@@ -35,8 +39,7 @@ import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 import { TabIndentationPlugin } from '@lexical/react/LexicalTabIndentationPlugin'
 import { TablePlugin } from '@lexical/react/LexicalTablePlugin'
 import type { EditorState, LexicalEditor } from 'lexical'
-import type * as React from 'react'
-import { useEffect, useState } from 'react'
+
 import { useEditorConfig } from './config/editor-config-context'
 import { useSharedHistoryContext } from './context/shared-history-context'
 import { useSharedOnChange } from './context/shared-on-change-context'

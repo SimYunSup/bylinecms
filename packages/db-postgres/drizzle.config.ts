@@ -8,7 +8,7 @@ export default defineConfig({
   //   prefix: 'modulus',
   // },
   dbCredentials: {
-    // @ts-ignore
+    // @ts-expect-error
     url: process.env.POSTGRES_CONNECTION_STRING as string,
   },
   verbose: true,

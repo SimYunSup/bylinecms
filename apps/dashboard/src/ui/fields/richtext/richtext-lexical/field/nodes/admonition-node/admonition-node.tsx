@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -20,6 +21,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import * as React from 'react'
+
 import type {
   DOMConversionMap,
   DOMConversionOutput,
@@ -29,9 +32,8 @@ import type {
   LexicalNode,
   NodeKey,
 } from 'lexical'
-
 import { $applyNodeReplacement, createEditor, DecoratorNode } from 'lexical'
-import * as React from 'react'
+
 import type { AdmonitionAttributes, AdmonitionType, SerializedAdmonitionNode } from './types'
 
 const AdmonitionNodeComponent = React.lazy(async () => await import('./admonition-node-component'))
@@ -75,7 +77,7 @@ export class AdmonitionNode extends DecoratorNode<React.JSX.Element> {
 
   static importDOM(): DOMConversionMap | null {
     return {
-      div: (node: Node) => ({
+      div: (_node: Node) => ({
         conversion: convertAdmonitionElement,
         priority: 0,
       }),

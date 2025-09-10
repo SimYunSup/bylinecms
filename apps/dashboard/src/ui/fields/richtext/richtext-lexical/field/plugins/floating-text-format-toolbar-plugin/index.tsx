@@ -9,6 +9,9 @@
 
 import './index.css'
 
+import type * as React from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { $isCodeHighlightNode } from '@lexical/code'
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { mergeRegister } from '@lexical/utils'
@@ -22,11 +25,8 @@ import {
   type LexicalEditor,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical'
-import type * as React from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { useEditorConfig } from '../../config/editor-config-context'
 import { $isLinkNode, type LinkAttributes, TOGGLE_LINK_COMMAND } from '../../nodes/link-nodes'
 import { getDOMRangeRect } from '../../utils/getDOMRangeRect'
 import { getSelectedNode } from '../../utils/getSelectedNode'
@@ -99,7 +99,7 @@ function TextFormatFloatingToolbar({
       }
     }
   }
-  function mouseUpListener(e: MouseEvent): void {
+  function mouseUpListener(_e: MouseEvent): void {
     if (popupCharStylesEditorRef?.current != null) {
       if (popupCharStylesEditorRef.current.style.pointerEvents !== 'auto') {
         popupCharStylesEditorRef.current.style.pointerEvents = 'auto'

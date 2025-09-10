@@ -1,4 +1,5 @@
 import type { EditorConfig as LexicalEditorConfig, SerializedEditorState } from 'lexical'
+
 import type { EditorConfig, EditorSettings } from './field/config/types'
 
 export interface LexicalEditorProps {
@@ -19,7 +20,10 @@ export type LexicalRichTextFieldProps = {
   initialValue?: SerializedEditorState
   value?: SerializedEditorState
   onChange?: (value: SerializedEditorState) => void
-  validate?: (value: SerializedEditorState | undefined, options: { required?: boolean }) => string | boolean | Promise<string | boolean>
+  validate?: (
+    value: SerializedEditorState | undefined,
+    options: { required?: boolean }
+  ) => string | boolean | Promise<string | boolean>
   onError?: (error: Error) => void
   lexicalEditorProps?: LexicalEditorProps
 }

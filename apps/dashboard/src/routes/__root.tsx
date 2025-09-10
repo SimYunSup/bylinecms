@@ -19,9 +19,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { ToastProvider, ToastViewport } from '@byline/uikit/react'
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+
+import { ToastProvider, ToastViewport } from '@byline/uikit/react'
+
 import { BreadcrumbsProvider } from '@/context/breadcrumbs/breadcrumbs-provider'
 import { TranslationsProvider } from '@/i18n/client/translation-provider'
 import { AppBar } from '@/ui/components/app-bar.tsx'

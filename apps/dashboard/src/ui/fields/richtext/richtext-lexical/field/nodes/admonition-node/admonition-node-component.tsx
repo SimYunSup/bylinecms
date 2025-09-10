@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -20,6 +21,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type * as React from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
@@ -35,31 +39,26 @@ import {
   $getSelection,
   $isNodeSelection,
   $setSelection,
-  CLICK_COMMAND,
   COMMAND_PRIORITY_LOW,
-  DRAGSTART_COMMAND,
   KEY_BACKSPACE_COMMAND,
   KEY_DELETE_COMMAND,
   KEY_ENTER_COMMAND,
   KEY_ESCAPE_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from 'lexical'
-import type * as React from 'react'
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
+
 import { useEditorConfig } from '../../config/editor-config-context'
 import { useSharedHistoryContext } from '../../context/shared-history-context'
 import { useSharedOnChange } from '../../context/shared-on-change-context'
 import { AdmonitionModal } from '../../plugins/admonition-plugin/admonition-modal'
-import type { AdmonitionData } from '../../plugins/admonition-plugin/types'
-import { FloatingTextFormatToolbarPlugin } from '../../plugins/floating-text-format-toolbar-plugin/index'
 // import { LinkPlugin } from '../../plugins/link-plugin/link'
 // import { FloatingLinkEditorPlugin } from '../../plugins/link-plugin/link/floating-link-editor'
 import { ContentEditable } from '../../ui/content-editable'
 import { Placeholder } from '../../ui/placeholder'
-
-import type { AdmonitionNode } from './admonition-node'
 import { $isAdmonitionNode } from './admonition-node'
 import { DangerIcon, NoteIcon, TipIcon, WarningIcon } from './icons'
+import type { AdmonitionData } from '../../plugins/admonition-plugin/types'
+import type { AdmonitionNode } from './admonition-node'
 import type { AdmonitionAttributes, AdmonitionType } from './types'
 
 import './admonition-node-component.css'
@@ -86,7 +85,7 @@ export default function AdmonitionNodeComponent({
   const [editor] = useLexicalComposerContext()
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const { historyState } = useSharedHistoryContext()
-  const [isSelected, setSelected, clearSelection] = useLexicalNodeSelection(nodeKey)
+  const [isSelected, setSelected, _clearSelection] = useLexicalNodeSelection(nodeKey)
   const [selection, setSelection] = useState<RangeSelection | NodeSelection | BaseSelection | null>(
     null
   )
@@ -227,7 +226,7 @@ export default function AdmonitionNodeComponent({
           <LexicalNestedComposer initialEditor={content}>
             <OnChangePlugin
               ignoreSelectionChange={true}
-              onChange={(nestedEditorState, nestedEditor, nestedTags) => {
+              onChange={(_nestedEditorState, _nestedEditor, nestedTags) => {
                 // Note: Shared 'onChange' context provider so that
                 // caption change events can be registered with the parent
                 // editor - in turn triggering the parent editor onChange

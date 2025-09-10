@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -20,22 +21,24 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type * as React from 'react'
+import { useMemo } from 'react'
+
 import type { InitialConfigType } from '@lexical/react/LexicalComposer'
 import { LexicalComposer } from '@lexical/react/LexicalComposer'
 import type { EditorState, LexicalEditor, SerializedEditorState } from 'lexical'
-import type * as React from 'react'
-import { useMemo } from 'react'
+
 import { EditorConfigContext } from './config/editor-config-context'
-import type { EditorConfig } from './config/types'
 import { SharedHistoryContext } from './context/shared-history-context'
 import { SharedOnChangeContext } from './context/shared-on-change-context'
 import { Editor } from './editor'
 import { Nodes } from './nodes'
+import type { EditorConfig } from './config/types'
 
 // Catch any errors that occur during Lexical updates and log them
 // or throw them as needed. If you don't throw them, Lexical will
 // try to recover gracefully without losing user data.
-function onError(error: Error, editor: LexicalEditor): void {
+function _onError(error: Error, _editor: LexicalEditor): void {
   // eslint-disable-next-line no-console
   console.error(error)
 }
