@@ -20,30 +20,31 @@
  */
 
 import type { RadioGroupValue } from '@byline/uikit/react'
+
 import type { AdmonitionType } from '../../nodes/admonition-node'
-import type { AdmonitionFormState } from './types';
+import type { AdmonitionFormState } from './types'
 
 export const admonitionTypeOptions: RadioGroupValue[] = [
   {
-    id: "note",
+    id: 'note',
     label: 'Note',
-    value: 'note'
+    value: 'note',
   },
   {
-    id: "tip",
+    id: 'tip',
     label: 'Tip',
-    value: 'tip'
+    value: 'tip',
   },
   {
-    id: "warning",
+    id: 'warning',
     label: 'Warning',
-    value: 'warning'
+    value: 'warning',
   },
   {
-    id: "danger",
+    id: 'danger',
     label: 'Danger',
-    value: 'danger'
-  }
+    value: 'danger',
+  },
 ]
 
 // export const getFields = (): ClientField[] => {
@@ -79,7 +80,7 @@ export function getInitialState(data: {
       value: data?.admonitionType ?? 'note',
       initialValue: data?.admonitionType ?? 'note',
       valid: true,
-    }
+    },
   }
 }
 
@@ -87,12 +88,15 @@ export function isTitleValid(value: string | undefined): boolean {
   return value != null && value.length > 0
 }
 
-export function validateFields(fields?: AdmonitionFormState): { valid: boolean; fields: AdmonitionFormState } {
+export function validateFields(fields?: AdmonitionFormState): {
+  valid: boolean
+  fields: AdmonitionFormState
+} {
   let valid = true
   if (fields == null) {
     return {
       valid: false,
-      fields: getInitialState({})
+      fields: getInitialState({}),
     }
   }
 
@@ -103,11 +107,10 @@ export function validateFields(fields?: AdmonitionFormState): { valid: boolean; 
     } else {
       fields.title.valid = true
     }
-
   }
 
   return {
     valid,
-    fields
+    fields,
   }
 }

@@ -19,13 +19,33 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-export type FieldType = 'array' | 'group' | 'row' | 'block' | 'text' | 'checkbox' | 'boolean' | 'select' | 'richText' | 'datetime' | 'date' | 'time' | 'file' | 'image' | 'float' | 'integer' | 'decimal' | 'relation' | 'json' | 'object';
+export type FieldType =
+  | 'array'
+  | 'group'
+  | 'row'
+  | 'block'
+  | 'text'
+  | 'checkbox'
+  | 'boolean'
+  | 'select'
+  | 'richText'
+  | 'datetime'
+  | 'date'
+  | 'time'
+  | 'file'
+  | 'image'
+  | 'float'
+  | 'integer'
+  | 'decimal'
+  | 'relation'
+  | 'json'
+  | 'object'
 
 // Utility type to identify presentational field types
-export type PresentationalFieldType = 'array' | 'group' | 'row' | 'block';
+export type PresentationalFieldType = 'array' | 'group' | 'row' | 'block'
 
 // Utility type to identify value field types
-export type ValueFieldType = Exclude<FieldType, PresentationalFieldType>;
+export type ValueFieldType = Exclude<FieldType, PresentationalFieldType>
 
 export interface ValidationRule {
   type: 'min' | 'max' | 'pattern' | 'custom' | 'email' | 'url'
@@ -162,7 +182,23 @@ export interface ObjectField extends BaseValueField {
 export type PresentationalField = ArrayField | GroupField | RowField | BlockField
 
 // Union of all value fields
-export type ValueField = TextField | CheckboxField | BooleanField | SelectField | RichTextField | DateTimeField | DateField | TimeField | FileField | ImageField | FloatField | IntegerField | DecimalField | RelationField | JsonField | ObjectField
+export type ValueField =
+  | TextField
+  | CheckboxField
+  | BooleanField
+  | SelectField
+  | RichTextField
+  | DateTimeField
+  | DateField
+  | TimeField
+  | FileField
+  | ImageField
+  | FloatField
+  | IntegerField
+  | DecimalField
+  | RelationField
+  | JsonField
+  | ObjectField
 
 // Main Field union type
 export type Field = PresentationalField | ValueField
@@ -180,6 +216,3 @@ export function isValueField(field: Field): field is ValueField {
 export type NestedFields<T extends Field> = T extends PresentationalField
   ? T['fields'][number] | NestedFields<T['fields'][number]>
   : never
-
-
-

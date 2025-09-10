@@ -25,11 +25,11 @@ import type { CollectionDefinition, ICollectionCommands, IDocumentCommands } fro
  * CollectionCommands
  */
 export class CollectionCommands implements ICollectionCommands {
-  async create(path: string, config: CollectionDefinition) {
+  async create(_path: string, _config: CollectionDefinition) {
     throw new Error('db-remote method not implemented')
   }
 
-  async delete(id: string) {
+  async delete(_id: string) {
     throw new Error('db-remote method not implemented')
   }
 }
@@ -46,8 +46,8 @@ export class DocumentCommands implements IDocumentCommands {
    * @param params - Options for creating the document
    * @returns The created document and the number of field values inserted
    */
-  // @ts-ignore
-  async createDocumentVersion(params: {
+  // @ts-expect-error
+  async createDocumentVersion(_params: {
     documentId?: string // Optional logical document ID when creating a new version for the same logical document
     collectionId: string
     collectionConfig: CollectionDefinition
@@ -67,7 +67,7 @@ export class DocumentCommands implements IDocumentCommands {
  * @param db
  * @returns
  */
-export function createCommandBuilders(db: null) {
+export function createCommandBuilders(_db: null) {
   return {
     collections: new CollectionCommands(),
     documents: new DocumentCommands(),

@@ -21,9 +21,10 @@
 
 'use client'
 
+import type * as React from 'react'
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { CLEAR_EDITOR_COMMAND } from 'lexical'
-import type * as React from 'react'
 
 export function Debug(): React.JSX.Element {
   const [editor] = useLexicalComposerContext()

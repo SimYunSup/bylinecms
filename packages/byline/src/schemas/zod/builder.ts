@@ -1,6 +1,13 @@
-import * as z from "zod";
-import type { CollectionDefinition, DateTimeField, Field, TextField, ValidationRule } from '../../@types/index.js'
+import * as z from 'zod'
+
 import { getCollectionDefinition } from '../../config/config.js'
+import type {
+  CollectionDefinition,
+  DateTimeField,
+  Field,
+  TextField,
+  ValidationRule,
+} from '../../@types/index.js'
 
 // Helper function to apply custom validation rules
 const applyValidationRules = (schema: z.ZodType, rules: ValidationRule[]): z.ZodType => {
@@ -40,9 +47,9 @@ const applyTextValidation = (schema: z.ZodString, field: TextField): z.ZodString
 }
 
 // Helper function to apply datetime validation
-const applyDateTimeValidation = (schema: z.ZodType, field: DateTimeField): z.ZodType => {
+const _applyDateTimeValidation = (schema: z.ZodType, _field: DateTimeField): z.ZodType => {
   // TODO: Implement specific datetime validation if needed
-  let validatedSchema = schema
+  const validatedSchema = schema
   return validatedSchema
 }
 
@@ -74,7 +81,7 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
 
     case 'select':
       if (field.options && field.options.length > 0) {
-        const values = field.options.map(opt => opt.value) as [string, ...string[]]
+        const values = field.options.map((opt) => opt.value) as [string, ...string[]]
         schema = z.enum(values)
       } else {
         schema = z.string()
@@ -82,8 +89,8 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
       break
 
     case 'datetime': {
-      let dateSchema = z.preprocess(
-        (val) => (val === '' || val == null) ? null : val,
+      const dateSchema = z.preprocess(
+        (val) => (val === '' || val == null ? null : val),
         z.coerce.date().refine((val) => val.toString() !== 'Invalid Date', {
           message: 'Invalid date',
         })
@@ -95,7 +102,7 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
     }
 
     case 'richText': {
-      let richTextSchema = z.any()
+      const richTextSchema = z.any()
       // TODO: Implement rich text validation if needed
       // if (field.validation?.minLength || field.validation?.maxLength) {
       //   // Convert to string for validation if needed
@@ -120,12 +127,13 @@ export const fieldToZodSchema = (field: Field): z.ZodType => {
 }
 
 // Create the base schema that all collections share
-export const createBaseSchema = () => z.object({
-  document_id: z.uuid(),
-  status: z.enum(['draft', 'published', 'archived']),
-  created_at: z.iso.datetime(),
-  updated_at: z.iso.datetime(),
-})
+export const createBaseSchema = () =>
+  z.object({
+    document_id: z.uuid(),
+    status: z.enum(['draft', 'published', 'archived']),
+    created_at: z.iso.datetime(),
+    updated_at: z.iso.datetime(),
+  })
 
 // Create field schemas for a collection
 export const createFieldsSchema = (fields: Field[]) => {
@@ -139,25 +147,27 @@ export const createFieldsSchema = (fields: Field[]) => {
 }
 
 // Create pagination/list metadata schema
-export const createListMetaSchema = () => z.object({
-  page: z.number().int().positive(),
-  page_size: z.number().int().positive(),
-  total: z.number().int().nonnegative(),
-  total_pages: z.number().int().nonnegative(),
-  order: z.string().optional(),
-  desc: z.boolean().optional(),
-})
+export const createListMetaSchema = () =>
+  z.object({
+    page: z.number().int().positive(),
+    page_size: z.number().int().positive(),
+    total: z.number().int().nonnegative(),
+    total_pages: z.number().int().nonnegative(),
+    order: z.string().optional(),
+    desc: z.boolean().optional(),
+  })
 
 // Create collection metadata schema
-export const createCollectionMetaSchema = (collection: CollectionDefinition) => z.object({
-  labels: z.object({
-    singular: z.string(),
-    plural: z.string(),
-  }),
-  path: z.literal(collection.path),
-})
+export const createCollectionMetaSchema = (collection: CollectionDefinition) =>
+  z.object({
+    labels: z.object({
+      singular: z.string(),
+      plural: z.string(),
+    }),
+    path: z.literal(collection.path),
+  })
 
-// Helper function to get collection definition before calling createCollectionSchemas  
+// Helper function to get collection definition before calling createCollectionSchemas
 export const createCollectionSchemasForPath = (path: string) => {
   const collectionDefinition = getCollectionDefinition(path)
   if (collectionDefinition == null) {
@@ -172,7 +182,7 @@ export const createCollectionSchemas = (collection: CollectionDefinition) => {
   const fieldsSchema = createFieldsSchema(collection.fields)
   const fullSchema = z.object({
     ...baseSchema.shape,
-    ...fieldsSchema.shape
+    ...fieldsSchema.shape,
   })
 
   return {

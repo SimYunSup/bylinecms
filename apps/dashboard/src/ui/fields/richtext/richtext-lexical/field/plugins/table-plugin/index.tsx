@@ -1,7 +1,10 @@
 'use client'
+
+import * as React from 'react'
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { COMMAND_PRIORITY_NORMAL, createCommand } from 'lexical'
-import * as React from 'react'
+
 import { TableModal } from './table-modal'
 
 export const OPEN_TABLE_MODAL_COMMAND = createCommand('OPEN_TABLE_MODAL_COMMAND')

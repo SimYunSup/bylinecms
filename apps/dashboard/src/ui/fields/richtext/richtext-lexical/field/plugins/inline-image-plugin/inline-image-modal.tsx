@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -20,17 +21,19 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Button, CloseIcon, IconButton, Modal } from '@byline/uikit/react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
+
+import { Button, CloseIcon, IconButton, Modal } from '@byline/uikit/react'
+
 import { useEditorConfig } from '../../config/editor-config-context'
-import type { Position } from '../../nodes/inline-image-node'
 import { getInitialState, validateFields } from './fields'
+import type { Position } from '../../nodes/inline-image-node'
 import type { InlineImageData, InlineImageDrawerProps, InlineImageFormState } from './types'
 
 import './inline-image-modal.css'
 
-const baseClass = 'inline-image-plugin--modal'
+const _baseClass = 'inline-image-plugin--modal'
 
 export const InlineImageModal: React.FC<InlineImageDrawerProps> = ({
   isOpen = false,
@@ -50,18 +53,18 @@ export const InlineImageModal: React.FC<InlineImageDrawerProps> = ({
     onClose()
   }
 
-  async function handleFormOnChange({
+  async function _handleFormOnChange({
     formState,
   }: {
     formState: InlineImageFormState
   }): Promise<InlineImageFormState> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       validateFields(formState)
       resolve(formState)
     })
   }
 
-  const handleFormOnSubmit = (
+  const _handleFormOnSubmit = (
     fields: InlineImageFormState,
     data: Record<string, unknown>
   ): void => {

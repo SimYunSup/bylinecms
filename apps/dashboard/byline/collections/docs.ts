@@ -23,7 +23,6 @@ import type { CollectionDefinition, ColumnDefinition } from '@byline/core'
 
 // import { formatDateTime } from '../utils/formatDateTime'
 
-
 const docsColumns: ColumnDefinition[] = [
   {
     fieldName: 'title',
@@ -37,7 +36,7 @@ const docsColumns: ColumnDefinition[] = [
     label: 'Featured',
     align: 'center',
     className: 'w-[10%]',
-    formatter: (value) => value ? '★' : '',
+    formatter: (value) => (value ? '★' : ''),
   },
   {
     fieldName: 'status',
@@ -53,7 +52,6 @@ const docsColumns: ColumnDefinition[] = [
     className: 'w-[20%]',
     // formatter: (value) => formatDateTime(value),
   },
-
 ]
 
 export const Docs: CollectionDefinition = {
@@ -63,45 +61,96 @@ export const Docs: CollectionDefinition = {
     plural: 'Documents',
   },
   fields: [
-    { name: 'path', label: "Path", type: 'text', required: true, admin: { position: 'sidebar' } },
-    { name: 'title', label: 'Title', type: 'text', required: true, },
+    { name: 'path', label: 'Path', type: 'text', required: true, admin: { position: 'sidebar' } },
+    { name: 'title', label: 'Title', type: 'text', required: true },
     { name: 'summary', label: 'Summary', type: 'text', required: true, localized: true },
-    { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', required: true, admin: { position: 'sidebar' } },
-    { name: 'featured', label: 'Featured', type: 'checkbox', helpText: 'Is this page featured on the home page?', admin: { position: 'sidebar' } },
     {
-      name: 'content', label: 'Content', type: 'array', fields: [
+      name: 'publishedOn',
+      label: 'Published On',
+      type: 'datetime',
+      mode: 'datetime',
+      required: true,
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'featured',
+      label: 'Featured',
+      type: 'checkbox',
+      helpText: 'Is this page featured on the home page?',
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'content',
+      label: 'Content',
+      type: 'array',
+      fields: [
         {
-          name: 'richTextBlock', label: 'Richtext Block', type: 'array', fields: [
-            { name: 'richText', label: 'Richtext', type: 'richText', required: true, localized: true },
-            { name: 'constrainedWidth', label: 'Constrained Width', type: 'checkbox', required: false },
-          ]
+          name: 'richTextBlock',
+          label: 'Richtext Block',
+          type: 'array',
+          fields: [
+            {
+              name: 'richText',
+              label: 'Richtext',
+              type: 'richText',
+              required: true,
+              localized: true,
+            },
+            {
+              name: 'constrainedWidth',
+              label: 'Constrained Width',
+              type: 'checkbox',
+              required: false,
+            },
+          ],
         },
         {
-          name: 'photoBlock', label: 'Photo Block', type: 'array', fields: [
+          name: 'photoBlock',
+          label: 'Photo Block',
+          type: 'array',
+          fields: [
             { name: 'display', label: 'Display', type: 'text', required: false },
             { name: 'photo', label: 'Photo', type: 'image', required: true },
             { name: 'alt', label: 'Alt', type: 'text', required: true, localized: false },
-            { name: 'caption', label: "Caption", type: 'richText', required: false, localized: true },
-          ]
+            {
+              name: 'caption',
+              label: 'Caption',
+              type: 'richText',
+              required: false,
+              localized: true,
+            },
+          ],
         },
-      ]
+      ],
     },
     {
-      name: 'reviews', label: 'Reviews', type: 'array', fields: [
+      name: 'reviews',
+      label: 'Reviews',
+      type: 'array',
+      fields: [
         {
-          name: 'reviewItem', label: 'Review Item', type: 'array', fields: [
+          name: 'reviewItem',
+          label: 'Review Item',
+          type: 'array',
+          fields: [
             { name: 'rating', label: 'Rating', type: 'integer', required: true },
-            { name: 'comment', label: 'Comments', type: 'richText', required: true, localized: false },
-          ]
-        }
-      ]
+            {
+              name: 'comment',
+              label: 'Comments',
+              type: 'richText',
+              required: true,
+              localized: false,
+            },
+          ],
+        },
+      ],
     },
     {
-      name: 'links', label: 'Links', type: 'array', fields: [
-        { name: "link", label: 'Link', type: "text" }
-      ]
-    }
+      name: 'links',
+      label: 'Links',
+      type: 'array',
+      fields: [{ name: 'link', label: 'Link', type: 'text' }],
+    },
   ],
   columns: docsColumns,
-};
-
+}

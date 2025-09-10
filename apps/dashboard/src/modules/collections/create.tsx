@@ -19,9 +19,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { useNavigate } from '@tanstack/react-router'
+
 import type { CollectionDefinition } from '@byline/core'
 import { Container, Section } from '@byline/uikit/react'
-import { useNavigate } from '@tanstack/react-router'
+
 import { FormRenderer } from '@/ui/fields/form-renderer'
 
 export const CreateView = ({

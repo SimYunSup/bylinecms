@@ -20,25 +20,26 @@
  */
 
 import type { SelectValue } from '@byline/uikit/react'
+
 import type { InlineImageData, InlineImageFormState } from './types'
 
 export const positionOptions: SelectValue[] = [
   {
     label: 'Left',
-    value: 'left'
+    value: 'left',
   },
   {
     label: 'Right',
-    value: 'right'
+    value: 'right',
   },
   {
     label: 'Full',
-    value: 'full'
+    value: 'full',
   },
   {
     label: 'Wide',
-    value: 'wide'
-  }
+    value: 'wide',
+  },
 ]
 
 // export const getFields = (imageCollection: CollectionSlug): ClientField[] => [
@@ -91,23 +92,23 @@ export function getInitialState(data: InlineImageData | undefined): InlineImageF
     image: {
       value: data?.id,
       initialValue: data?.id,
-      valid: true
+      valid: true,
     },
     altText: {
       value: data?.altText,
       initialValue: data?.altText,
-      valid: true
+      valid: true,
     },
     position: {
       value: data?.position ?? 'full',
       initialValue: data?.position ?? 'full',
-      valid: true
+      valid: true,
     },
     showCaption: {
       value: data?.showCaption ?? false,
       initialValue: data?.showCaption ?? false,
-      valid: true
-    }
+      valid: true,
+    },
   }
 }
 
@@ -115,7 +116,10 @@ export function isAltTextValid(value: string | undefined): boolean {
   return value != null && value.length > 0
 }
 
-export function validateFields(fields: InlineImageFormState): { valid: boolean; fields: InlineImageFormState } {
+export function validateFields(fields: InlineImageFormState): {
+  valid: boolean
+  fields: InlineImageFormState
+} {
   let valid = true
 
   if (fields.altText != null) {
@@ -129,6 +133,6 @@ export function validateFields(fields: InlineImageFormState): { valid: boolean; 
   // Return
   return {
     valid,
-    fields
+    fields,
   }
 }

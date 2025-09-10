@@ -20,6 +20,7 @@
  */
 
 import type { RichTextField as FieldType } from '@byline/core'
+
 import { RichTextField as LexicalRichTextField } from './field'
 import { defaultEditorConfig } from './field/config/default'
 

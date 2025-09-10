@@ -20,15 +20,17 @@
  */
 
 // TODO - this must come from site config for content collections.
-const CONTENT_LOCALES = ['en', 'es', 'fr'];
+const CONTENT_LOCALES = ['en', 'es', 'fr']
 
 import type {
   CollectionDefinition,
-  DateTimeStore, Field,
+  DateTimeStore,
+  Field,
   FileStore,
   FlattenedStore,
   NumericStore,
-  RelationStore, ValueField,
+  RelationStore,
+  ValueField,
 } from '@byline/core'
 
 export const getFirstOrThrow =
@@ -46,46 +48,47 @@ export function flattenFields(
   collectionConfig: CollectionDefinition,
   locale = 'all'
 ): FlattenedStore[] {
-  const flattenedFields: FlattenedStore[] = [];
+  const flattenedFields: FlattenedStore[] = []
 
   function getParentPath(path: string): string | undefined {
-    const parts = path.split('.');
-    if (parts.length <= 1) return undefined;
-    parts.pop();
-    return parts.join('.');
+    const parts = path.split('.')
+    if (parts.length <= 1) return undefined
+    parts.pop()
+    return parts.join('.')
   }
 
   function flatten(obj: any, fieldConfigs: Field[], basePath = '') {
     for (const fieldConfig of fieldConfigs) {
-      const currentPath = basePath ? `${basePath}.${fieldConfig.name}` : fieldConfig.name;
-      const value = obj[fieldConfig.name];
+      const currentPath = basePath ? `${basePath}.${fieldConfig.name}` : fieldConfig.name
+      const value = obj[fieldConfig.name]
 
-      if (value === undefined || value === null) continue;
+      if (value === undefined || value === null) continue
 
       if (fieldConfig.type === 'array' && Array.isArray(value)) {
         value.forEach((item, index) => {
-          const arrayElementPath = `${currentPath}.${index}`;
+          const arrayElementPath = `${currentPath}.${index}`
           if (typeof item === 'object' && item !== null && fieldConfig.fields) {
             // The item is an object with a single key, which is the field name.
-            const fieldName = Object.keys(item)[0];
+            const fieldName = Object.keys(item)[0]
             if (fieldName != null) {
-              const fieldValue = item[fieldName];
-              const subField = fieldConfig.fields.find(f => f.name === fieldName);
+              const fieldValue = item[fieldName]
+              const subField = fieldConfig.fields.find((f) => f.name === fieldName)
               if (subField) {
-                flatten({ [fieldName]: fieldValue }, [subField], arrayElementPath);
+                flatten({ [fieldName]: fieldValue }, [subField], arrayElementPath)
               }
             }
           }
-        });
+        })
       } else if (fieldConfig.localized && typeof value === 'object' && !Array.isArray(value)) {
-        const valueKeys = Object.keys(value);
+        const valueKeys = Object.keys(value)
 
         // NOTE: This is potentially a valuable feature, as it would allow us to handle the updating
         // or migration of documents that have been retrieved via the 'all' locale. In other words,
         // if a document has been retrieved with the 'all' locale, it will have all locales present
         // for localized fields, and we can submit the document as such during migration, instead
         // of having to iterate over each locale and insert portions of a localized document separately.
-        const isLocalizedObject = valueKeys.length > 0 && valueKeys.every(key => CONTENT_LOCALES.includes(key));
+        const isLocalizedObject =
+          valueKeys.length > 0 && valueKeys.every((key) => CONTENT_LOCALES.includes(key))
 
         if (isLocalizedObject) {
           for (const [localeKey, localizedValue] of Object.entries(value)) {
@@ -99,7 +102,7 @@ export function flattenFields(
                   localeKey,
                   getParentPath(currentPath)
                 )
-              );
+              )
             }
           }
         } else {
@@ -113,7 +116,7 @@ export function flattenFields(
               locale,
               getParentPath(currentPath)
             )
-          );
+          )
         }
       } else {
         flattenedFields.push(
@@ -125,13 +128,13 @@ export function flattenFields(
             locale,
             getParentPath(currentPath)
           )
-        );
+        )
       }
     }
   }
 
-  flatten(documentData, collectionConfig.fields);
-  return flattenedFields;
+  flatten(documentData, collectionConfig.fields)
+  return flattenedFields
 }
 
 function createFlattenedStore(
@@ -147,72 +150,69 @@ function createFlattenedStore(
     field_name,
     locale,
     parent_path,
-  };
+  }
 
   switch (field_type) {
     case 'text':
     case 'boolean':
     case 'checkbox':
     case 'select':
-      return { ...baseValue, field_type, value };
+      return { ...baseValue, field_type, value }
 
     case 'richText':
       return { ...baseValue, field_type, value }
 
     case 'float':
     case 'integer':
-    case 'decimal':
-      {
-        return {
-          ...baseValue,
-          field_type,
-          number_type: field_type,
-          value_float: field_type === 'float' ? value : undefined,
-          value_decimal: field_type === 'decimal' ? value : undefined,
-          value_integer: field_type === 'integer' ? value : undefined,
-        };
+    case 'decimal': {
+      return {
+        ...baseValue,
+        field_type,
+        number_type: field_type,
+        value_float: field_type === 'float' ? value : undefined,
+        value_decimal: field_type === 'decimal' ? value : undefined,
+        value_integer: field_type === 'integer' ? value : undefined,
       }
+    }
 
     case 'time':
     case 'date':
-    case 'datetime':
-      {
-        return {
-          ...baseValue,
-          field_type,
-          date_type: field_type,
-          value_time: field_type === 'time' ? value : undefined,
-          value_date: field_type === 'date' ? value : undefined,
-          value_timestamp_tz: field_type === 'datetime' ? value : undefined,
-        }
+    case 'datetime': {
+      return {
+        ...baseValue,
+        field_type,
+        date_type: field_type,
+        value_time: field_type === 'time' ? value : undefined,
+        value_date: field_type === 'date' ? value : undefined,
+        value_timestamp_tz: field_type === 'datetime' ? value : undefined,
       }
+    }
 
     case 'file':
-    case 'image':
-      {
-        const v = value as FileStore;
-        return {
-          ...baseValue,
-          field_type,
-          file_id: v.file_id,
-          filename: v.filename,
-          original_filename: v.original_filename,
-          mime_type: v.mime_type,
-          file_size: v.file_size,
-          storage_provider: v.storage_provider,
-          storage_path: v.storage_path,
-          storage_url: v.storage_url,
-          file_hash: v.file_hash,
-          image_width: v.image_width,
-          image_height: v.image_height,
-          image_format: v.image_format,
-          processing_status: v.processing_status,
-          thumbnail_generated: v.thumbnail_generated,
-        };
+    case 'image': {
+      const v = value as FileStore
+      return {
+        ...baseValue,
+        field_type,
+        file_id: v.file_id,
+        filename: v.filename,
+        original_filename: v.original_filename,
+        mime_type: v.mime_type,
+        file_size: v.file_size,
+        storage_provider: v.storage_provider,
+        storage_path: v.storage_path,
+        storage_url: v.storage_url,
+        file_hash: v.file_hash,
+        image_width: v.image_width,
+        image_height: v.image_height,
+        image_format: v.image_format,
+        processing_status: v.processing_status,
+        thumbnail_generated: v.thumbnail_generated,
       }
+    }
 
     case 'relation':
-      return { ...baseValue, field_type, ...value };
+      return { ...baseValue, field_type, ...value }
 
     case 'json':
     case 'object':
@@ -224,83 +224,92 @@ function createFlattenedStore(
         object_keys: value.object_keys, // Assuming object_keys is part of the value;
       }
     default:
-      throw new Error(`Unsupported field type: ${field_type}`);
+      throw new Error(`Unsupported field type: ${field_type}`)
   }
 }
 
-export function reconstructFields(
-  fieldValues: FlattenedStore[],
-  locale = 'all'
-): any {
-  const document: any = {};
+export function reconstructFields(fieldValues: FlattenedStore[], locale = 'all'): any {
+  const document: any = {}
 
   const setValue = (obj: any, path: string, value: any) => {
-    const keys = path.split('.');
-    let current = obj;
+    const keys = path.split('.')
+    let current = obj
     for (let i = 0; i < keys.length - 1; i++) {
-      const key = keys[i];
-      const nextKey = keys[i + 1];
-      const isNextKeyIndex = nextKey !== undefined && !Number.isNaN(Number.parseInt(nextKey, 10));
+      const key = keys[i]
+      const nextKey = keys[i + 1]
+      const isNextKeyIndex = nextKey !== undefined && !Number.isNaN(Number.parseInt(nextKey, 10))
 
       if (isNextKeyIndex) {
         if (key && (!current[key] || !Array.isArray(current[key]))) {
-          current[key] = [];
+          current[key] = []
         }
       } else if (key && (!current[key] || typeof current[key] !== 'object')) {
-        if (Array.isArray(current) && typeof key === 'string' && !Number.isNaN(Number.parseInt(key, 10))) {
-          const index = Number.parseInt(key, 10);
+        if (
+          Array.isArray(current) &&
+          typeof key === 'string' &&
+          !Number.isNaN(Number.parseInt(key, 10))
+        ) {
+          const index = Number.parseInt(key, 10)
           if (!current[index]) {
-            current[index] = {};
+            current[index] = {}
           }
         } else {
-          current[key] = {};
+          current[key] = {}
         }
       }
       if (key) {
-        current = current[key];
+        current = current[key]
       }
     }
-    const lastKey = keys[keys.length - 1];
+    const lastKey = keys[keys.length - 1]
     if (lastKey !== undefined) {
-      if (Array.isArray(current) && typeof lastKey === 'string' && !Number.isNaN(Number.parseInt(lastKey, 10))) {
-        const index = Number.parseInt(lastKey, 10);
+      if (
+        Array.isArray(current) &&
+        typeof lastKey === 'string' &&
+        !Number.isNaN(Number.parseInt(lastKey, 10))
+      ) {
+        const index = Number.parseInt(lastKey, 10)
         if (current[index] && typeof current[index] === 'object') {
-          Object.assign(current[index], value);
+          Object.assign(current[index], value)
         } else {
-          current[index] = value;
+          current[index] = value
         }
       } else {
-        current[lastKey] = value;
+        current[lastKey] = value
       }
     }
-  };
+  }
 
-  const fieldValuesByPath: Record<string, FlattenedStore[]> = {};
+  const fieldValuesByPath: Record<string, FlattenedStore[]> = {}
   for (const fv of fieldValues) {
     if (!fieldValuesByPath[fv.field_path]) {
-      fieldValuesByPath[fv.field_path] = [];
+      fieldValuesByPath[fv.field_path] = []
     }
-    fieldValuesByPath[fv.field_path]!.push(fv);
+    fieldValuesByPath[fv.field_path]?.push(fv)
   }
 
   for (const path in fieldValuesByPath) {
-    const values = fieldValuesByPath[path];
-    if (!values) continue;
-    const preferredValue = values.find(v => v.locale === locale) || values.find(v => v.locale === 'default') || values[0];
+    const values = fieldValuesByPath[path]
+    if (!values) continue
+    const preferredValue =
+      values.find((v) => v.locale === locale) ||
+      values.find((v) => v.locale === 'default') ||
+      values[0]
 
-    if (values.length > 1 && values.some(v => v.locale !== 'all')) { // Localized
-      const localizedObject: Record<string, any> = {};
-      values.forEach(v => {
-        localizedObject[v.locale] = createReconstructedValue(v);
-      });
-      setValue(document, path, localizedObject);
+    if (values.length > 1 && values.some((v) => v.locale !== 'all')) {
+      // Localized
+      const localizedObject: Record<string, any> = {}
+      values.forEach((v) => {
+        localizedObject[v.locale] = createReconstructedValue(v)
+      })
+      setValue(document, path, localizedObject)
     } else if (preferredValue) {
-      const valueToSet = createReconstructedValue(preferredValue);
-      setValue(document, path, valueToSet);
+      const valueToSet = createReconstructedValue(preferredValue)
+      setValue(document, path, valueToSet)
     }
   }
 
-  return document;
+  return document
 }
 
 function createReconstructedValue(fieldValue: FlattenedStore): any {
@@ -312,12 +321,12 @@ function createReconstructedValue(fieldValue: FlattenedStore): any {
     case 'boolean':
     case 'json':
     case 'object':
-      return (fieldValue as any).value;
+      return (fieldValue as any).value
 
     case 'float':
     case 'integer':
     case 'decimal': {
-      const value = fieldValue as NumericStore;
+      const value = fieldValue as NumericStore
       if (fieldValue.field_type === 'float') {
         return value.value_float
       }
@@ -327,7 +336,7 @@ function createReconstructedValue(fieldValue: FlattenedStore): any {
       if (fieldValue.field_type === 'decimal') {
         return fieldValue.value_decimal
       }
-      return undefined;
+      return undefined
     }
 
     case 'time':
@@ -335,21 +344,21 @@ function createReconstructedValue(fieldValue: FlattenedStore): any {
     case 'datetime': {
       const value = fieldValue as DateTimeStore
       if (value.date_type === 'time') {
-        return value.value_time;
+        return value.value_time
       }
       if (value.date_type === 'date') {
-        return value.value_date;
+        return value.value_date
       }
       // Assuming timestamp_tz is the default for datetime
       if (value.date_type === 'datetime') {
-        return value.value_timestamp_tz;
+        return value.value_timestamp_tz
       }
-      return undefined;
+      return undefined
     }
 
     case 'file':
     case 'image': {
-      const fileValue = fieldValue as FileStore;
+      const fileValue = fieldValue as FileStore
       return {
         file_id: fileValue.file_id,
         filename: fileValue.filename,
@@ -365,20 +374,20 @@ function createReconstructedValue(fieldValue: FlattenedStore): any {
         image_format: fileValue.image_format,
         processing_status: fileValue.processing_status,
         thumbnail_generated: fileValue.thumbnail_generated,
-      };
+      }
     }
 
     case 'relation': {
-      const relationValue = fieldValue as RelationStore;
+      const relationValue = fieldValue as RelationStore
       return {
         target_document_id: relationValue.target_document_id,
         target_collection_id: relationValue.target_collection_id,
         relationship_type: relationValue.relationship_type,
         cascade_delete: relationValue.cascade_delete,
-      };
+      }
     }
 
     default:
-      return (fieldValue as any).value;
+      return (fieldValue as any).value
   }
 }

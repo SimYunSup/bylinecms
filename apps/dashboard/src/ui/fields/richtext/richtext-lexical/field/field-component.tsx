@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -48,14 +49,16 @@
  *
  */
 
-import { ErrorText, HelpText, Label } from '@byline/uikit/react'
-import type { EditorState, SerializedEditorState } from 'lexical'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+
+import { HelpText, Label } from '@byline/uikit/react'
+import type { EditorState, SerializedEditorState } from 'lexical'
 import { ErrorBoundary } from 'react-error-boundary'
+
 import { useEffectEvent } from '@/hooks/use-effect-event'
-import type { LexicalRichTextFieldProps } from '../types'
 import { richTextValidate } from '../validate/validate'
 import { EditorContext } from './editor-context'
+import type { LexicalRichTextFieldProps } from '../types'
 
 import './field-component.css'
 import './themes/lexical-editor-theme.css'
@@ -84,7 +87,7 @@ export function RichTextComponent({
   const prevValueRef = React.useRef<SerializedEditorState | undefined>(value)
 
   // TODO: implement validation handling
-  const memoizedValidate = useCallback(
+  const _memoizedValidate = useCallback(
     (value: SerializedEditorState | undefined) => {
       if (typeof validate === 'function') {
         return validate(value, { required })

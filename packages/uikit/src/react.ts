@@ -24,7 +24,6 @@
  * TS / dist output
  */
 export * from './components/@types/shared.js'
-
 export * from './components/accordion/accordion.js'
 export * from './components/animation/fade-in-lift.js'
 export * from './components/avatar/avatar.js'

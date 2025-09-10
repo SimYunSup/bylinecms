@@ -22,9 +22,10 @@
 // Initialize Byline config by importing the browser-safe client config.
 import '../byline.client.config.ts'
 
+import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
-import React from 'react'
+
 import ReactDOM from 'react-dom/client'
 
 // Import the generated route tree

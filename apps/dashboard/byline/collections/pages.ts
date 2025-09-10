@@ -36,14 +36,14 @@ const pagesColumns: ColumnDefinition[] = [
     label: 'Featured',
     align: 'center',
     className: 'w-[10%]',
-    formatter: (value) => value ? '★' : '',
+    formatter: (value) => (value ? '★' : ''),
   },
   {
     fieldName: 'published',
     label: 'Status',
     align: 'center',
     className: 'w-[15%]',
-    formatter: (value) => value ? 'Published' : 'Draft',
+    formatter: (value) => (value ? 'Published' : 'Draft'),
   },
   {
     fieldName: 'updated_at',
@@ -53,7 +53,6 @@ const pagesColumns: ColumnDefinition[] = [
     className: 'w-[20%]',
     // formatter: (value) => formatDateTime(value),
   },
-
 ]
 
 export const Pages: CollectionDefinition = {
@@ -63,7 +62,7 @@ export const Pages: CollectionDefinition = {
     plural: 'Pages',
   },
   fields: [
-    { name: 'path', label: "Path", type: 'text', required: true, admin: { position: 'sidebar' } },
+    { name: 'path', label: 'Path', type: 'text', required: true, admin: { position: 'sidebar' } },
     { name: 'title', label: 'Title', type: 'text', required: true },
     {
       name: 'category',
@@ -83,9 +82,21 @@ export const Pages: CollectionDefinition = {
       helpText: 'Enter the main content for this page.',
       required: true,
     },
-    { name: 'publishedOn', label: 'Published On', type: 'datetime', mode: 'datetime', required: true, admin: { position: 'sidebar' } },
-    { name: 'featured', label: 'Featured', type: 'checkbox', helpText: 'Is this page featured on the home page?', admin: { position: 'sidebar' } },
+    {
+      name: 'publishedOn',
+      label: 'Published On',
+      type: 'datetime',
+      mode: 'datetime',
+      required: true,
+      admin: { position: 'sidebar' },
+    },
+    {
+      name: 'featured',
+      label: 'Featured',
+      type: 'checkbox',
+      helpText: 'Is this page featured on the home page?',
+      admin: { position: 'sidebar' },
+    },
   ],
   columns: pagesColumns,
 }
-

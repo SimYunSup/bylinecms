@@ -13,7 +13,7 @@ import type {
   LexicalNode,
   NodeKey,
   SerializedElementNode,
-  Spread
+  Spread,
 } from 'lexical'
 import { ElementNode } from 'lexical'
 
@@ -73,7 +73,7 @@ export class LayoutContainerNode extends ElementNode {
       ...super.exportJSON(),
       templateColumns: this.__templateColumns,
       type: 'layout-container',
-      version: 1
+      version: 1,
     }
   }
 

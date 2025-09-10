@@ -19,11 +19,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { useNavigate } from '@tanstack/react-router'
+
 import type { CollectionDefinition } from '@byline/core'
 import type { AnyCollectionSchemaTypes } from '@byline/core/zod-schemas'
 import { Button, Container, HistoryIcon, IconButton, Section } from '@byline/uikit/react'
-import { useNavigate } from '@tanstack/react-router'
-import { allExpanded, darkStyles, defaultStyles, JsonView } from 'react-json-view-lite'
+import { allExpanded, darkStyles, JsonView } from 'react-json-view-lite'
 import 'react-json-view-lite/dist/index.css'
 
 export const ApiView = ({

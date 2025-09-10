@@ -1,7 +1,7 @@
-import { defineServerConfig } from '@byline/core';
+import { defineServerConfig } from '@byline/core'
 import { pgAdapter } from '@byline/db-postgres'
 
-import { config } from './byline.client.config.js';
+import { config } from './byline.client.config.js'
 
 defineServerConfig({
   ...config,

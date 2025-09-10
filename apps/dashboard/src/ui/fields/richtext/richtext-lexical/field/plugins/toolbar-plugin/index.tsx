@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -6,6 +7,16 @@
  * LICENSE file in the root directory of this source tree.
  *
  */
+
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
+import type * as React from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import {
   $createCodeNode,
@@ -33,7 +44,7 @@ import {
   $isQuoteNode,
   type HeadingTagType,
 } from '@lexical/rich-text'
-import { $isParentElementRTL, $setBlocksType } from '@lexical/selection'
+import { $setBlocksType } from '@lexical/selection'
 import { $isTableNode } from '@lexical/table'
 import {
   $findMatchingParent,
@@ -63,15 +74,7 @@ import {
   SELECTION_CHANGE_COMMAND,
   UNDO_COMMAND,
 } from 'lexical'
-/**
- * Copyright (c) Meta Platforms, Inc. and affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- */
-import type * as React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+
 import { useEditorConfig } from '../../config/editor-config-context'
 import { $isLinkNode, type LinkAttributes, TOGGLE_LINK_COMMAND } from '../../nodes/link-nodes'
 import { IS_APPLE } from '../../shared/environment'
@@ -219,19 +222,19 @@ function BlockFormatDropDown({
     <DropDown
       disabled={disabled}
       buttonClassName="toolbar-item block-controls"
-      buttonIconClassName={'icon block-type ' + blockType}
+      buttonIconClassName={`icon block-type ${blockType}`}
       buttonLabel={blockTypeToBlockName[blockType]}
       buttonAriaLabel="Formatting options for text style"
     >
       <DropDownItem
-        className={'item ' + dropDownActiveClass(blockType === 'paragraph')}
+        className={`item ${dropDownActiveClass(blockType === 'paragraph')}`}
         onClick={formatParagraph}
       >
         <i className="icon paragraph" />
         <span className="text">Normal</span>
       </DropDownItem>
       <DropDownItem
-        className={'item ' + dropDownActiveClass(blockType === 'h1')}
+        className={`item ${dropDownActiveClass(blockType === 'h1')}`}
         onClick={() => {
           formatHeading('h1')
         }}
@@ -240,7 +243,7 @@ function BlockFormatDropDown({
         <span className="text">Heading 1</span>
       </DropDownItem>
       <DropDownItem
-        className={'item ' + dropDownActiveClass(blockType === 'h2')}
+        className={`item ${dropDownActiveClass(blockType === 'h2')}`}
         onClick={() => {
           formatHeading('h2')
         }}
@@ -249,7 +252,7 @@ function BlockFormatDropDown({
         <span className="text">Heading 2</span>
       </DropDownItem>
       <DropDownItem
-        className={'item ' + dropDownActiveClass(blockType === 'h3')}
+        className={`item ${dropDownActiveClass(blockType === 'h3')}`}
         onClick={() => {
           formatHeading('h3')
         }}
@@ -258,7 +261,7 @@ function BlockFormatDropDown({
         <span className="text">Heading 3</span>
       </DropDownItem>
       <DropDownItem
-        className={'item ' + dropDownActiveClass(blockType === 'h4')}
+        className={`item ${dropDownActiveClass(blockType === 'h4')}`}
         onClick={() => {
           formatHeading('h4')
         }}
@@ -269,14 +272,14 @@ function BlockFormatDropDown({
       {listPlugin && (
         <>
           <DropDownItem
-            className={'item ' + dropDownActiveClass(blockType === 'bullet')}
+            className={`item ${dropDownActiveClass(blockType === 'bullet')}`}
             onClick={formatBulletList}
           >
             <i className="icon bullet-list" />
             <span className="text">Bullet List</span>
           </DropDownItem>
           <DropDownItem
-            className={'item ' + dropDownActiveClass(blockType === 'number')}
+            className={`item ${dropDownActiveClass(blockType === 'number')}`}
             onClick={formatNumberedList}
           >
             <i className="icon numbered-list" />
@@ -287,7 +290,7 @@ function BlockFormatDropDown({
 
       {checkListPlugin && (
         <DropDownItem
-          className={'item ' + dropDownActiveClass(blockType === 'check')}
+          className={`item ${dropDownActiveClass(blockType === 'check')}`}
           onClick={formatCheckList}
         >
           <i className="icon check-list" />
@@ -296,7 +299,7 @@ function BlockFormatDropDown({
       )}
 
       <DropDownItem
-        className={'item ' + dropDownActiveClass(blockType === 'quote')}
+        className={`item ${dropDownActiveClass(blockType === 'quote')}`}
         onClick={formatQuote}
       >
         <i className="icon quote" />
@@ -304,7 +307,7 @@ function BlockFormatDropDown({
       </DropDownItem>
       {codeHighlightPlugin && (
         <DropDownItem
-          className={'item ' + dropDownActiveClass(blockType === 'code')}
+          className={`item ${dropDownActiveClass(blockType === 'code')}`}
           onClick={formatCode}
         >
           <i className="icon code" />
@@ -336,7 +339,7 @@ export function ToolbarPlugin(): React.JSX.Element {
   const [isCode, setIsCode] = useState(false)
   const [canUndo, setCanUndo] = useState(false)
   const [canRedo, setCanRedo] = useState(false)
-  const [isRTL, setIsRTL] = useState(false)
+  const [isRTL, _setIsRTL] = useState(false)
   const [codeLanguage, setCodeLanguage] = useState<string>('')
   const [isEditable, setIsEditable] = useState(() => editor.isEditable())
   const {

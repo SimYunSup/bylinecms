@@ -21,6 +21,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import * as React from 'react'
+import { useEffect } from 'react'
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { $insertNodeToNearestRoot, mergeRegister } from '@lexical/utils'
 import {
@@ -31,11 +34,10 @@ import {
   createCommand,
   type LexicalCommand,
 } from 'lexical'
-import * as React from 'react'
-import { useEffect } from 'react'
+
 import { $createAdmonitionNode, AdmonitionNode } from '../../nodes/admonition-node'
-import type { AdmonitionAttributes } from '../../nodes/admonition-node/types'
 import { AdmonitionModal } from './admonition-modal'
+import type { AdmonitionAttributes } from '../../nodes/admonition-node/types'
 import type { AdmonitionData } from './types'
 
 export type InsertAdmonitionPayload = Readonly<AdmonitionAttributes>

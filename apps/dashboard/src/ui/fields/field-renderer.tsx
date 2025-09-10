@@ -23,6 +23,7 @@
 // implementation of a field renderer used only for prototype development.
 
 import type { Field } from '@byline/core'
+
 import { CheckboxField } from '../fields/checkbox/checkbox-field'
 import { useFormContext } from '../fields/form-context'
 import { RichTextField } from '../fields/richtext/richtext-lexical/richtext-field'

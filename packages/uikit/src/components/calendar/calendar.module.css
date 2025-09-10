@@ -1,8 +1,12 @@
-@layer infonomic-base, infonomic-utilities, infonomic-theme, infonomic-typography, infonomic-components;
+@layer infonomic-base,
+  infonomic-utilities,
+  infonomic-theme,
+  infonomic-typography,
+  infonomic-components;
 
 @layer infonomic-components {
   .day-picker {
-    padding: var(--spacing-3)
+    padding: var(--spacing-3);
   }
 
   /* relative flex flex-col gap-4 sm:flex-row */
@@ -65,7 +69,7 @@
 
   .select-chevrons {
     stroke: var(--primary-400);
-    opacity: 0.7
+    opacity: 0.7;
   }
 
   .scroll-area {
@@ -89,14 +93,13 @@
     flex: 1;
   }
 
-
   /* 'text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30', */
   .outside {
     color: var(--muted);
     opacity: 0.5;
   }
 
-  .outside[aria-selected='true'] {
+  .outside[aria-selected="true"] {
     color: var(--muted);
     opacity: 0.3;
   }
@@ -163,19 +166,19 @@
   }
 
   /* '[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary [&>button]:hover:text-primary-foreground', */
-  .day>button {
+  .day > button {
     color: var(--foreground);
   }
 
   /* '[&>button]:bg-accent [&>button]:text-accent-foreground', */
-  .today>button {
+  .today > button {
     /* background-color: var(--gray-50); */
     border: solid 1px var(--primary-300);
     color: var(--foreground);
   }
 
-  .day>button:hover,
-  .day-selected>button {
+  .day > button:hover,
+  .day-selected > button {
     background-color: var(--primary-400);
     color: white;
   }
@@ -192,7 +195,7 @@
     transition: none;
   }
 
-  .day-button[aria-selected='true'] {
+  .day-button[aria-selected="true"] {
     opacity: 1;
   }
 
@@ -202,12 +205,12 @@
     color: var(--foreground);
   }
 
-  .button-range>button {
+  .button-range > button {
     background-color: var(--primary-400);
     color: white;
   }
 
-  .button-range>button:hover {
+  .button-range > button:hover {
     background-color: var(--primary-400);
     color: var(--foreground);
   }
@@ -228,8 +231,8 @@
     color: var(--foreground);
   }
 
-  .range-middle>button,
-  .range-middle>button:hover {
+  .range-middle > button,
+  .range-middle > button:hover {
     background-color: transparent;
     color: var(--foreground);
   }
@@ -270,18 +273,18 @@
       color: var(--muted);
     }
 
-    .day>button {
+    .day > button {
       color: var(--foreground);
     }
 
-    .day>button:hover,
-    .day-selected>button {
+    .day > button:hover,
+    .day-selected > button {
       background-color: var(--primary-400);
       color: var(--foreground);
     }
 
     /* '[&>button]:bg-accent [&>button]:text-accent-foreground', */
-    .today>button {
+    .today > button {
       /* background-color: var(--canvas-700); */
       border: solid 1px var(--primary-300);
       color: var(--foreground);
@@ -292,12 +295,12 @@
       color: var(--foreground);
     }
 
-    .button-range>button {
+    .button-range > button {
       background-color: var(--primary-400);
       color: var(--foreground);
     }
 
-    .button-range>button:hover {
+    .button-range > button:hover {
       background-color: var(--primary-400);
       color: var(--foreground);
     }
@@ -307,7 +310,7 @@
       color: var(--foreground);
     }
 
-    .range-middle>button {
+    .range-middle > button {
       background-color: var(--canvas-700);
       color: var(--foreground);
     }

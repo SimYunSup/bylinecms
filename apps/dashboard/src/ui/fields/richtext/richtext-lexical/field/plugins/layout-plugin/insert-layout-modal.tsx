@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Byline CMS
  *
@@ -28,6 +29,9 @@
  *
  */
 
+import type * as React from 'react'
+import { useState } from 'react'
+
 import {
   Button,
   CloseIcon,
@@ -37,8 +41,6 @@ import {
   SelectItem,
   type SelectValue,
 } from '@byline/uikit/react'
-import type * as React from 'react'
-import { useState } from 'react'
 
 const layouts: SelectValue[] = [
   { label: '2 columns (equal width)', value: '1fr 1fr' },

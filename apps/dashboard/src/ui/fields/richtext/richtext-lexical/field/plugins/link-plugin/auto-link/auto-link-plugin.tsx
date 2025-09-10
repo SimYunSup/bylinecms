@@ -8,11 +8,13 @@
  *
  */
 
+import { useEffect } from 'react'
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { mergeRegister } from '@lexical/utils'
 import type { ElementNode, LexicalEditor, LexicalNode } from 'lexical'
 import { $createTextNode, $isElementNode, $isLineBreakNode, $isTextNode, TextNode } from 'lexical'
-import { useEffect } from 'react'
+
 import {
   $createAutoLinkNode,
   $isAutoLinkNode,

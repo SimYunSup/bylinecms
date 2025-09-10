@@ -1,4 +1,5 @@
 'use client'
+
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -7,10 +8,10 @@
  *
  */
 
+import type * as React from 'react'
+
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import { TreeView } from '@lexical/react/LexicalTreeView'
-
-import type * as React from 'react'
 
 export function TreeViewPlugin(): React.JSX.Element {
   const [editor] = useLexicalComposerContext()

@@ -35,18 +35,20 @@ export function getPreferredSize(
       mimeType: doc.mimeType as string,
       filesize: doc.filesize as number,
       filename: doc.filename as string,
-      url: doc.url as string
+      url: doc.url as string,
     }
-  } if (doc.sizes?.[preferred as keyof object]?.filename != null) {
+  }
+  if (doc.sizes?.[preferred as keyof object]?.filename != null) {
     return doc.sizes[preferred as keyof object]
-  } if (doc.url != null) {
+  }
+  if (doc.url != null) {
     return {
       width: doc.with as number,
       height: doc.height as number,
       mimeType: doc.mimeType as string,
       filesize: doc.filesize as number,
       filename: doc.filename as string,
-      url: doc.url as string
+      url: doc.url as string,
     }
   }
   return null

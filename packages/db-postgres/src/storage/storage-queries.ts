@@ -25,18 +25,20 @@
 import type { ICollectionQueries, IDocumentQueries } from '@byline/core'
 import { and, eq, ilike, inArray, sql } from 'drizzle-orm'
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
-import type * as schema from '../database/schema/index.js'
+
 import {
   collections,
   currentDocumentsView,
   documentVersions,
   textStore,
 } from '../database/schema/index.js'
+import type * as schema from '../database/schema/index.js'
 
 type DatabaseConnection = NodePgDatabase<typeof schema>
 type Document = Omit<typeof documentVersions.$inferSelect, 'doc'>
 
 import type { CollectionDefinition, FlattenedStore, UnionRowValue } from '@byline/core'
+
 import {
   booleanFields,
   datetimeFields,
@@ -880,7 +882,7 @@ export class DocumentQueries implements IDocumentQueries {
     // Reconstruct each document and return as array
     const result: any[] = []
 
-    for (const [documentId, group] of documentGroups) {
+    for (const [_documentId, group] of documentGroups) {
       const flattenedFieldValues = this.convertUnionRowToFlattenedStores(group.fieldValues)
 
       const head = {

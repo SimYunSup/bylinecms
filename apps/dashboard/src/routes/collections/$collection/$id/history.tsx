@@ -19,10 +19,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { createFileRoute, notFound } from '@tanstack/react-router'
+
 import type { CollectionDefinition } from '@byline/core'
 import { getCollectionDefinition, getCollectionSchemasForPath } from '@byline/core'
-import { createFileRoute, notFound } from '@tanstack/react-router'
 import { z } from 'zod'
+
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
 import { HistoryView } from '@/modules/collections/history'
 

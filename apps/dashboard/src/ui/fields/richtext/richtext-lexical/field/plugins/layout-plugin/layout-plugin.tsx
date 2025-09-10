@@ -1,5 +1,8 @@
 'use client'
 
+import * as React from 'react'
+import { useEffect } from 'react'
+
 /**
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
@@ -18,8 +21,6 @@ import {
   createCommand,
 } from 'lexical'
 
-import * as React from 'react'
-import { useEffect } from 'react'
 import {
   $createLayoutContainerNode,
   $isLayoutContainerNode,
@@ -30,7 +31,6 @@ import {
   $isLayoutItemNode,
   LayoutItemNode,
 } from '../../nodes/layout-container-node/layout-item-node'
-
 import { InsertLayoutModal } from './insert-layout-modal'
 
 export const OPEN_INSERT_LAYOUT_MODAL_COMMAND = createCommand('OPEN_INSERT_LAYOUT_MODAL_COMMAND')
