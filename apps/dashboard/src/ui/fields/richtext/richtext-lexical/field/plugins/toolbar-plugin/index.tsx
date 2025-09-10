@@ -387,7 +387,7 @@ export function ToolbarPlugin(): React.JSX.Element {
       setIsSubscript(selection.hasFormat('subscript'))
       setIsSuperscript(selection.hasFormat('superscript'))
       setIsCode(selection.hasFormat('code'))
-      setIsRTL($isParentElementRTL(selection))
+      // setIsRTL($isParentElementRTL(selection))
 
       // Update links
       const node = getSelectedNode(selection)
