@@ -1,24 +1,3 @@
-/**
- * Byline CMS
- *
- * Copyright © 2025 Anthony Bouch and contributors.
- *
- * This file is part of Byline CMS.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
 import type * as React from 'react'
 
 import cx from 'classnames'
@@ -57,7 +36,7 @@ function Container({
   const classes = cx(styles['table-container'], 'table-container', className)
   return (
     <div ref={ref} className={classes} {...rest}>
-      <div className={cx('table--scroller', styles['table-scroller'])}>{children}</div>
+      <div className={cx('table-scroller', styles['table-scroller'])}>{children}</div>
     </div>
   )
 }
@@ -73,7 +52,7 @@ function Body({
   ref?: React.RefObject<HTMLTableSectionElement>
 }): React.JSX.Element {
   return (
-    <tbody ref={ref} className={className} {...rest}>
+    <tbody ref={ref} className={cx('table-body', className)} {...rest}>
       {children}
     </tbody>
   )
@@ -165,7 +144,7 @@ function Footer({
   ref?: React.RefObject<HTMLTableSectionElement>
 }): React.JSX.Element {
   const classes = cx(
-    'text-xs text-gray-700 bg-canvas-100 dark:bg-canvas-700 dark:text-gray-400',
+    'text-xs text-gray-700 uppercase bg-canvas-100 dark:bg-canvas-700 dark:text-gray-400',
     className
   )
 

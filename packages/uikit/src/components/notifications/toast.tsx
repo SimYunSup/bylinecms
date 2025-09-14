@@ -1,26 +1,5 @@
 'use client'
 
-/**
- * Byline CMS
- *
- * Copyright © 2025 Anthony Bouch and contributors.
- *
- * This file is part of Byline CMS.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
 import React from 'react'
 
 import { useFocusTrap, useMergedRef } from '@mantine/hooks'
@@ -100,11 +79,11 @@ export const Toast = function Toast({
   return (
     <ToastPrimitive.Root
       ref={mergedRef}
-      className={cx(styles.root, styles[position])}
+      className={cx('toast', styles.root, styles[position])}
       open={open}
       onOpenChange={onOpenChange}
     >
-      <div className={styles.header}>
+      <div className={cx('toast-header', styles.header)}>
         <time dateTime={eventDateRef.current.toISOString()} className="text-sm">
           {new Intl.DateTimeFormat('default', {
             hour12: true,
@@ -128,11 +107,11 @@ export const Toast = function Toast({
           </ToastPrimitive.Close>
         )}
       </div>
-      <ToastPrimitive.Title className={styles.title}>
+      <ToastPrimitive.Title className={cx('toast-title', styles.title)}>
         {icon != null && <Icon />}
         {title}
       </ToastPrimitive.Title>
-      <ToastPrimitive.Description className={styles.description}>
+      <ToastPrimitive.Description className={cx('toast-description', styles.description)}>
         {message}
       </ToastPrimitive.Description>
       {/* <ToastPrimitive.Action className={styles.action} asChild altText="Goto schedule to undo">

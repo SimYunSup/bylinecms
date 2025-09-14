@@ -1,24 +1,3 @@
-/**
- * Byline CMS
- *
- * Copyright © 2025 Anthony Bouch and contributors.
- *
- * This file is part of Byline CMS.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
 import type * as React from 'react'
 
 import cx from 'classnames'
@@ -65,7 +44,7 @@ export const TextArea = function TextArea({
   ...rest
 }: TextAreaProps): React.JSX.Element {
   return (
-    <fieldset className={inputStyles.inputWrapper}>
+    <fieldset className={cx('text-area-wrapper', inputStyles.inputWrapper)}>
       <Label id={id} htmlFor={id} required={required} label={label} />
       <textarea
         ref={ref}
@@ -81,6 +60,9 @@ export const TextArea = function TextArea({
         aria-errormessage={errorText}
         aria-describedby={error ? `error-for-${id}` : undefined}
         className={cx(
+          'text-area',
+          variant,
+          intent,
           inputStyles.input,
           inputStyles[variant],
           inputStyles[intent],

@@ -32,7 +32,7 @@
 
   /* 'text-xs text-gray-700 uppercase bg-canvas-100 dark:bg-canvas-700 dark:text-gray-400', */
   .table-header {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm);
     /* text-transform: uppercase; */
     background-color: var(--canvas-50);
   }
@@ -51,7 +51,7 @@
   .table-heading-cell {
     white-space: nowrap;
     padding: var(--spacing-2) var(--spacing-2);
-    font-size: var(--font-size-sm);
+    font-size: 0.975rem; /* 15.6px */
     /* text-transform: uppercase; */
     background-color: var(--canvas-50);
   }
@@ -68,7 +68,7 @@
 
   /* 'text-xs text-gray-700 uppercase bg-canvas-100 dark:bg-canvas-700 dark:text-gray-400', */
   .table-footer {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm);
     /* text-transform: uppercase; */
     background-color: var(--canvas-100);
   }

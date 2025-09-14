@@ -1,26 +1,5 @@
 'use client'
 
-/**
- * Byline CMS
- *
- * Copyright © 2025 Anthony Bouch and contributors.
- *
- * This file is part of Byline CMS.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
 import type React from 'react'
 import { useEffect } from 'react'
 
@@ -37,24 +16,33 @@ export interface OverlayProps extends OverlayIntrinsicProps {
 const BodyLock = (): null => {
   useEffect(() => {
     // a one off mediaMedia here is fine - no need to listen to events
-    const mediaMatch = window.matchMedia('(min-width: 960px)')
+    const mediaMatch = window.matchMedia('(min-width: 768px)')
     let appBar: HTMLElement | null
+    const classList = document.body.classList
+    appBar = document.getElementById('app-bar')
+    classList.add('overlay-shown')
+    if (appBar != null) appBar.classList.add('app-bar-overlay-shown')
     if (mediaMatch.matches) {
-      document.body.style.cssText = 'overflow: hidden; padding-right: 9px;'
-      document.body.style.overflow = 'hidden'
-      appBar = document.getElementById('app-bar')
-      if (appBar != null) appBar.style.cssText = 'padding-right: 9px'
+      classList.add('overlay-shown--desktop')
+      if (appBar != null) {
+        appBar.classList.add('app-bar-overlay-shown--desktop')
+      }
     } else {
-      document.body.style.cssText = 'overflow: hidden;'
-      document.body.style.overflow = 'hidden'
+      classList.add('overlay-shown--mobile')
+      if (appBar != null) {
+        appBar.classList.add('app-bar-overlay-shown--mobile')
+      }
     }
     return () => {
-      document.body.style.cssText = `
-        overflow: visible;
-        overflow: overlay;
-      `
+      classList.remove('overlay-shown')
+      if (appBar != null) appBar.classList.remove('app-bar-overlay-shown')
       if (mediaMatch.matches) {
-        if (appBar != null) appBar.style.cssText = 'padding-right: 18px'
+        classList.remove('overlay-shown--desktop')
+        if (appBar != null)
+          appBar.classList.remove('app-bar-overlay-shown app-bar-overlay-shown--desktop')
+      } else {
+        classList.remove('overlay-shown--mobile')
+        if (appBar != null) appBar.classList.remove('app-bar-overlay-shown--mobile')
       }
     }
   }, [])

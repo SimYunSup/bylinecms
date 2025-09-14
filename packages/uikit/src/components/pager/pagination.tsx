@@ -1,26 +1,5 @@
 'use client'
 
-/**
- * Byline CMS
- *
- * Copyright © 2025 Anthony Bouch and contributors.
- *
- * This file is part of Byline CMS.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
 // usePagination hook from...
 // https://github.com/mui/material-ui/blob/master/packages/mui-material/src/usePagination/usePagination.js
 // https://github.com/mui/material-ui/blob/master/LICENSE
@@ -258,11 +237,18 @@ const Root = ({
     <nav
       data-testid={dataTestId}
       ref={ref}
-      className={cx(styles['pagination-root'], 'pagination-root', className)}
+      className={cx('pagination-root', styles['pagination-root'], 'pagination-root', className)}
       {...rest}
       aria-label={ariaLabel ?? 'Pager navigation'}
     >
-      <ul className={cx(styles['pagination-items'], styles[variant], itemsClassName)}>
+      <ul
+        className={cx(
+          'pagination-items',
+          styles['pagination-items'],
+          styles[variant],
+          itemsClassName
+        )}
+      >
         {children}
       </ul>
     </nav>
