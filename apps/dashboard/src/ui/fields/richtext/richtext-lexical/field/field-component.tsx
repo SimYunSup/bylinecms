@@ -77,8 +77,8 @@ export function RichTextComponent({
   value,
   onChange,
   validate = richTextValidate,
-  onError,
-  lexicalEditorProps,
+  onError: _onError,
+  lexicalEditorProps: _lexicalEditorProps,
 }: LexicalRichTextFieldProps): React.JSX.Element {
   const disabled = readonly ?? false
   const dispatchFieldUpdateTask = useRef<number>(undefined)
@@ -135,12 +135,13 @@ export function RichTextComponent({
     (initialValue: SerializedEditorState | undefined) => {
       // Object deep equality check here, as re-mounting the editor if
       // the new value is the same as the old one is not necessary
-      if (
-        prevValueRef.current !== value &&
-        JSON.stringify(prevValueRef.current) !== JSON.stringify(value)
-      ) {
+      // Compare against the previous initialValue, not the (possibly undefined) controlled value.
+      // This ensures the editor re-mounts when callers provide a new initialValue (e.g., after save/navigation).
+      const prevInitial = prevInitialValueRef.current
+      const prevStr = prevInitial == null ? undefined : JSON.stringify(prevInitial)
+      const nextStr = initialValue == null ? undefined : JSON.stringify(initialValue)
+      if (prevStr !== nextStr) {
         prevInitialValueRef.current = initialValue
-        prevValueRef.current = value
         setRerenderProviderKey(new Date())
       }
     }
@@ -164,7 +165,7 @@ export function RichTextComponent({
           <EditorContext
             composerKey={id}
             editorConfig={editorConfig}
-            key={JSON.stringify({ name, rerenderProviderKey })} // makes sure lexical is completely re-rendered when initialValue changes, bypassing the lexical-internal value memoization. That way, external changes to the form will update the editor. More infos in PR description (https://github.com/payloadcms/payload/pull/5010)
+            key={`${id}-${rerenderProviderKey?.getTime() ?? '0'}`}
             onChange={handleChange}
             readOnly={disabled}
             value={initialValue}
@@ -195,8 +196,7 @@ export function RichTextComponent({
   )
 }
 
-function fallbackRender({ error, resetErrorBoundary }: any): React.JSX.Element {
-  // Call resetErrorBoundary() to reset the error boundary and retry the render.
+function fallbackRender({ error }: any): React.JSX.Element {
   return (
     <div className="errorBoundary" role="alert">
       <p>Something went wrong:</p>

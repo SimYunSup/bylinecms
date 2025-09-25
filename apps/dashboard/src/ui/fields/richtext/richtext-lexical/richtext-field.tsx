@@ -26,22 +26,34 @@ import { defaultEditorConfig } from './field/config/default'
 
 interface Props {
   field: FieldType
+  readonly?: boolean
+  instanceKey?: string
   initialValue?: any
   editorConfig?: any
   onChange?: (value: any) => void
 }
 
-export const RichTextField = ({ field, initialValue, editorConfig, onChange }: Props) => (
-  <div>
+export const RichTextField = ({
+  field,
+  initialValue,
+  editorConfig,
+  readonly = false,
+  instanceKey,
+  onChange,
+}: Props) => (
+  <div className="flex flex-1 h-full">
     <LexicalRichTextField
       onChange={onChange}
       editorConfig={editorConfig || defaultEditorConfig}
-      id={field.name}
+      id={instanceKey ? `${field.name}-${instanceKey}` : field.name}
       name={field.name}
       description={field.helpText}
+      readonly={readonly}
       label={field.label}
       required={field.required}
       initialValue={initialValue}
+      // Ensure React fully remounts when instanceKey changes
+      key={instanceKey ? `${field.name}-${instanceKey}` : field.name}
     />
   </div>
 )
