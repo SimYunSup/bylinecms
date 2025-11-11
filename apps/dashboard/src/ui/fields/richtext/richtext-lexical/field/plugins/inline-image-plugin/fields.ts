@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { SelectValue } from '@byline/uikit/react'
+import type { SelectValue } from '@infonomic/uikit/react'
 
 import type { InlineImageData, InlineImageFormState } from './types'
 

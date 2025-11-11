@@ -29,7 +29,7 @@
 import type * as React from 'react'
 import { lazy, Suspense } from 'react'
 
-import { Shimmer } from '@byline/uikit/react'
+import { Shimmer } from '@infonomic/uikit/react'
 
 import type { LexicalRichTextFieldProps } from '../types'
 

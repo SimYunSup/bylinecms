@@ -20,7 +20,7 @@
  */
 
 import type { DateTimeField as FieldType } from '@byline/core'
-import { DatePicker } from '@byline/uikit/react'
+import { DatePicker } from '@infonomic/uikit/react'
 
 export const DateTimeField = ({
   field,

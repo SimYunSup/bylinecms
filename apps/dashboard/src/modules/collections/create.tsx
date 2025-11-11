@@ -22,7 +22,7 @@
 import { useNavigate } from '@tanstack/react-router'
 
 import type { CollectionDefinition } from '@byline/core'
-import { Container, Section } from '@byline/uikit/react'
+import { Container, Section } from '@infonomic/uikit/react'
 
 import { FormRenderer } from '@/ui/fields/form-renderer'
 

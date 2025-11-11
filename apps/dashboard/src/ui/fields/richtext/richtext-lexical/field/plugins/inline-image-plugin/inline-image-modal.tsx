@@ -24,7 +24,7 @@
 import type React from 'react'
 import { useEffect, useState } from 'react'
 
-import { Button, CloseIcon, IconButton, Modal } from '@byline/uikit/react'
+import { Button, CloseIcon, IconButton, Modal } from '@infonomic/uikit/react'
 
 import { useEditorConfig } from '../../config/editor-config-context'
 import { getInitialState, validateFields } from './fields'

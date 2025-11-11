@@ -24,7 +24,7 @@ import { useNavigate } from '@tanstack/react-router'
 
 import type { CollectionDefinition } from '@byline/core'
 import type { AnyCollectionSchemaTypes } from '@byline/core/zod-schemas'
-import { Button, Container, HistoryIcon, IconButton, Section, Toast } from '@byline/uikit/react'
+import { Button, Container, HistoryIcon, IconButton, Section, Toast } from '@infonomic/uikit/react'
 
 import { FormRenderer } from '@/ui/fields/form-renderer'
 

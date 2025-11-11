@@ -32,7 +32,7 @@ import {
   Modal,
   RadioGroup,
   RadioGroupItem,
-} from '@byline/uikit/react'
+} from '@infonomic/uikit/react'
 
 import { admonitionTypeOptions, getInitialState, validateFields } from './fields'
 import type { AdmonitionType } from '../../nodes/admonition-node/types'

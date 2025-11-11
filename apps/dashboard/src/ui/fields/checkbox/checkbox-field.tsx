@@ -20,7 +20,7 @@
  */
 
 import type { CheckboxField as FieldType } from '@byline/core'
-import { Checkbox } from '@byline/uikit/react'
+import { Checkbox } from '@infonomic/uikit/react'
 
 export const CheckboxField = ({
   field,

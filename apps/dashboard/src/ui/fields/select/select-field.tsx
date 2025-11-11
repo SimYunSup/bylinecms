@@ -20,7 +20,7 @@
  */
 
 import type { SelectField as FieldType } from '@byline/core'
-import { Select, SelectItem } from '@byline/uikit/react'
+import { Select, SelectItem } from '@infonomic/uikit/react'
 
 export const SelectField = ({
   field,

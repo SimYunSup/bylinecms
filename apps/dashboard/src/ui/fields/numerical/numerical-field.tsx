@@ -20,7 +20,7 @@
  */
 
 import type { DecimalField, FloatField, IntegerField } from '@byline/core'
-import { Input } from '@byline/uikit/react'
+import { Input } from '@infonomic/uikit/react'
 
 import { useFormContext } from '../form-context'
 

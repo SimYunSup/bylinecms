@@ -25,7 +25,7 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useRouterState } from '@tanstack/react-router'
 
-import { Table } from '@byline/uikit/react'
+import { Table } from '@infonomic/uikit/react'
 import cx from 'classnames'
 
 import {

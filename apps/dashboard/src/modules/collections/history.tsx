@@ -34,7 +34,7 @@ import {
   Select,
   SelectItem,
   Table,
-} from '@byline/uikit/react'
+} from '@infonomic/uikit/react'
 import cx from 'classnames'
 
 import { RouterPager } from '@/ui/components/router-pager'

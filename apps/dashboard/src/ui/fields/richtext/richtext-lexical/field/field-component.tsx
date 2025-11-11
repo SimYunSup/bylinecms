@@ -51,7 +51,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
-import { HelpText, Label } from '@byline/uikit/react'
+import { HelpText, Label } from '@infonomic/uikit/react'
 import type { EditorState, SerializedEditorState } from 'lexical'
 import { ErrorBoundary } from 'react-error-boundary'
 

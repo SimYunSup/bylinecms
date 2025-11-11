@@ -19,7 +19,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { RadioGroupValue } from '@byline/uikit/react'
+import type { RadioGroupValue } from '@infonomic/uikit/react'
 
 import type { AdmonitionType } from '../../nodes/admonition-node'
 import type { AdmonitionFormState } from './types'

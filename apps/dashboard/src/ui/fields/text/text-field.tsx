@@ -20,7 +20,7 @@
  */
 
 import type { TextField as FieldType } from '@byline/core'
-import { Input } from '@byline/uikit/react'
+import { Input } from '@infonomic/uikit/react'
 
 import { useFormContext } from '../../fields/form-context'
 

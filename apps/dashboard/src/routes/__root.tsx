@@ -22,7 +22,7 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
-import { ToastProvider, ToastViewport } from '@byline/uikit/react'
+import { ToastProvider, ToastViewport } from '@infonomic/uikit/react'
 
 import { BreadcrumbsProvider } from '@/context/breadcrumbs/breadcrumbs-provider'
 import { TranslationsProvider } from '@/i18n/client/translation-provider'

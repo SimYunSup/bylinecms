@@ -40,7 +40,7 @@ import {
   Select,
   SelectItem,
   type SelectValue,
-} from '@byline/uikit/react'
+} from '@infonomic/uikit/react'
 
 const layouts: SelectValue[] = [
   { label: '2 columns (equal width)', value: '1fr 1fr' },

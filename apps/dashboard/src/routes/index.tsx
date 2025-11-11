@@ -22,7 +22,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 
 import { getClientConfig } from '@byline/core'
-import { Card, Container, Section } from '@byline/uikit/react'
+import { Card, Container, Section } from '@infonomic/uikit/react'
 
 export const Route = createFileRoute('/')({
   component: Index,
