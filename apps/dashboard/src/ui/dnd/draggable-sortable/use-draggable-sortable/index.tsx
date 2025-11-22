@@ -14,7 +14,6 @@
  */
 
 import type { UseDraggableArguments } from '@dnd-kit/core'
-
 import { useSortable } from '@dnd-kit/sortable'
 
 import type { UseDraggableSortableReturn } from './types.js'
@@ -40,12 +39,12 @@ export const useDraggableSortable = (props: UseDraggableArguments): UseDraggable
       },
     },
     isDragging,
-    // @ts-ignore
+    // @ts-expect-error
     listeners,
     setNodeRef,
-    // @ts-ignore
+    // @ts-expect-error
     transform: transform && `translate3d(${transform.x}px, ${transform.y}px, 0)`, // translate3d is faster than translate in most browsers
-    //@ts-ignore
+    //@ts-expect-error
     transition,
   }
 }

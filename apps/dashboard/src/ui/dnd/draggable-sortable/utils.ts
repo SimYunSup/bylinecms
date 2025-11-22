@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree
  *
  * https://github.com/payloadcms/payload/*
- * 
+ *
  * Based on https://docs.dndkit.com/presets/sortable#connecting-all-the-pieces
  *
  */

@@ -13,6 +13,10 @@
  *
  */
 
+import type React from 'react'
+import { useCallback, useId } from 'react'
+
+import type { DragEndEvent } from '@dnd-kit/core'
 import {
   closestCenter,
   DndContext,
@@ -23,10 +27,6 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import { useCallback, useId } from 'react'
-
-import type { DragEndEvent } from '@dnd-kit/core'
-import type React from 'react'
 
 import type { Props } from './types.js'
 

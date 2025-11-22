@@ -1,4 +1,5 @@
 'use client'
+
 /**
  *
  * Copyright (c) Payload CMS, LLC info@payloadcms.com
@@ -12,10 +13,11 @@
  *
  */
 
-import type { UseDraggableArguments } from '@dnd-kit/core'
-
 import type React from 'react'
 import { Fragment } from 'react'
+
+import type { UseDraggableArguments } from '@dnd-kit/core'
+
 import { useDraggableSortable } from '../use-draggable-sortable'
 import type { ChildFunction } from './types.js'
 

@@ -1,9 +1,9 @@
 'use client'
 
-import { Card, GripperVerticalIcon } from '@infonomic/uikit/react'
-
-import cx from 'classnames'
 import { useState } from 'react'
+
+import { Card, GripperVerticalIcon } from '@infonomic/uikit/react'
+import cx from 'classnames'
 
 import { DraggableSortable, moveItem, useSortable } from '@/ui/dnd/draggable-sortable'
 
@@ -71,7 +71,7 @@ const DraggableCard: React.FC<DraggableCardProps> = ({ item, disabled, isSortabl
         { 'shadow-lg': isDragging }
       )}
       style={{
-        // @ts-ignore
+        // @ts-expect-error
         transform: transform && `translate3d(${transform.x}px, ${transform.y}px, 0)`, // translate3d is faster than translate in most browsers
         transition,
         zIndex: isDragging ? '10' : 'auto',

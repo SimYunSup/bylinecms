@@ -6,13 +6,14 @@
  * LICENSE file in the root directory of this source tree
  *
  * https://github.com/payloadcms/payload/*
- * 
+ *
  * Based on https://docs.dndkit.com/presets/sortable#connecting-all-the-pieces
  *
  */
 
-import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
 import type { HTMLAttributes } from 'react'
+
+import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
 
 export type UseDraggableSortableReturn = {
   attributes: HTMLAttributes<unknown>
