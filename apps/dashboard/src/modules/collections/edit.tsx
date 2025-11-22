@@ -27,6 +27,7 @@ import type { AnyCollectionSchemaTypes } from '@byline/core/zod-schemas'
 import { Button, Container, HistoryIcon, IconButton, Section, Toast } from '@infonomic/uikit/react'
 
 import { FormRenderer } from '@/ui/fields/form-renderer'
+import { updateCollectionDocument } from './data'
 
 type EditState = {
   status: 'success' | 'failed' | 'busy' | 'idle'
@@ -50,25 +51,12 @@ export const EditView = ({
 
   const handleSubmit = async (data: any) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/${path}/${initialData.document_id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+      await updateCollectionDocument(path, String(initialData.document_id), data)
 
-      if (!response.ok) {
-        const error = await response.json()
-        console.error('Failed to update page:', error)
-        setEditState({
-          status: 'failed',
-          message: `Failed to update ${labels.singular.toLowerCase()}`,
-        })
-      } else {
-        setEditState({
-          status: 'success',
-          message: `Successfully updated ${labels.singular.toLowerCase()}`,
-        })
-      }
+      setEditState({
+        status: 'success',
+        message: `Successfully updated ${labels.singular.toLowerCase()}`,
+      })
     } catch (err) {
       console.error('Network error:', err)
       setEditState({

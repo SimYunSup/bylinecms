@@ -25,6 +25,7 @@ import type { CollectionDefinition } from '@byline/core'
 import { Container, Section } from '@infonomic/uikit/react'
 
 import { FormRenderer } from '@/ui/fields/form-renderer'
+import { createCollectionDocument } from './data'
 
 export const CreateView = ({
   collectionDefinition,
@@ -37,21 +38,11 @@ export const CreateView = ({
 
   const handleSubmit = async (data: any) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/${path}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      await createCollectionDocument(path, data)
+      navigate({
+        to: '/collections/$collection',
+        params: { collection: path },
       })
-      if (!response.ok) {
-        const error = await response.json()
-        console.error('Failed to create document:', error)
-        // TODO: Show error to user
-      } else {
-        navigate({
-          to: '/collections/$collection',
-          params: { collection: path },
-        })
-      }
     } catch (err) {
       // Optionally, you can show this error to the user
       console.error(err)

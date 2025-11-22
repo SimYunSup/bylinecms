@@ -22,9 +22,10 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 
 import type { CollectionDefinition } from '@byline/core'
-import { getCollectionDefinition, getCollectionSchemasForPath } from '@byline/core'
+import { getCollectionDefinition } from '@byline/core'
 
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
+import { getCollectionDocument } from '@/modules/collections/data'
 import { EditView } from '@/modules/collections/edit'
 
 export const Route = createFileRoute('/collections/$collection/$id/')({
@@ -34,20 +35,12 @@ export const Route = createFileRoute('/collections/$collection/$id/')({
       throw notFound()
     }
 
-    // Get typed schemas for better type inference
-    const { get } = getCollectionSchemasForPath(params.collection)
+    const data = await getCollectionDocument(params.collection, params.id)
 
-    const response = await fetch(`http://localhost:3001/api/${params.collection}/${params.id}`)
-    if (!response.ok) {
-      if (response.status === 404) {
-        throw notFound()
-      }
-      throw new Error('Failed to fetch record')
+    if (!data) {
+      throw notFound()
     }
 
-    const rawData = await response.json()
-    // Validate with schema for runtime type safety
-    const data = get.parse(rawData.document)
     console.log('Fetched data:', JSON.stringify(data, null, 2))
 
     return data

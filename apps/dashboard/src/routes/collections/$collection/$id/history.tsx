@@ -22,10 +22,11 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 
 import type { CollectionDefinition } from '@byline/core'
-import { getCollectionDefinition, getCollectionSchemasForPath } from '@byline/core'
+import { getCollectionDefinition } from '@byline/core'
 import { z } from 'zod'
 
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
+import { getCollectionDocumentHistory } from '@/modules/collections/data'
 import { HistoryView } from '@/modules/collections/history'
 
 const searchSchema = z.object({
@@ -50,42 +51,14 @@ export const Route = createFileRoute('/collections/$collection/$id/history')({
     if (!collectionDef) {
       throw notFound()
     }
-    // Get typed schemas for better type inference
-    const { history } = getCollectionSchemasForPath(params.collection)
 
-    // // Parse search parameters from location
-    const searchParams = new URLSearchParams()
-
-    if (page != null) {
-      searchParams.set('page', page.toString())
-    }
-    if (page_size != null) {
-      searchParams.set('page_size', page_size.toString())
-    }
-    if (order != null) {
-      searchParams.set('order', order)
-    }
-    if (desc != null) {
-      searchParams.set('desc', desc.toString())
-    }
-
-    if (locale != null) {
-      searchParams.set('locale', locale)
-    }
-
-    const queryString = searchParams.toString()
-    console.log('Query string:', queryString)
-    const url = `http://localhost:3001/api/${params.collection}/${params.id}/history${queryString ? `?${queryString}` : ''}`
-    console.log('Fetching URL:', url)
-
-    const response = await fetch(url)
-    if (!response.ok) {
-      throw new Error('Failed to fetch collection')
-    }
-
-    const rawData = await response.json()
-    // Validate with schema for runtime type safety
-    const data = history.parse(rawData)
+    const data = await getCollectionDocumentHistory(params.collection, params.id, {
+      page,
+      page_size,
+      order,
+      desc,
+      locale,
+    })
 
     return data
   },
