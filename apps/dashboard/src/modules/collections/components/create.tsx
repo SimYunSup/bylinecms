@@ -25,7 +25,7 @@ import type { CollectionDefinition } from '@byline/core'
 import { Container, Section } from '@infonomic/uikit/react'
 
 import { FormRenderer } from '@/ui/fields/form-renderer'
-import { createCollectionDocument } from './data'
+import { createCollectionDocument } from '../data'
 
 export const CreateView = ({
   collectionDefinition,

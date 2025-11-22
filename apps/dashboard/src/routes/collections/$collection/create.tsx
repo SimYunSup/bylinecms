@@ -25,7 +25,7 @@ import type { CollectionDefinition } from '@byline/core'
 import { getCollectionDefinition } from '@byline/core'
 
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
-import { CreateView } from '@/modules/collections/create'
+import { CreateView } from '@/modules/collections/components/create'
 
 export const Route = createFileRoute('/collections/$collection/create')({
   loader: async ({ params }): Promise<CollectionDefinition> => {

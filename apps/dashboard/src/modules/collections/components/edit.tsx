@@ -27,7 +27,7 @@ import type { AnyCollectionSchemaTypes } from '@byline/core/zod-schemas'
 import { Button, Container, HistoryIcon, IconButton, Section, Toast } from '@infonomic/uikit/react'
 
 import { FormRenderer } from '@/ui/fields/form-renderer'
-import { updateCollectionDocument } from './data'
+import { updateCollectionDocument } from '../data'
 
 type EditState = {
   status: 'success' | 'failed' | 'busy' | 'idle'

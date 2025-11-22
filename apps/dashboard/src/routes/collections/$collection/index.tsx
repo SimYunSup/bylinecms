@@ -26,8 +26,8 @@ import { getCollectionDefinition } from '@byline/core'
 import { z } from 'zod'
 
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
+import { ListView } from '@/modules/collections/components/list'
 import { getCollectionDocuments } from '@/modules/collections/data'
-import { ListView } from '@/modules/collections/list'
 
 const searchSchema = z.object({
   page: z.coerce.number().min(1).optional(),

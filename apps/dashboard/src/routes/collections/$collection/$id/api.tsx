@@ -25,7 +25,7 @@ import type { CollectionDefinition } from '@byline/core'
 import { getCollectionDefinition } from '@byline/core'
 
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
-import { ApiView } from '@/modules/collections/api'
+import { ApiView } from '@/modules/collections/components/api'
 import { getCollectionDocument } from '@/modules/collections/data'
 
 export const Route = createFileRoute('/collections/$collection/$id/api')({
