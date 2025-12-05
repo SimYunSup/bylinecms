@@ -34,7 +34,7 @@ export const Route = createRootRoute({
   component: () => {
     return (
       <TranslationsProvider>
-        <ToastProvider swipeDirection="right">
+        <ToastProvider swipeDirection="right" duration={5000}>
           <BreadcrumbsProvider>
             <div className="layout flex flex-col w-full max-w-full min-h-screen h-full selection:text-white selection:bg-primary-400">
               <AppBar />

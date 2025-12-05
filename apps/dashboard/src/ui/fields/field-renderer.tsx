@@ -22,8 +22,13 @@
 // NOTE: Before you dunk on this, this is a totally naïve and "weekend hack"
 // implementation of a field renderer used only for prototype development.
 
-import type { Field } from '@byline/core'
+import { type ReactNode, useEffect, useState } from 'react'
 
+import type { Field } from '@byline/core'
+import { GripperVerticalIcon } from '@infonomic/uikit/react'
+import cx from 'classnames'
+
+import { DraggableSortable, moveItem, useSortable } from '@/ui/dnd/draggable-sortable'
 import { CheckboxField } from '../fields/checkbox/checkbox-field'
 import { useFormContext } from '../fields/form-context'
 import { RichTextField } from '../fields/richtext/richtext-lexical/richtext-field'
@@ -31,6 +36,99 @@ import { SelectField } from '../fields/select/select-field'
 import { TextField } from '../fields/text/text-field'
 import { DateTimeField } from './datetime/datetime-field'
 import { NumericalField } from './numerical/numerical-field'
+
+const SortableItem = ({ id, children }: { id: string; children: ReactNode }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id,
+    transition: {
+      duration: 250,
+      easing: 'cubic-bezier(0, 0.2, 0.2, 1)',
+    },
+  })
+
+  const style = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+    zIndex: isDragging ? 10 : 'auto',
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className={cx('relative group', { 'z-10': isDragging })}>
+      <div
+        className="absolute top-4 right-4 cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity z-20"
+        {...attributes}
+        {...listeners}
+      >
+        <GripperVerticalIcon className="w-4 h-4 text-gray-400" />
+      </div>
+      {children}
+    </div>
+  )
+}
+
+const ArrayField = ({
+  field,
+  initialValue,
+  path,
+}: {
+  field: Field
+  initialValue: any
+  path: string
+}) => {
+  const [items, setItems] = useState<{ id: string; data: any }[]>([])
+
+  useEffect(() => {
+    if (Array.isArray(initialValue)) {
+      setItems(initialValue.map((item) => ({ id: crypto.randomUUID(), data: item })))
+    } else {
+      setItems([])
+    }
+  }, [initialValue])
+
+  const handleDragEnd = ({
+    moveFromIndex,
+    moveToIndex,
+  }: {
+    moveFromIndex: number
+    moveToIndex: number
+  }) => {
+    setItems((prev) => moveItem(prev, moveFromIndex, moveToIndex))
+  }
+
+  return (
+    <div className="">
+      {field.label && <h3 className="text-[1rem] font-medium mb-1">{field.label}</h3>}
+      <DraggableSortable
+        ids={items.map((i) => i.id)}
+        onDragEnd={handleDragEnd}
+        className="flex flex-col gap-4"
+      >
+        {items.map((itemWrapper, index) => {
+          const item = itemWrapper.data
+          const arrayElementPath = `${path}.${index}`
+          // For block arrays, find the matching field definition for the item.
+          const blockType = Object.keys(item)[0]
+          const subField = field.fields?.find((f) => f.name === blockType)
+
+          if (subField == null) return null
+
+          return (
+            <SortableItem key={itemWrapper.id} id={itemWrapper.id}>
+              <div className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4">
+                <FieldRenderer
+                  key={subField.name}
+                  field={subField}
+                  initialValue={item[subField.name]}
+                  basePath={arrayElementPath}
+                />
+              </div>
+            </SortableItem>
+          )
+        })}
+      </DraggableSortable>
+    </div>
+  )
+}
 
 interface FieldRendererProps {
   field: Field
@@ -61,36 +159,7 @@ export const FieldRenderer = ({ field, initialValue, basePath }: FieldRendererPr
       return <NumericalField field={field} initialValue={initialValue} onChange={handleChange} />
     case 'array':
       if (!field.fields) return null
-      return (
-        <div className="">
-          {field.label && <h3 className="text-[1rem] font-medium mb-1">{field.label}</h3>}
-          <div className="flex flex-col gap-4">
-            {Array.isArray(initialValue) &&
-              initialValue.map((item, index) => {
-                const arrayElementPath = `${path}.${index}`
-                // For block arrays, find the matching field definition for the item.
-                const blockType = Object.keys(item)[0]
-                const subField = field.fields?.find((f) => f.name === blockType)
-
-                if (subField == null) return null
-
-                return (
-                  <div
-                    key={arrayElementPath}
-                    className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4"
-                  >
-                    <FieldRenderer
-                      key={subField.name}
-                      field={subField}
-                      initialValue={item[subField.name]}
-                      basePath={arrayElementPath}
-                    />
-                  </div>
-                )
-              })}
-          </div>
-        </div>
-      )
+      return <ArrayField field={field} initialValue={initialValue} path={path} />
     default:
       return null
   }
