@@ -24,7 +24,7 @@
 
 import { type ReactNode, useEffect, useState } from 'react'
 
-import type { Field } from '@byline/core'
+import type { ArrayField as ArrayFieldType, Field } from '@byline/core'
 import { GripperVerticalIcon } from '@infonomic/uikit/react'
 import cx from 'classnames'
 
@@ -37,7 +37,15 @@ import { TextField } from '../fields/text/text-field'
 import { DateTimeField } from './datetime/datetime-field'
 import { NumericalField } from './numerical/numerical-field'
 
-const SortableItem = ({ id, children }: { id: string; children: ReactNode }) => {
+const SortableItem = ({
+  id,
+  label,
+  children,
+}: {
+  id: string
+  label: ReactNode
+  children: ReactNode
+}) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
     transition: {
@@ -53,15 +61,26 @@ const SortableItem = ({ id, children }: { id: string; children: ReactNode }) => 
   }
 
   return (
-    <div ref={setNodeRef} style={style} className={cx('relative group', { 'z-10': isDragging })}>
-      <div
-        className="absolute top-4 right-4 cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition-opacity z-20"
-        {...attributes}
-        {...listeners}
-      >
-        <GripperVerticalIcon className="w-4 h-4 text-gray-400" />
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cx('p-4 pt-2 border border-dashed border-gray-600 rounded-md', {
+        'shadow-sm bg-canvas-800': !isDragging,
+        'shadow-md bg-canvas-700/30': isDragging,
+      })}
+    >
+      <div className="flex items-center gap-2 mb-3 -ml-3">
+        <button
+          type="button"
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-800 rounded text-gray-400 flex items-center justify-center"
+          {...attributes}
+          {...listeners}
+        >
+          <GripperVerticalIcon className="w-4 h-4" />
+        </button>
+        <div className="text-[1rem] font-medium">{label}</div>
       </div>
-      {children}
+      <div className="flex flex-col gap-4">{children}</div>
     </div>
   )
 }
@@ -70,10 +89,12 @@ const ArrayField = ({
   field,
   initialValue,
   path,
+  disableSorting = false,
 }: {
-  field: Field
+  field: ArrayFieldType
   initialValue: any
   path: string
+  disableSorting?: boolean
 }) => {
   const [items, setItems] = useState<{ id: string; data: any }[]>([])
 
@@ -95,37 +116,67 @@ const ArrayField = ({
     setItems((prev) => moveItem(prev, moveFromIndex, moveToIndex))
   }
 
+  const renderItem = (itemWrapper: { id: string; data: any }, index: number) => {
+    const item = itemWrapper.data
+    const arrayElementPath = `${path}.${index}`
+    // For block arrays, find the matching field definition for the item.
+    const blockType = Object.keys(item)[0]
+    const subField = field.fields?.find((f) => f.name === blockType)
+
+    if (subField == null) return null
+
+    const body = (
+      <FieldRenderer
+        key={subField.name}
+        field={subField}
+        initialValue={item[subField.name]}
+        basePath={arrayElementPath}
+        disableSorting={true}
+        hideLabel={true}
+      />
+    )
+
+    if (disableSorting) {
+      return (
+        <div
+          key={itemWrapper.id}
+          className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4"
+        >
+          {subField.label && <h3 className="text-[1rem] font-medium mb-1">{subField.label}</h3>}
+          {body}
+        </div>
+      )
+    }
+
+    return (
+      <SortableItem
+        key={itemWrapper.id}
+        id={itemWrapper.id}
+        label={subField.label ?? subField.name}
+      >
+        {body}
+      </SortableItem>
+    )
+  }
+
   return (
     <div className="">
-      {field.label && <h3 className="text-[1rem] font-medium mb-1">{field.label}</h3>}
-      <DraggableSortable
-        ids={items.map((i) => i.id)}
-        onDragEnd={handleDragEnd}
-        className="flex flex-col gap-4"
-      >
-        {items.map((itemWrapper, index) => {
-          const item = itemWrapper.data
-          const arrayElementPath = `${path}.${index}`
-          // For block arrays, find the matching field definition for the item.
-          const blockType = Object.keys(item)[0]
-          const subField = field.fields?.find((f) => f.name === blockType)
-
-          if (subField == null) return null
-
-          return (
-            <SortableItem key={itemWrapper.id} id={itemWrapper.id}>
-              <div className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4">
-                <FieldRenderer
-                  key={subField.name}
-                  field={subField}
-                  initialValue={item[subField.name]}
-                  basePath={arrayElementPath}
-                />
-              </div>
-            </SortableItem>
-          )
-        })}
-      </DraggableSortable>
+      {!disableSorting && field.label && (
+        <h3 className="text-[1rem] font-medium mb-1">{field.label}</h3>
+      )}
+      {disableSorting ? (
+        <div className="flex flex-col gap-4">
+          {items.map((item, index) => renderItem(item, index))}
+        </div>
+      ) : (
+        <DraggableSortable
+          ids={items.map((i) => i.id)}
+          onDragEnd={handleDragEnd}
+          className="flex flex-col gap-4"
+        >
+          {items.map((item, index) => renderItem(item, index))}
+        </DraggableSortable>
+      )}
     </div>
   )
 }
@@ -134,9 +185,17 @@ interface FieldRendererProps {
   field: Field
   initialValue?: any
   basePath?: string
+  disableSorting?: boolean
+  hideLabel?: boolean
 }
 
-export const FieldRenderer = ({ field, initialValue, basePath }: FieldRendererProps) => {
+export const FieldRenderer = ({
+  field,
+  initialValue,
+  basePath,
+  disableSorting,
+  hideLabel,
+}: FieldRendererProps) => {
   const { setFieldValue } = useFormContext()
   const path = basePath ? `${basePath}.${field.name}` : field.name
 
@@ -146,20 +205,63 @@ export const FieldRenderer = ({ field, initialValue, basePath }: FieldRendererPr
 
   switch (field.type) {
     case 'text':
-      return <TextField field={field} initialValue={initialValue} onChange={handleChange} />
+      return (
+        <TextField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
     case 'checkbox':
-      return <CheckboxField field={field} initialValue={initialValue} onChange={handleChange} />
+      return (
+        <CheckboxField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
     case 'select':
-      return <SelectField field={field} initialValue={initialValue} onChange={handleChange} />
+      return (
+        <SelectField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
     case 'richText':
-      return <RichTextField field={field} initialValue={initialValue} onChange={handleChange} />
+      return (
+        <RichTextField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
     case 'datetime':
-      return <DateTimeField field={field} initialValue={initialValue} onChange={handleChange} />
+      return (
+        <DateTimeField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
     case 'integer':
-      return <NumericalField field={field} initialValue={initialValue} onChange={handleChange} />
+      return (
+        <NumericalField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
     case 'array':
       if (!field.fields) return null
-      return <ArrayField field={field} initialValue={initialValue} path={path} />
+      return (
+        <ArrayField
+          field={field}
+          initialValue={initialValue}
+          path={path}
+          disableSorting={disableSorting}
+        />
+      )
     default:
       return null
   }
