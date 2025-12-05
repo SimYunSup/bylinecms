@@ -25,7 +25,7 @@
 import { type ReactNode, useEffect, useState } from 'react'
 
 import type { ArrayField as ArrayFieldType, Field } from '@byline/core'
-import { GripperVerticalIcon } from '@infonomic/uikit/react'
+import { ChevronDownIcon, GripperVerticalIcon } from '@infonomic/uikit/react'
 import cx from 'classnames'
 
 import { DraggableSortable, moveItem, useSortable } from '@/ui/dnd/draggable-sortable'
@@ -54,6 +54,8 @@ const SortableItem = ({
     },
   })
 
+  const [collapsed, setCollapsed] = useState(false)
+
   const style = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition,
@@ -78,9 +80,28 @@ const SortableItem = ({
         >
           <GripperVerticalIcon className="w-4 h-4" />
         </button>
-        <div className="text-[1rem] font-medium">{label}</div>
+        <div className="text-[1rem] font-medium flex-1 min-w-0 truncate">{label}</div>
+        <button
+          type="button"
+          className="p-1 rounded hover:bg-gray-800 text-gray-400 flex items-center justify-center"
+          onClick={() => setCollapsed((prev) => !prev)}
+          aria-label={collapsed ? 'Expand item' : 'Collapse item'}
+        >
+          <ChevronDownIcon
+            className={cx('w-4 h-4 transition-transform', {
+              'rotate-180': collapsed,
+            })}
+          />
+        </button>
       </div>
-      <div className="flex flex-col gap-4">{children}</div>
+      <div
+        className={cx('flex flex-col gap-4 overflow-hidden transition-all duration-200', {
+          'max-h-0 opacity-0': collapsed,
+          'max-h-[1000px] opacity-100': !collapsed,
+        })}
+      >
+        {children}
+      </div>
     </div>
   )
 }
