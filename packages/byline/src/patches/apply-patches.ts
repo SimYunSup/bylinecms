@@ -1,6 +1,6 @@
 // Core implementation of the patch engine
 
-import type { ModelCollection } from '../model/model-types.js'
+import type { ModelCollection, ModelField } from '../model/model-types.js'
 import type {
   ApplyPatchesResult,
   ArrayPatch,
@@ -65,6 +65,51 @@ export function parsePatchPath(path: PatchPath): PathSegment[] {
   }
 
   return segments
+}
+
+// Very small, best-effort resolver that walks the ModelCollection to find the
+// field targeted by a patch path. This is intentionally conservative and
+// currently only understands top-level fields and simple nested array fields.
+export function resolveModelFieldForPath(
+  model: ModelCollection | null | undefined,
+  path: PatchPath
+): ModelField | null {
+  if (!model || !path) return null
+
+  const segments = parsePatchPath(path)
+  if (segments.length === 0) return null
+
+  // Only attempt to resolve simple field paths of the form
+  // "field", "field.subField", or "arrayField[0].subField" for now.
+  const [first, ...rest] = segments
+  if (!first || first.kind !== 'field') return null
+
+  let current: ModelField | undefined = model.fields.find((f) => f.id === first.key)
+  if (!current) return null
+
+  // Walk remaining segments in a very small subset of the full grammar.
+  for (const segment of rest) {
+    if (!current) return null
+
+    if (segment.kind === 'index') {
+      // Index segments only make sense on array fields; we just step into the item.
+      if (current.kind !== 'array') return null
+      current = current.item
+    } else if (segment.kind === 'field') {
+      if (current.kind === 'object') {
+        current = current.fields.find((f) => f.id === segment.key)
+      } else {
+        // For now we don't attempt to resolve arbitrary nested structures under
+        // non-object fields.
+        return null
+      }
+    } else if (segment.kind === 'id') {
+      // Block unions and id-addressed arrays are not yet model-resolved here.
+      return null
+    }
+  }
+
+  return current ?? null
 }
 
 function getBySegments(
@@ -296,6 +341,20 @@ export function applyPatches(
 
   patches.forEach((patch, index) => {
     try {
+      // Best-effort schema-aware validation: skip patches whose paths do not
+      // resolve against the provided model collection. This is intentionally
+      // conservative and currently only understands a subset of the path
+      // grammar implemented in parsePatchPath/resolveModelFieldForPath.
+      // const resolvedField = resolveModelFieldForPath(model, patch.path)
+      // if (!resolvedField) {
+      //   errors.push({
+      //     index,
+      //     message: `Patch path not found in model: ${String(patch.path ?? '')}`,
+      //     patch,
+      //   })
+      //   return
+      // }
+
       if (patch.kind === 'field.set' || patch.kind === 'field.clear') {
         applyFieldPatch(working, patch)
       } else if (

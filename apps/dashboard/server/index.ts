@@ -28,7 +28,15 @@
 // Initialize Byline config by importing the server config
 import '../byline.server.config.js'
 
-import { type CollectionDefinition, getCollectionDefinition, getServerConfig } from '@byline/core'
+import {
+  type CollectionDefinition,
+  getCollectionDefinition,
+  getServerConfig,
+  type ModelArrayField,
+  type ModelCollection,
+  type ModelField,
+  type ModelScalarField,
+} from '@byline/core'
 import { applyPatches, type DocumentPatch } from '@byline/core/patches'
 // TODO: Remove direct dependency on the getCollectionDefinition
 import { booleanSchema } from '@byline/shared/schemas'
@@ -103,6 +111,95 @@ async function ensureCollection(
   }
 
   return { definition: collectionDefinition, collection }
+}
+
+// Minimal in-memory cache of ModelCollection definitions by collection path.
+const modelCollections: Record<string, ModelCollection> = {}
+
+function getModelCollectionForDefinition(definition: CollectionDefinition): ModelCollection {
+  if (modelCollections[definition.path]) return modelCollections[definition.path]
+
+  const fields: ModelField[] = definition.fields.map((field): ModelField => {
+    const base = {
+      id: field.name,
+      label: field.label,
+      localized: field.localized,
+      required: field.required,
+    }
+
+    if (field.type === 'text' || field.type === 'richText') {
+      const scalarField: ModelScalarField = {
+        ...base,
+        kind: 'scalar',
+        scalarType: 'text',
+      }
+      return scalarField
+    }
+
+    if (field.type === 'checkbox') {
+      const scalarField: ModelScalarField = {
+        ...base,
+        kind: 'scalar',
+        scalarType: 'boolean',
+      }
+      return scalarField
+    }
+
+    if (field.type === 'integer') {
+      const scalarField: ModelScalarField = {
+        ...base,
+        kind: 'scalar',
+        scalarType: 'integer',
+      }
+      return scalarField
+    }
+
+    if (field.type === 'datetime') {
+      const scalarField: ModelScalarField = {
+        ...base,
+        kind: 'scalar',
+        scalarType: 'datetime',
+      }
+      return scalarField
+    }
+
+    if (field.type === 'array' && Array.isArray(field.fields)) {
+      const arrayField: ModelArrayField = {
+        ...base,
+        kind: 'array',
+        item: {
+          id: `${field.name}_item`,
+          kind: 'object',
+          fields: field.fields.map((subField) => ({
+            id: subField.name,
+            label: subField.label,
+            localized: subField.localized,
+            required: subField.required,
+            kind: 'scalar',
+            scalarType: subField.type === 'checkbox' ? 'boolean' : 'text',
+          })),
+        },
+      }
+      return arrayField
+    }
+
+    const fallback: ModelScalarField = {
+      ...base,
+      kind: 'scalar',
+      scalarType: 'text',
+    }
+    return fallback
+  })
+
+  const model: ModelCollection = {
+    id: definition.path,
+    path: definition.path,
+    label: definition.labels.singular,
+    fields,
+  }
+
+  modelCollections[definition.path] = model
+  return model
 }
 
 /**
@@ -383,7 +480,7 @@ app.post<{
 
   // Apply patches to the reconstructed database version to create the next version.
   const { doc: patchedDocument, errors } = applyPatches(
-    {} as any, // TODO: replace with real ModelCollection for this collection
+    getModelCollectionForDefinition(config.definition),
     originalData,
     patches
   )
