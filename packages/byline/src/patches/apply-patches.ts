@@ -255,13 +255,18 @@ function applyArrayPatch(doc: any, patch: ArrayPatch, model: ModelCollection) {
     const index = patch.index ?? array.length
     array.splice(index, 0, patch.item)
   } else if (patch.kind === 'array.move') {
-    const index = array.findIndex((item) => item && item.id === patch.itemId)
-    if (index === -1) {
-      throw new Error(`array.move: item with id=${patch.itemId} not found`)
+    const currentIndex = array.findIndex((item) => item && item.id === patch.itemId)
+
+    // Fallback for arrays without stable ids: treat itemId as an index
+    const index = currentIndex === -1 ? Number.parseInt(patch.itemId, 10) : currentIndex
+
+    if (!Number.isFinite(index) || index < 0 || index >= array.length) {
+      throw new Error(`array.move: item with idOrIndex=${patch.itemId} not found`)
     }
-    const [item] = array.splice(index, 1)
-    const toIndex = Math.max(0, Math.min(patch.toIndex, array.length))
-    array.splice(toIndex, 0, item)
+
+    const [moved] = array.splice(index, 1)
+    const toIndex = patch.toIndex ?? array.length
+    array.splice(toIndex, 0, moved)
   } else if (patch.kind === 'array.remove') {
     const index = array.findIndex((item) => item && item.id === patch.itemId)
     if (index === -1) {

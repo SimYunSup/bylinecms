@@ -36,6 +36,7 @@ interface FormContextType {
   getFieldValue: (name: string) => any
   getFieldValues: () => Record<string, any>
   getPatches: () => DocumentPatch[]
+  appendPatch: (patch: DocumentPatch) => void
   resetPatches: () => void
   hasChanges: () => boolean
   resetHasChanges: () => void
@@ -65,6 +66,7 @@ export const FormProvider = ({
   const fieldValues = useRef<Record<string, any>>(JSON.parse(JSON.stringify(initialData)))
   const initialValues = useRef<Record<string, any>>(initialData)
   const [errors, setErrors] = useState<FormError[]>([])
+  const [, setDirtyVersion] = useState(0)
   const dirtyFields = useRef<Set<string>>(new Set())
   const patchesRef = useRef<DocumentPatch[]>([])
 
@@ -73,6 +75,7 @@ export const FormProvider = ({
     setNestedValue(newFieldValues, name, value)
     fieldValues.current = newFieldValues
     dirtyFields.current.add(name)
+    setDirtyVersion((v) => v + 1)
 
     const patch: FieldSetPatch = {
       kind: 'field.set',
@@ -88,6 +91,17 @@ export const FormProvider = ({
   const getFieldValues = useCallback(() => fieldValues.current, [])
 
   const getPatches = useCallback(() => patchesRef.current, [])
+  const appendPatch = useCallback((patch: DocumentPatch) => {
+    patchesRef.current = [...patchesRef.current, patch]
+    // Mark a generic dirty flag so hasChanges() becomes true even
+    // for patches that don't correspond to a specific field.set.
+    dirtyFields.current.add('__patch__')
+    setDirtyVersion((v) => v + 1)
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.debug('FormContext.appendPatch', { patch, dirtyCount: dirtyFields.current.size })
+    }
+  }, [])
 
   const getFieldValue = useCallback((name: string) => {
     const dirty = dirtyFields.current.has(name)
@@ -109,6 +123,7 @@ export const FormProvider = ({
   const resetHasChanges = useCallback(() => {
     dirtyFields.current.clear()
     patchesRef.current = []
+    setDirtyVersion((v) => v + 1)
   }, [])
 
   const isDirty = useCallback((fieldName: string) => {
@@ -191,6 +206,7 @@ export const FormProvider = ({
         getFieldValue,
         getFieldValues,
         getPatches,
+        appendPatch,
         resetPatches: () => {
           patchesRef.current = []
         },
