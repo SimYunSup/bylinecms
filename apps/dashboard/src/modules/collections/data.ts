@@ -1,4 +1,5 @@
 import { getCollectionSchemasForPath } from '@byline/core'
+import type { DocumentPatch } from '@byline/core/patches'
 
 export interface CollectionSearchParams {
   page?: number
@@ -114,6 +115,25 @@ export async function updateCollectionDocument(collection: string, id: string, d
   if (!response.ok) {
     const error = await response.json()
     throw new Error(error.message || 'Failed to update document')
+  }
+  return response.json()
+}
+
+export async function updateCollectionDocumentWithPatches(
+  collection: string,
+  id: string,
+  data: any,
+  patches: DocumentPatch[]
+) {
+  const url = `${API_BASE_URL}/${collection}/${id}/patches`
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data, patches }),
+  })
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.message || 'Failed to update document with patches')
   }
   return response.json()
 }

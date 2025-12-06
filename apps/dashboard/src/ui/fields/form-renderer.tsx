@@ -65,7 +65,8 @@ const FormContent = ({
   onCancel: () => void
   initialData?: Record<string, any>
 }) => {
-  const { getFieldValues, validateForm, errors, hasChanges, resetHasChanges } = useFormContext()
+  const { getFieldValues, validateForm, errors, hasChanges, resetHasChanges, getPatches } =
+    useFormContext()
 
   const handleCancel = () => {
     if (onCancel && typeof onCancel === 'function') {
@@ -84,9 +85,10 @@ const FormContent = ({
     }
 
     const data = getFieldValues()
+    const patches = getPatches()
 
     if (onSubmit && typeof onSubmit === 'function') {
-      onSubmit(data)
+      onSubmit({ data, patches })
       resetHasChanges()
     }
   }

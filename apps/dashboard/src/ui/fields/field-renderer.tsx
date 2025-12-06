@@ -139,18 +139,19 @@ const ArrayField = ({
 
   const renderItem = (itemWrapper: { id: string; data: any }, index: number) => {
     const item = itemWrapper.data
-    const arrayElementPath = `${path}.${index}`
-    // For block arrays, find the matching field definition for the item.
-    const blockType = Object.keys(item)[0]
-    const subField = field.fields?.find((f) => f.name === blockType)
-
+    // Use an index-based array path that matches the patch grammar,
+    // e.g. `content[0]`, and let FieldRenderer append the field name.
+    const arrayElementPath = `${path}[${index}]`
+    const outerKey = Object.keys(item)[0]
+    // Generic array item rendering (reviews, links, blocks like richTextBlock, photoBlock).
+    const subField = field.fields?.find((f) => f.name === outerKey)
     if (subField == null) return null
 
     const body = (
       <FieldRenderer
         key={subField.name}
         field={subField}
-        initialValue={item[subField.name]}
+        initialValue={item[subField.name] ?? item[outerKey]}
         basePath={arrayElementPath}
         disableSorting={true}
         hideLabel={true}

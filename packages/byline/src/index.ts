@@ -6,4 +6,5 @@ export {
   getCollectionDefinition,
   getServerConfig,
 } from './config/config.js'
+export * from './patches/index.js'
 export { getCollectionSchemasForPath } from './schemas/zod/cache.js'

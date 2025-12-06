@@ -23,6 +23,7 @@ import type React from 'react'
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
 
 import type { Field } from '@byline/core'
+import type { DocumentPatch, FieldSetPatch } from '@byline/core/patches'
 import { get as getNestedValue, set as setNestedValue } from 'lodash-es'
 
 interface FormError {
@@ -34,6 +35,8 @@ interface FormContextType {
   setFieldValue: (name: string, value: any) => void
   getFieldValue: (name: string) => any
   getFieldValues: () => Record<string, any>
+  getPatches: () => DocumentPatch[]
+  resetPatches: () => void
   hasChanges: () => boolean
   resetHasChanges: () => void
   validateForm: (fields: Field[]) => FormError[]
@@ -63,6 +66,7 @@ export const FormProvider = ({
   const initialValues = useRef<Record<string, any>>(initialData)
   const [errors, setErrors] = useState<FormError[]>([])
   const dirtyFields = useRef<Set<string>>(new Set())
+  const patchesRef = useRef<DocumentPatch[]>([])
 
   const setFieldValue = useCallback((name: string, value: any) => {
     const newFieldValues = { ...fieldValues.current }
@@ -70,11 +74,20 @@ export const FormProvider = ({
     fieldValues.current = newFieldValues
     dirtyFields.current.add(name)
 
+    const patch: FieldSetPatch = {
+      kind: 'field.set',
+      path: name,
+      value,
+    }
+    patchesRef.current = [...patchesRef.current, patch]
+
     // Clear field-specific errors when value changes
     setErrors((prev) => prev.filter((error) => error.field !== name))
   }, [])
 
   const getFieldValues = useCallback(() => fieldValues.current, [])
+
+  const getPatches = useCallback(() => patchesRef.current, [])
 
   const getFieldValue = useCallback((name: string) => {
     const dirty = dirtyFields.current.has(name)
@@ -95,6 +108,7 @@ export const FormProvider = ({
 
   const resetHasChanges = useCallback(() => {
     dirtyFields.current.clear()
+    patchesRef.current = []
   }, [])
 
   const isDirty = useCallback((fieldName: string) => {
@@ -176,6 +190,10 @@ export const FormProvider = ({
         setFieldValue,
         getFieldValue,
         getFieldValues,
+        getPatches,
+        resetPatches: () => {
+          patchesRef.current = []
+        },
         hasChanges,
         resetHasChanges,
         validateForm,
