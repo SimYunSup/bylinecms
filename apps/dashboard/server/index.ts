@@ -32,13 +32,8 @@ import { type CollectionDefinition, getCollectionDefinition, getServerConfig } f
 // TODO: Remove direct dependency on the getCollectionDefinition
 import { booleanSchema } from '@byline/shared/schemas'
 import cors from '@fastify/cors'
-// import { drizzle } from 'drizzle-orm/node-postgres'
 import Fastify from 'fastify'
-// import { Pool } from 'pg'
 import * as z from 'zod'
-
-// import { createCommandBuilders } from './storage/storage-commands.js'
-// import { createQueryBuilders } from './storage/storage-queries.js'
 
 const app = Fastify({
   logger: true,
@@ -49,11 +44,6 @@ await app.register(cors, {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 })
-
-// const pool = new Pool({ connectionString: process.env.POSTGRES_CONNECTION_STRING })
-// const db = drizzle(pool, { schema })
-// const queries: ReturnType<typeof createQueryBuilders> = createQueryBuilders(db)
-// const commands: ReturnType<typeof createCommandBuilders> = createCommandBuilders(db)
 
 const collectionListSchema = z.object({
   page: z.coerce.number().min(1).optional(),
