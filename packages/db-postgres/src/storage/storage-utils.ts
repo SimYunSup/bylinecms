@@ -64,7 +64,7 @@ export function flattenFields(
 
       if (value === undefined || value === null) continue
 
-      if (fieldConfig.type === 'array' && Array.isArray(value)) {
+      if ((fieldConfig.type === 'array' || fieldConfig.type === 'block') && Array.isArray(value)) {
         value.forEach((item, index) => {
           const arrayElementPath = `${currentPath}.${index}`
           if (typeof item === 'object' && item !== null && fieldConfig.fields) {
@@ -118,7 +118,10 @@ export function flattenFields(
             )
           )
         }
-      } else {
+      } else if (fieldConfig.type !== 'block') {
+        // Only value-bearing field types are flattened directly. Presentational
+        // fields like blocks are containers and should delegate to their
+        // nested value fields instead of being stored themselves.
         flattenedFields.push(
           createFlattenedStore(
             currentPath,
