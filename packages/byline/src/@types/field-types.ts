@@ -25,6 +25,7 @@ export type FieldType =
   | 'row'
   | 'block'
   | 'text'
+  | 'textArea'
   | 'checkbox'
   | 'boolean'
   | 'select'
@@ -99,6 +100,16 @@ export interface BlockField extends BasePresentationalField {
 // Value field types (preserving existing properties)
 export interface TextField extends BaseValueField {
   type: 'text'
+  validation?: {
+    minLength?: number
+    maxLength?: number
+    pattern?: string
+    rules?: ValidationRule[]
+  }
+}
+
+export interface TextAreaField extends BaseValueField {
+  type: 'textArea'
   validation?: {
     minLength?: number
     maxLength?: number
@@ -205,6 +216,7 @@ export type PresentationalField = ArrayField | GroupField | RowField | BlockFiel
 // Union of all value fields
 export type ValueField =
   | TextField
+  | TextAreaField
   | CheckboxField
   | BooleanField
   | SelectField

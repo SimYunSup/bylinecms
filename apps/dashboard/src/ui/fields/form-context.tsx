@@ -160,10 +160,20 @@ export const FormProvider = ({
       path: name,
       value,
     }
-    patchesRef.current = [...patchesRef.current, patch]
+
+    // Optimization: Coalesce consecutive field.set patches for the same path
+    const lastPatch = patchesRef.current[patchesRef.current.length - 1]
+    if (lastPatch && lastPatch.kind === 'field.set' && lastPatch.path === name) {
+      const newPatches = [...patchesRef.current]
+      newPatches[newPatches.length - 1] = patch
+      patchesRef.current = newPatches
+    } else {
+      patchesRef.current = [...patchesRef.current, patch]
+    }
 
     // Clear field-specific errors when value changes
     setErrors((prev) => prev.filter((error) => error.field !== name))
+    console.log('Current patch list:', patchesRef.current)
   }, [])
 
   const getFieldValues = useCallback(() => fieldValues.current, [])

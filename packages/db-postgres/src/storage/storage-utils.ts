@@ -183,6 +183,7 @@ function createFlattenedStore(
 
   switch (field_type) {
     case 'text':
+    case 'textArea':
     case 'boolean':
     case 'checkbox':
     case 'select':
@@ -344,6 +345,7 @@ export function reconstructFields(fieldValues: FlattenedStore[], locale = 'all')
 function createReconstructedValue(fieldValue: FlattenedStore): any {
   switch (fieldValue.field_type) {
     case 'text':
+    case 'textArea':
     case 'select':
     case 'richText':
     case 'checkbox':

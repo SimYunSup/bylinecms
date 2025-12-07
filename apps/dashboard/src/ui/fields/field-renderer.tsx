@@ -34,6 +34,7 @@ import { useFormContext } from '../fields/form-context'
 import { RichTextField } from '../fields/richtext/richtext-lexical/richtext-field'
 import { SelectField } from '../fields/select/select-field'
 import { TextField } from '../fields/text/text-field'
+import { TextAreaField } from '../fields/text-area/text-area-field'
 import { DateTimeField } from './datetime/datetime-field'
 import { FileField } from './file/file-field'
 import { ImageField } from './image/image-field'
@@ -268,6 +269,7 @@ export const FieldRenderer = ({
   const path = basePath ? `${basePath}.${field.name}` : field.name
 
   const handleChange = (value: any) => {
+    console.log('FieldRenderer.handleChange', { path, value })
     setFieldValue(path, value)
   }
 
@@ -275,6 +277,14 @@ export const FieldRenderer = ({
     case 'text':
       return (
         <TextField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
+    case 'textArea':
+      return (
+        <TextAreaField
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}

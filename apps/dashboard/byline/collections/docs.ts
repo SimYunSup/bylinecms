@@ -63,7 +63,7 @@ export const Docs: CollectionDefinition = {
   fields: [
     { name: 'path', label: 'Path', type: 'text', required: true, admin: { position: 'sidebar' } },
     { name: 'title', label: 'Title', type: 'text', required: true },
-    { name: 'summary', label: 'Summary', type: 'text', required: true, localized: true },
+    { name: 'summary', label: 'Summary', type: 'textArea', required: true, localized: true },
     {
       name: 'publishedOn',
       label: 'Published On',

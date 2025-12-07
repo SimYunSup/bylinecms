@@ -492,6 +492,7 @@ export class DocumentCommands implements IDocumentCommands {
     switch (fieldValue.field_type) {
       case 'select':
       case 'text':
+      case 'textArea':
         // Handle both simple string values and localized object values
         if (typeof fieldValue.value === 'object' && fieldValue.value != null) {
           const values: any[] = []

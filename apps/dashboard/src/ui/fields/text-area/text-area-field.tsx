@@ -21,12 +21,12 @@
 
 import { useCallback, useRef } from 'react'
 
-import type { TextField as FieldType } from '@byline/core'
-import { Input } from '@infonomic/uikit/react'
+import type { TextAreaField as FieldType } from '@byline/core'
+import { TextArea } from '@infonomic/uikit/react'
 
 import { useFormContext } from '../../fields/form-context'
 
-export const TextField = ({
+export const TextAreaField = ({
   field,
   initialValue,
   onChange,
@@ -63,17 +63,18 @@ export const TextField = ({
 
   return (
     <div>
-      <Input
+      <TextArea
         id={field.name}
         name={field.name}
         label={field.label}
         required={field.required}
         helpText={field.helpText}
         defaultValue={initialValue || undefined}
-        onChange={(e) => handleChange(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange(e.target.value)}
         error={fieldError?.message != null}
         errorText={fieldError?.message}
         className={isDirty(field.name) ? 'border-blue-300' : ''}
+        rows={4}
       />
     </div>
   )
