@@ -23,6 +23,8 @@
 const CONTENT_LOCALES = ['en', 'es', 'fr']
 
 import type {
+  ArrayField,
+  BlockField,
   CollectionDefinition,
   DateTimeStore,
   Field,
@@ -65,19 +67,24 @@ export function flattenFields(
       if (value === undefined || value === null) continue
 
       if ((fieldConfig.type === 'array' || fieldConfig.type === 'block') && Array.isArray(value)) {
+        const containerField = fieldConfig as ArrayField | BlockField
         value.forEach((item, index) => {
           const arrayElementPath = `${currentPath}.${index}`
 
-          if (typeof item === 'object' && item !== null && fieldConfig.fields) {
+          if (typeof item === 'object' && item !== null && containerField.fields) {
             // Array-of-blocks + new block shape support.
             // For the Docs collection, `content` is an array field whose
             // items are blocks like richTextBlock and photoBlock.
             if (item.type === 'block' && typeof item.name === 'string') {
               const blockName = item.name
               const blockFieldsArray = Array.isArray(item.fields) ? item.fields : []
-              const blockFieldConfig = fieldConfig.fields.find((f) => f.name === blockName)
+              const blockFieldConfig = containerField.fields.find((f) => f.name === blockName)
 
-              if (blockFieldConfig && Array.isArray(blockFieldConfig.fields)) {
+              if (
+                blockFieldConfig &&
+                blockFieldConfig.type === 'block' &&
+                Array.isArray(blockFieldConfig.fields)
+              ) {
                 blockFieldsArray.forEach((subItem: any, idx: number) => {
                   if (subItem && typeof subItem === 'object') {
                     const fieldName = Object.keys(subItem)[0]
@@ -97,7 +104,7 @@ export function flattenFields(
               const fieldName = Object.keys(item)[0]
               if (fieldName != null) {
                 const fieldValue = item[fieldName]
-                const subField = fieldConfig.fields.find((f) => f.name === fieldName)
+                const subField = containerField.fields.find((f) => f.name === fieldName)
                 if (subField) {
                   flatten({ [fieldName]: fieldValue }, [subField], arrayElementPath)
                 }

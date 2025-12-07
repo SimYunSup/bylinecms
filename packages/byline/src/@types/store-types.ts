@@ -27,7 +27,7 @@ export interface BaseStore {
 }
 
 export interface TextStore extends BaseStore {
-  field_type: 'text' | 'select'
+  field_type: 'text' | 'select' | 'textArea'
   value: string // Should only be string after flattening
 }
 

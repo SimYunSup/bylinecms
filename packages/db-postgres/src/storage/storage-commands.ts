@@ -318,7 +318,7 @@ async function writeMetaForBlocks({
 
             // Recurse for fields inside the block
             const subField = fieldConfig.fields?.find((f) => f.name === blockName)
-            if (subField && Array.isArray(item.fields)) {
+            if (subField && subField.type === 'block' && Array.isArray(item.fields)) {
               const syntheticData: any = {}
               item.fields.forEach((f: any) => {
                 if (f && typeof f === 'object') {
