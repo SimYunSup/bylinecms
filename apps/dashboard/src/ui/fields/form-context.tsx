@@ -76,64 +76,78 @@ export const FormProvider = ({
     // Keep nested path values up to date for generic usage and patches.
     setNestedValue(newFieldValues, name, value)
 
-    // Special handling for content blocks so that the structured
-    // content array stays in sync with inner field edits.
-    if (name.startsWith('content[')) {
-      const rootMatch = /^content\[(\d+)\]/.exec(name)
-      if (rootMatch) {
-        const index = Number.parseInt(rootMatch[1] ?? '0', 10)
+    // Generic handling for block fields:
+    // If the path traverses a block object (identified by { type: 'block', name: '...' }),
+    // and the path segment matches the block name, we must also update the internal `fields` array.
+    // This ensures that the structured data (used for persistence) stays in sync with the
+    // "virtual" path used by the UI (e.g. content[0].richTextBlock[0].richText).
 
-        const content = Array.isArray(newFieldValues.content)
-          ? [...newFieldValues.content]
-          : Array.isArray(initialValues.current.content)
-            ? [...(initialValues.current.content as any[])]
-            : []
+    // We walk the path segments against the object tree.
+    // Path format: "content[0].richTextBlock[0].richText"
+    // Segments: ["content", "0", "richTextBlock", "0", "richText"]
+    // (Note: lodash/set handles the parsing implicitly, but we need to do it explicitly here to find blocks)
 
-        const existing = content[index]
-        if (existing && typeof existing === 'object') {
-          // New block shape: { id, type: 'block', name, fields, meta }
-          if (existing.type === 'block' && Array.isArray(existing.fields)) {
-            // Path is like: content[0].richTextBlock[0].richText
-            // We need to parse out the field index and key.
+    // Simple path parser that handles dot notation and brackets
+    const segments = name.replace(/\]/g, '').split(/[.[]/)
 
-            // Remove "content[0]."
-            const relativePath = name.substring(rootMatch[0].length + 1)
+    let current = newFieldValues
+    for (let i = 0; i < segments.length; i++) {
+      const key = segments[i]
 
-            // Check if it matches the block name pattern: "blockName[fieldIndex].fieldName"
-            // We expect relativePath to start with existing.name
-            if (relativePath.startsWith(existing.name)) {
-              const parts = relativePath.split('.')
-              // parts[0] should be "blockName[fieldIndex]"
-              // parts[1] should be "fieldName"
+      // Check if current object is a block and the key matches its name
+      if (
+        current &&
+        typeof current === 'object' &&
+        current.type === 'block' &&
+        current.name === key
+      ) {
+        // We found a block traversal!
+        // The path continues into the block's virtual structure.
+        // We need to apply the update to the `fields` array instead.
 
-              if (parts.length >= 2) {
-                const blockRef = parts[0]
-                const fieldName = parts[1]
+        // The remaining segments describe the path INSIDE the block's fields.
+        // e.g. if path was "content[0].richTextBlock[0].richText",
+        // we are at "richTextBlock". Remaining: ["0", "richText"].
+        // This maps to `fields[0].richText`.
 
-                const fieldIndexMatch = /\[(\d+)\]$/.exec(blockRef)
-                if (fieldIndexMatch) {
-                  const fieldIndex = Number.parseInt(fieldIndexMatch[1], 10)
+        const remainingSegments = segments.slice(i + 1)
+        if (remainingSegments.length > 0) {
+          // We need to update `current.fields` at `remainingSegments`.
+          // Since `current` is a reference to the object in the tree, modifying it works.
+          // However, for React/Immutability, we should ideally clone.
+          // But `setNestedValue` above already mutated the tree structure (or cloned parts of it).
+          // Since `newFieldValues` is a shallow copy of root, and `setNestedValue` handles deep cloning/mutation,
+          // we can assume `current` is the object we want to modify.
 
-                  if (existing.fields[fieldIndex]) {
-                    const updatedFields = [...existing.fields]
-                    // Update the specific field object in the array
-                    updatedFields[fieldIndex] = {
-                      ...updatedFields[fieldIndex],
-                      [fieldName]: value,
-                    }
-
-                    content[index] = {
-                      ...existing,
-                      fields: updatedFields,
-                    }
-                  }
-                }
-              }
-            }
+          // Ensure fields array exists
+          if (!Array.isArray(current.fields)) {
+            current.fields = []
           }
+
+          // Use setNestedValue to update the fields array
+          // We construct a path string for the remaining part
+          // e.g. "0.richText" -> "fields[0].richText"
+          // But `setNestedValue` takes an object and a path.
+          // We can just call it on `current` with path `fields.${remainingPath}`
+
+          // Reconstruct path from segments (handling array indices)
+          // Actually, `setNestedValue` supports array path.
+          const fieldsPath = ['fields', ...remainingSegments]
+          setNestedValue(current, fieldsPath, value)
         }
 
-        newFieldValues.content = content
+        // We don't need to continue traversing down the "virtual" path because
+        // we've handled the sync to "fields".
+        // (The virtual path update was already done by the first setNestedValue call at the top)
+        break
+      }
+
+      // Move to next level
+      if (current && typeof current === 'object' && key in current) {
+        current = current[key]
+      } else {
+        // Path doesn't exist in the tree (or we hit a leaf), stop.
+        break
       }
     }
 

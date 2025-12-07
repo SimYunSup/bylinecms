@@ -19,10 +19,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { createFileRoute, notFound } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
+import { createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
 
 import type { CollectionDefinition } from '@byline/core'
 import { getCollectionDefinition } from '@byline/core'
+import { Toast } from '@infonomic/uikit/react'
 import { z } from 'zod'
 
 import { BreadcrumbsClient } from '@/context/breadcrumbs/breadcrumbs-client'
@@ -36,6 +38,7 @@ const searchSchema = z.object({
   desc: z.coerce.boolean().optional(),
   query: z.string().optional(),
   locale: z.string().optional(),
+  action: z.enum(['created']).optional(),
 })
 
 export const Route = createFileRoute('/collections/$collection/')({
@@ -71,8 +74,22 @@ export const Route = createFileRoute('/collections/$collection/')({
 function RouteComponent() {
   const data = Route.useLoaderData()
   const { collection } = Route.useParams()
+  const search = Route.useSearch()
+  const navigate = useNavigate()
   const collectionDef = getCollectionDefinition(collection) as CollectionDefinition
   const columns = collectionDef.columns || []
+  const [toastOpen, setToastOpen] = useState(false)
+
+  useEffect(() => {
+    if (search.action === 'created') {
+      setToastOpen(true)
+      navigate({
+        to: '.',
+        search: (prev) => ({ ...prev, action: undefined }),
+        replace: true,
+      })
+    }
+  }, [search.action, navigate])
 
   return (
     <>
@@ -82,6 +99,14 @@ function RouteComponent() {
         ]}
       />
       <ListView data={data} columns={columns} />
+      <Toast
+        title={`${collectionDef.labels.singular} Created`}
+        intent="success"
+        message={`Successfully created ${collectionDef.labels.singular.toLowerCase()}`}
+        open={toastOpen}
+        onOpenChange={setToastOpen}
+        position="bottom-right"
+      />
     </>
   )
 }

@@ -28,17 +28,16 @@
 // Initialize Byline config by importing the server config
 import '../byline.server.config.js'
 
-import {
-  type CollectionDefinition,
-  getCollectionDefinition,
-  getServerConfig,
-  type ModelArrayField,
-  type ModelCollection,
-  type ModelField,
-  type ModelScalarField,
+import type {
+  CollectionDefinition,
+  ModelArrayField,
+  ModelCollection,
+  ModelField,
+  ModelScalarField,
 } from '@byline/core'
-import { applyPatches, type DocumentPatch } from '@byline/core/patches'
-// TODO: Remove direct dependency on the getCollectionDefinition
+import { getCollectionDefinition, getServerConfig } from '@byline/core'
+import type { DocumentPatch } from '@byline/core/patches'
+import { applyPatches } from '@byline/core/patches'
 import { booleanSchema } from '@byline/shared/schemas'
 import cors from '@fastify/cors'
 import Fastify from 'fastify'
@@ -251,6 +250,18 @@ app.post<{ Params: { collection: string }; Body: Record<string, any> }>(
     if (documentData.updated_at) documentData.updated_at = new Date(documentData.updated_at)
     if (documentData.publishedOn) documentData.publishedOn = new Date(documentData.publishedOn)
 
+    // Ensure path is present. If not, generate one from title or random UUID.
+    if (!documentData.path) {
+      if (documentData.title) {
+        documentData.path = documentData.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '')
+      } else {
+        documentData.path = crypto.randomUUID()
+      }
+    }
+
     const db = getServerConfig().db
 
     await db.commands.documents.createDocumentVersion({
@@ -429,18 +440,13 @@ app.delete<{ Params: { collection: string; id: string } }>(
  * POST /api/docs/:id/patches
  *
  * Apply a set of patches to a document in the docs collection.
- * This is a prototype, dev-only endpoint used for experimentation.
+ * This is a prototype of our patch-based document update system.
  */
 app.post<{
   Params: { collection: string; id: string }
   Body: { data: Record<string, any>; patches: DocumentPatch[] }
 }>('/api/:collection/:id/patches', async (request, reply) => {
   const { collection: path, id } = request.params
-
-  if (path !== 'docs') {
-    reply.code(400).send({ error: 'Patches endpoint is only available for docs collection' })
-    return
-  }
 
   const config = await ensureCollection(path)
   if (config == null) {

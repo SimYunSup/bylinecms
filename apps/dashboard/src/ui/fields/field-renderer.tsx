@@ -139,20 +139,17 @@ const ArrayField = ({
   }) => {
     setItems((prev) => moveItem(prev, moveFromIndex, moveToIndex))
     console.log('ArrayField.handleDragEnd', { moveFromIndex, moveToIndex })
-    // For content[] blocks, emit an array.move patch against the
-    // top-level content array so the server can reorder blocks by
-    // stable id. We resolve the itemId from the current content
-    // array rather than relying on local UI wrapper IDs.
-    if (path === 'content') {
-      const content = (getFieldValue('content') ?? initialValue) as any[]
-      console.log('ArrayField.handleDragEnd content', { path, content })
-      if (!Array.isArray(content)) return
+    // Emit an array.move patch against the array so the server can reorder items.
+    // We resolve the itemId from the current array value rather than relying on local UI wrapper IDs.
+    const currentArray = (getFieldValue(path) ?? initialValue) as any[]
+    console.log('ArrayField.handleDragEnd', { path, currentArray })
 
-      const clampedFrom = Math.max(0, Math.min(moveFromIndex, content.length - 1))
-      const clampedTo = Math.max(0, Math.min(moveToIndex, content.length - 1))
+    if (Array.isArray(currentArray)) {
+      const clampedFrom = Math.max(0, Math.min(moveFromIndex, currentArray.length - 1))
+      const clampedTo = Math.max(0, Math.min(moveToIndex, currentArray.length - 1))
       if (clampedFrom === clampedTo) return
 
-      const item = content[clampedFrom]
+      const item = currentArray[clampedFrom]
       console.log('ArrayField.handleDragEnd item', { clampedFrom, clampedTo, item })
 
       // Use stable id when present; otherwise fall back to index-based id
@@ -163,7 +160,7 @@ const ArrayField = ({
 
       appendPatch({
         kind: 'array.move',
-        path: 'content',
+        path: path,
         itemId,
         toIndex: clampedTo,
       })
