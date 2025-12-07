@@ -64,17 +64,43 @@ export function flattenFields(
 
       if (value === undefined || value === null) continue
 
-      if (fieldConfig.type === 'array' && Array.isArray(value)) {
+      if ((fieldConfig.type === 'array' || fieldConfig.type === 'block') && Array.isArray(value)) {
         value.forEach((item, index) => {
           const arrayElementPath = `${currentPath}.${index}`
+
           if (typeof item === 'object' && item !== null && fieldConfig.fields) {
-            // The item is an object with a single key, which is the field name.
-            const fieldName = Object.keys(item)[0]
-            if (fieldName != null) {
-              const fieldValue = item[fieldName]
-              const subField = fieldConfig.fields.find((f) => f.name === fieldName)
-              if (subField) {
-                flatten({ [fieldName]: fieldValue }, [subField], arrayElementPath)
+            // Array-of-blocks + new block shape support.
+            // For the Docs collection, `content` is an array field whose
+            // items are blocks like richTextBlock and photoBlock.
+            if (item.type === 'block' && typeof item.name === 'string') {
+              const blockName = item.name
+              const blockFieldsArray = Array.isArray(item.fields) ? item.fields : []
+              const blockFieldConfig = fieldConfig.fields.find((f) => f.name === blockName)
+
+              if (blockFieldConfig && Array.isArray(blockFieldConfig.fields)) {
+                blockFieldsArray.forEach((subItem: any, idx: number) => {
+                  if (subItem && typeof subItem === 'object') {
+                    const fieldName = Object.keys(subItem)[0]
+                    if (fieldName != null) {
+                      const fieldValue = subItem[fieldName]
+                      const subField = blockFieldConfig.fields.find((f) => f.name === fieldName)
+                      if (subField) {
+                        const blockElementPath = `${arrayElementPath}.${blockName}.${idx}`
+                        flatten({ [fieldName]: fieldValue }, [subField], blockElementPath)
+                      }
+                    }
+                  }
+                })
+              }
+            } else {
+              // Legacy / generic array item shape: { fieldName: value }
+              const fieldName = Object.keys(item)[0]
+              if (fieldName != null) {
+                const fieldValue = item[fieldName]
+                const subField = fieldConfig.fields.find((f) => f.name === fieldName)
+                if (subField) {
+                  flatten({ [fieldName]: fieldValue }, [subField], arrayElementPath)
+                }
               }
             }
           }
@@ -118,7 +144,10 @@ export function flattenFields(
             )
           )
         }
-      } else {
+      } else if (fieldConfig.type !== 'block') {
+        // Only value-bearing field types are flattened directly. Presentational
+        // fields like blocks are containers and should delegate to their
+        // nested value fields instead of being stored themselves.
         flattenedFields.push(
           createFlattenedStore(
             currentPath,

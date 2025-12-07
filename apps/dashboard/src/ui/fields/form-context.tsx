@@ -23,6 +23,7 @@ import type React from 'react'
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
 
 import type { Field } from '@byline/core'
+import type { DocumentPatch, FieldSetPatch } from '@byline/core/patches'
 import { get as getNestedValue, set as setNestedValue } from 'lodash-es'
 
 interface FormError {
@@ -34,6 +35,9 @@ interface FormContextType {
   setFieldValue: (name: string, value: any) => void
   getFieldValue: (name: string) => any
   getFieldValues: () => Record<string, any>
+  getPatches: () => DocumentPatch[]
+  appendPatch: (patch: DocumentPatch) => void
+  resetPatches: () => void
   hasChanges: () => boolean
   resetHasChanges: () => void
   validateForm: (fields: Field[]) => FormError[]
@@ -62,19 +66,106 @@ export const FormProvider = ({
   const fieldValues = useRef<Record<string, any>>(JSON.parse(JSON.stringify(initialData)))
   const initialValues = useRef<Record<string, any>>(initialData)
   const [errors, setErrors] = useState<FormError[]>([])
+  const [, setDirtyVersion] = useState(0)
   const dirtyFields = useRef<Set<string>>(new Set())
+  const patchesRef = useRef<DocumentPatch[]>([])
 
   const setFieldValue = useCallback((name: string, value: any) => {
     const newFieldValues = { ...fieldValues.current }
+
+    // Keep nested path values up to date for generic usage and patches.
     setNestedValue(newFieldValues, name, value)
+
+    // Special handling for content blocks so that the structured
+    // content array stays in sync with inner field edits.
+    if (name.startsWith('content[')) {
+      const rootMatch = /^content\[(\d+)\]/.exec(name)
+      if (rootMatch) {
+        const index = Number.parseInt(rootMatch[1] ?? '0', 10)
+
+        const content = Array.isArray(newFieldValues.content)
+          ? [...newFieldValues.content]
+          : Array.isArray(initialValues.current.content)
+            ? [...(initialValues.current.content as any[])]
+            : []
+
+        const existing = content[index]
+        if (existing && typeof existing === 'object') {
+          // New block shape: { id, type: 'block', name, fields, meta }
+          if (existing.type === 'block' && Array.isArray(existing.fields)) {
+            // Path is like: content[0].richTextBlock[0].richText
+            // We need to parse out the field index and key.
+
+            // Remove "content[0]."
+            const relativePath = name.substring(rootMatch[0].length + 1)
+
+            // Check if it matches the block name pattern: "blockName[fieldIndex].fieldName"
+            // We expect relativePath to start with existing.name
+            if (relativePath.startsWith(existing.name)) {
+              const parts = relativePath.split('.')
+              // parts[0] should be "blockName[fieldIndex]"
+              // parts[1] should be "fieldName"
+
+              if (parts.length >= 2) {
+                const blockRef = parts[0]
+                const fieldName = parts[1]
+
+                const fieldIndexMatch = /\[(\d+)\]$/.exec(blockRef)
+                if (fieldIndexMatch) {
+                  const fieldIndex = Number.parseInt(fieldIndexMatch[1], 10)
+
+                  if (existing.fields[fieldIndex]) {
+                    const updatedFields = [...existing.fields]
+                    // Update the specific field object in the array
+                    updatedFields[fieldIndex] = {
+                      ...updatedFields[fieldIndex],
+                      [fieldName]: value,
+                    }
+
+                    content[index] = {
+                      ...existing,
+                      fields: updatedFields,
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        newFieldValues.content = content
+      }
+    }
+
     fieldValues.current = newFieldValues
     dirtyFields.current.add(name)
+    setDirtyVersion((v) => v + 1)
+
+    const patch: FieldSetPatch = {
+      kind: 'field.set',
+      path: name,
+      value,
+    }
+    patchesRef.current = [...patchesRef.current, patch]
 
     // Clear field-specific errors when value changes
     setErrors((prev) => prev.filter((error) => error.field !== name))
   }, [])
 
   const getFieldValues = useCallback(() => fieldValues.current, [])
+
+  const getPatches = useCallback(() => patchesRef.current, [])
+  const appendPatch = useCallback((patch: DocumentPatch) => {
+    patchesRef.current = [...patchesRef.current, patch]
+    // Mark a generic dirty flag so hasChanges() becomes true even
+    // for patches that don't correspond to a specific field.set.
+    dirtyFields.current.add('__patch__')
+    setDirtyVersion((v) => v + 1)
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console
+      console.debug('FormContext.appendPatch', { patch, dirtyCount: dirtyFields.current.size })
+    }
+  }, [])
 
   const getFieldValue = useCallback((name: string) => {
     const dirty = dirtyFields.current.has(name)
@@ -95,6 +186,8 @@ export const FormProvider = ({
 
   const resetHasChanges = useCallback(() => {
     dirtyFields.current.clear()
+    patchesRef.current = []
+    setDirtyVersion((v) => v + 1)
   }, [])
 
   const isDirty = useCallback((fieldName: string) => {
@@ -176,6 +269,11 @@ export const FormProvider = ({
         setFieldValue,
         getFieldValue,
         getFieldValues,
+        getPatches,
+        appendPatch,
+        resetPatches: () => {
+          patchesRef.current = []
+        },
         hasChanges,
         resetHasChanges,
         validateForm,

@@ -46,7 +46,6 @@ const sampleDocument = {
   content: [
     {
       richTextBlock: [
-        { constrainedWidth: true },
         {
           richText: {
             en: {
@@ -113,6 +112,7 @@ const sampleDocument = {
             },
           },
         },
+        { constrainedWidth: true },
       ],
     },
     {

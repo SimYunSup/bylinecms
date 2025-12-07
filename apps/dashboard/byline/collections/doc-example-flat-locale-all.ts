@@ -59,18 +59,10 @@ const _doc_flat_locale_all = {
       value: false,
     },
     {
-      field_path: 'content.0.richTextBlock.0.constrainedWidth',
-      field_name: 'constrainedWidth',
-      locale: 'all',
-      parent_path: 'content.0.richTextBlock.0',
-      field_type: 'boolean',
-      value: true,
-    },
-    {
-      field_path: 'content.0.richTextBlock.1.richText',
+      field_path: 'content.0.richTextBlock.0.richText',
       field_name: 'richText',
       locale: 'en',
-      parent_path: 'content.0.richTextBlock.1',
+      parent_path: 'content.0.richTextBlock.0',
       field_type: 'richText',
       value: {
         root: {
@@ -105,10 +97,10 @@ const _doc_flat_locale_all = {
       },
     },
     {
-      field_path: 'content.0.richTextBlock.1.richText',
+      field_path: 'content.0.richTextBlock.0.richText',
       field_name: 'richText',
       locale: 'es',
-      parent_path: 'content.0.richTextBlock.1',
+      parent_path: 'content.0.richTextBlock.0',
       field_type: 'richText',
       value: {
         root: {
@@ -141,6 +133,14 @@ const _doc_flat_locale_all = {
           direction: 'ltr',
         },
       },
+    },
+    {
+      field_path: 'content.0.richTextBlock.1.constrainedWidth',
+      field_name: 'constrainedWidth',
+      locale: 'all',
+      parent_path: 'content.0.richTextBlock.1',
+      field_type: 'boolean',
+      value: true,
     },
     {
       field_path: 'content.1.photoBlock.0.display',

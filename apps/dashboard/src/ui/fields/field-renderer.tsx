@@ -24,7 +24,7 @@
 
 import { type ReactNode, useEffect, useState } from 'react'
 
-import type { ArrayField as ArrayFieldType, Field } from '@byline/core'
+import type { ArrayField as ArrayFieldType, BlockField, Field } from '@byline/core'
 import { ChevronDownIcon, GripperVerticalIcon } from '@infonomic/uikit/react'
 import cx from 'classnames'
 
@@ -35,6 +35,8 @@ import { RichTextField } from '../fields/richtext/richtext-lexical/richtext-fiel
 import { SelectField } from '../fields/select/select-field'
 import { TextField } from '../fields/text/text-field'
 import { DateTimeField } from './datetime/datetime-field'
+import { FileField } from './file/file-field'
+import { ImageField } from './image/image-field'
 import { NumericalField } from './numerical/numerical-field'
 
 const SortableItem = ({
@@ -117,6 +119,7 @@ const ArrayField = ({
   path: string
   disableSorting?: boolean
 }) => {
+  const { appendPatch, getFieldValue } = useFormContext()
   const [items, setItems] = useState<{ id: string; data: any }[]>([])
 
   useEffect(() => {
@@ -135,14 +138,65 @@ const ArrayField = ({
     moveToIndex: number
   }) => {
     setItems((prev) => moveItem(prev, moveFromIndex, moveToIndex))
+    console.log('ArrayField.handleDragEnd', { moveFromIndex, moveToIndex })
+    // For content[] blocks, emit an array.move patch against the
+    // top-level content array so the server can reorder blocks by
+    // stable id. We resolve the itemId from the current content
+    // array rather than relying on local UI wrapper IDs.
+    if (path === 'content') {
+      const content = (getFieldValue('content') ?? initialValue) as any[]
+      console.log('ArrayField.handleDragEnd content', { path, content })
+      if (!Array.isArray(content)) return
+
+      const clampedFrom = Math.max(0, Math.min(moveFromIndex, content.length - 1))
+      const clampedTo = Math.max(0, Math.min(moveToIndex, content.length - 1))
+      if (clampedFrom === clampedTo) return
+
+      const item = content[clampedFrom]
+      console.log('ArrayField.handleDragEnd item', { clampedFrom, clampedTo, item })
+
+      // Use stable id when present; otherwise fall back to index-based id
+      const itemId =
+        item && typeof item === 'object' && 'id' in item
+          ? String((item as { id: string }).id)
+          : String(clampedFrom)
+
+      appendPatch({
+        kind: 'array.move',
+        path: 'content',
+        itemId,
+        toIndex: clampedTo,
+      })
+    }
   }
 
   const renderItem = (itemWrapper: { id: string; data: any }, index: number) => {
     const item = itemWrapper.data
-    const arrayElementPath = `${path}.${index}`
-    // For block arrays, find the matching field definition for the item.
-    const blockType = Object.keys(item)[0]
-    const subField = field.fields?.find((f) => f.name === blockType)
+    // Use an index-based array path that matches the patch grammar,
+    // e.g. `content[0]`, and let FieldRenderer append the field name.
+    const arrayElementPath = `${path}[${index}]`
+
+    let subField: Field | undefined
+    let initial: any
+    let label: ReactNode | undefined
+
+    // New block shape: { id, type: 'block', name, fields, meta }
+    if (
+      item &&
+      typeof item === 'object' &&
+      item.type === 'block' &&
+      typeof item.name === 'string'
+    ) {
+      subField = field.fields?.find((f) => f.name === item.name)
+      initial = item.fields
+      label = subField?.label ?? item.name
+    } else {
+      // Legacy shape: { blockName: [ { fieldName: value }, ... ] } or generic array item
+      const outerKey = Object.keys(item)[0]
+      subField = field.fields?.find((f) => f.name === outerKey)
+      initial = item[subField?.name ?? outerKey]
+      label = subField?.label ?? outerKey
+    }
 
     if (subField == null) return null
 
@@ -150,7 +204,7 @@ const ArrayField = ({
       <FieldRenderer
         key={subField.name}
         field={subField}
-        initialValue={item[subField.name]}
+        initialValue={initial}
         basePath={arrayElementPath}
         disableSorting={true}
         hideLabel={true}
@@ -163,18 +217,14 @@ const ArrayField = ({
           key={itemWrapper.id}
           className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4"
         >
-          {subField.label && <h3 className="text-[1rem] font-medium mb-1">{subField.label}</h3>}
+          {label && <h3 className="text-[1rem] font-medium mb-1">{label}</h3>}
           {body}
         </div>
       )
     }
 
     return (
-      <SortableItem
-        key={itemWrapper.id}
-        id={itemWrapper.id}
-        label={subField.label ?? subField.name}
-      >
+      <SortableItem key={itemWrapper.id} id={itemWrapper.id} label={label ?? subField.name}>
         {body}
       </SortableItem>
     )
@@ -271,6 +321,33 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+        />
+      )
+    case 'file':
+      return (
+        <FileField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
+    case 'image':
+      return (
+        <ImageField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
+    case 'block':
+      // For now, render blocks using the same mechanics as arrays,
+      // but with sorting disabled so internal ordering is fixed.
+      return (
+        <ArrayField
+          field={field as unknown as ArrayFieldType}
+          initialValue={initialValue}
+          path={path}
+          disableSorting={true}
         />
       )
     case 'array':

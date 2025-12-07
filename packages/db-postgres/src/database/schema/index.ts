@@ -353,6 +353,48 @@ export const relationStore = pgTable(
   ]
 )
 
+// Generic meta store for document nodes (blocks, array items, fields, etc.)
+// This allows attaching durable IDs and arbitrary metadata to any node
+// in a document tree, keyed by document version and path.
+export const metaStore = pgTable(
+  'store_meta',
+  {
+    id: uuid('id').primaryKey(),
+    document_version_id: uuid('document_version_id')
+      .notNull()
+      .references(() => documentVersions.id, { onDelete: 'cascade' }),
+    collection_id: uuid('collection_id')
+      .notNull()
+      .references(() => collections.id, { onDelete: 'cascade' }),
+
+    // Node classification and linkage back into the reconstructed tree.
+    type: text('type').notNull(),
+    path: text('path').notNull(),
+
+    // Durable identifier for this item within a document version. This is the
+    // ID exposed to the dashboard/API for blocks, array items, etc.
+    item_id: varchar('item_id', { length: 255 }).notNull(),
+
+    // Optional opaque metadata payload for this node. Common attributes like
+    // label, icon, collapsed state, etc. can be stored here.
+    meta: jsonb('meta'),
+
+    created_at: timestamp('created_at').defaultNow(),
+    updated_at: timestamp('updated_at').defaultNow(),
+  },
+  (table) => [
+    // Fast lookup by document and node type/path when enriching reconstructed
+    // trees with meta information.
+    index('idx_meta_document_type_path').on(table.document_version_id, table.type, table.path),
+    // Resolve durable IDs (e.g. for array.move by item_id) back to a node path.
+    index('idx_meta_item_id').on(table.item_id),
+    // Support queries scoped by collection and type (e.g. all blocks in a collection).
+    index('idx_meta_collection_type').on(table.collection_id, table.type),
+    // Ensure only a single meta row exists for a given node in a document version.
+    unique('unique_meta_node').on(table.document_version_id, table.type, table.path),
+  ]
+)
+
 // 6. FILE FIELDS TABLE (Your composite type example)
 export const fileStore = pgTable(
   'store_file',

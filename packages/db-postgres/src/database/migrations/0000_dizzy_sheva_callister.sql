@@ -112,6 +112,19 @@ CREATE TABLE "store_json" (
 	CONSTRAINT "unique_json_field" UNIQUE("document_version_id","field_path","locale")
 );
 --> statement-breakpoint
+CREATE TABLE "store_meta" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"document_version_id" uuid NOT NULL,
+	"collection_id" uuid NOT NULL,
+	"type" text NOT NULL,
+	"path" text NOT NULL,
+	"item_id" varchar(255) NOT NULL,
+	"meta" jsonb,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "unique_meta_node" UNIQUE("document_version_id","type","path")
+);
+--> statement-breakpoint
 CREATE TABLE "store_numeric" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"document_version_id" uuid NOT NULL,
@@ -174,6 +187,8 @@ ALTER TABLE "store_file" ADD CONSTRAINT "store_file_document_version_id_document
 ALTER TABLE "store_file" ADD CONSTRAINT "store_file_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_json" ADD CONSTRAINT "store_json_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_json" ADD CONSTRAINT "store_json_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "store_meta" ADD CONSTRAINT "store_meta_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "store_meta" ADD CONSTRAINT "store_meta_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_numeric" ADD CONSTRAINT "store_numeric_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_numeric" ADD CONSTRAINT "store_numeric_collection_id_collections_id_fk" FOREIGN KEY ("collection_id") REFERENCES "public"."collections"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "store_relation" ADD CONSTRAINT "store_relation_document_version_id_document_versions_id_fk" FOREIGN KEY ("document_version_id") REFERENCES "public"."document_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -209,6 +224,9 @@ CREATE INDEX "idx_file_processing_status" ON "store_file" USING btree ("processi
 CREATE INDEX "idx_json_value_gin" ON "store_json" USING gin ("value");--> statement-breakpoint
 CREATE INDEX "idx_json_schema" ON "store_json" USING btree ("json_schema");--> statement-breakpoint
 CREATE INDEX "idx_json_keys" ON "store_json" USING gin ("object_keys");--> statement-breakpoint
+CREATE INDEX "idx_meta_document_type_path" ON "store_meta" USING btree ("document_version_id","type","path");--> statement-breakpoint
+CREATE INDEX "idx_meta_item_id" ON "store_meta" USING btree ("item_id");--> statement-breakpoint
+CREATE INDEX "idx_meta_collection_type" ON "store_meta" USING btree ("collection_id","type");--> statement-breakpoint
 CREATE INDEX "idx_numeric_integer" ON "store_numeric" USING btree ("value_integer");--> statement-breakpoint
 CREATE INDEX "idx_numeric_decimal" ON "store_numeric" USING btree ("value_decimal");--> statement-breakpoint
 CREATE INDEX "idx_numeric_float" ON "store_numeric" USING btree ("value_float");--> statement-breakpoint

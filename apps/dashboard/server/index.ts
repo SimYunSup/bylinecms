@@ -28,7 +28,16 @@
 // Initialize Byline config by importing the server config
 import '../byline.server.config.js'
 
-import { type CollectionDefinition, getCollectionDefinition, getServerConfig } from '@byline/core'
+import {
+  type CollectionDefinition,
+  getCollectionDefinition,
+  getServerConfig,
+  type ModelArrayField,
+  type ModelCollection,
+  type ModelField,
+  type ModelScalarField,
+} from '@byline/core'
+import { applyPatches, type DocumentPatch } from '@byline/core/patches'
 // TODO: Remove direct dependency on the getCollectionDefinition
 import { booleanSchema } from '@byline/shared/schemas'
 import cors from '@fastify/cors'
@@ -92,6 +101,95 @@ async function ensureCollection(
   }
 
   return { definition: collectionDefinition, collection }
+}
+
+// Minimal in-memory cache of ModelCollection definitions by collection path.
+const modelCollections: Record<string, ModelCollection> = {}
+
+function getModelCollectionForDefinition(definition: CollectionDefinition): ModelCollection {
+  if (modelCollections[definition.path]) return modelCollections[definition.path]
+
+  const fields: ModelField[] = definition.fields.map((field): ModelField => {
+    const base = {
+      id: field.name,
+      label: field.label,
+      localized: field.localized,
+      required: field.required,
+    }
+
+    if (field.type === 'text' || field.type === 'richText') {
+      const scalarField: ModelScalarField = {
+        ...base,
+        kind: 'scalar',
+        scalarType: 'text',
+      }
+      return scalarField
+    }
+
+    if (field.type === 'checkbox') {
+      const scalarField: ModelScalarField = {
+        ...base,
+        kind: 'scalar',
+        scalarType: 'boolean',
+      }
+      return scalarField
+    }
+
+    if (field.type === 'integer') {
+      const scalarField: ModelScalarField = {
+        ...base,
+        kind: 'scalar',
+        scalarType: 'integer',
+      }
+      return scalarField
+    }
+
+    if (field.type === 'datetime') {
+      const scalarField: ModelScalarField = {
+        ...base,
+        kind: 'scalar',
+        scalarType: 'datetime',
+      }
+      return scalarField
+    }
+
+    if (field.type === 'array' && Array.isArray(field.fields)) {
+      const arrayField: ModelArrayField = {
+        ...base,
+        kind: 'array',
+        item: {
+          id: `${field.name}_item`,
+          kind: 'object',
+          fields: field.fields.map((subField) => ({
+            id: subField.name,
+            label: subField.label,
+            localized: subField.localized,
+            required: subField.required,
+            kind: 'scalar',
+            scalarType: subField.type === 'checkbox' ? 'boolean' : 'text',
+          })),
+        },
+      }
+      return arrayField
+    }
+
+    const fallback: ModelScalarField = {
+      ...base,
+      kind: 'scalar',
+      scalarType: 'text',
+    }
+    return fallback
+  })
+
+  const model: ModelCollection = {
+    id: definition.path,
+    path: definition.path,
+    label: definition.labels.singular,
+    fields,
+  }
+
+  modelCollections[definition.path] = model
+  return model
 }
 
 /**
@@ -326,6 +424,92 @@ app.delete<{ Params: { collection: string; id: string } }>(
     // }
   }
 )
+
+/**
+ * POST /api/docs/:id/patches
+ *
+ * Apply a set of patches to a document in the docs collection.
+ * This is a prototype, dev-only endpoint used for experimentation.
+ */
+app.post<{
+  Params: { collection: string; id: string }
+  Body: { data: Record<string, any>; patches: DocumentPatch[] }
+}>('/api/:collection/:id/patches', async (request, reply) => {
+  const { collection: path, id } = request.params
+
+  if (path !== 'docs') {
+    reply.code(400).send({ error: 'Patches endpoint is only available for docs collection' })
+    return
+  }
+
+  const config = await ensureCollection(path)
+  if (config == null) {
+    reply.code(404).send({ error: 'Collection not found in registry or could not be created.' })
+    return
+  }
+
+  const db = getServerConfig().db
+
+  // Get the current document, reconstructed from field values so we always
+  // have a complete object including title, summary, content, etc.
+  const latest = await db.queries.documents.getDocumentById({
+    collection_id: config.collection.id,
+    document_id: id,
+    locale: 'en',
+    reconstruct: true,
+  })
+
+  if (latest == null) {
+    reply.code(404).send({ error: 'Document not found' })
+    return
+  }
+
+  const originalData = latest as Record<string, any>
+
+  const { patches } = request.body
+
+  // Apply patches to the reconstructed database version to create the next version.
+  const { doc: patchedDocument, errors } = applyPatches(
+    getModelCollectionForDefinition(config.definition),
+    originalData,
+    patches
+  )
+
+  if (errors.length > 0) {
+    app.log.warn({ errors, originalData, patches }, 'applyPatches failed')
+    reply.code(400).send({ error: 'Failed to apply patches', details: errors })
+    return
+  }
+
+  // Treat the patched doc as a plain record for now.
+  const nextData = patchedDocument as Record<string, any>
+
+  // Normalise known date-like fields to Date instances before persisting,
+  // mirroring the behaviour in the generic POST/PUT handlers.
+  if (typeof nextData.created_at === 'string') {
+    nextData.created_at = new Date(nextData.created_at)
+  }
+  if (typeof nextData.updated_at === 'string') {
+    nextData.updated_at = new Date(nextData.updated_at)
+  }
+  if (typeof nextData.publishedOn === 'string') {
+    nextData.publishedOn = new Date(nextData.publishedOn)
+  }
+
+  await db.commands.documents.createDocumentVersion({
+    documentId: id,
+    collectionId: config.collection.id,
+    collectionConfig: config.definition,
+    action: 'update',
+    documentData: nextData,
+    path: nextData.path ?? originalData.path ?? '/',
+    status: nextData.status ?? originalData.status ?? 'draft',
+    locale: 'en',
+  })
+
+  reply.code(200).send({ status: 'ok' })
+  return
+})
 
 const port = Number(process.env.PORT) || 3001
 app

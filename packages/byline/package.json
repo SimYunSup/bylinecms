@@ -42,6 +42,11 @@
       "import": "./dist/schemas/zod/index.js",
       "require": "./dist/schemas/zod/index.js"
     },
+    "./patches": {
+      "types": "./dist/patches/index.d.ts",
+      "import": "./dist/patches/index.js",
+      "require": "./dist/patches/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -61,7 +66,8 @@
     "chokidar-cli": "^3.0.0",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.21.0",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^4.0.15"
   },
   "publishConfig": {
     "access": "public",
