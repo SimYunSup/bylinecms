@@ -128,6 +128,16 @@ function getBySegments(
 
     if (segment.kind === 'field') {
       key = segment.key
+
+      // Special handling for Block objects:
+      // If we are traversing a block object and the key matches the block name,
+      // we remap the key to 'fields' to access the internal fields array.
+      // This allows paths like `content[0].richTextBlock[0].richText` to map
+      // to `content[0].fields[0].richText`.
+      if (parent && typeof parent === 'object' && parent.type === 'block' && parent.name === key) {
+        key = 'fields'
+      }
+
       current = parent[key]
     } else if (segment.kind === 'index') {
       if (!Array.isArray(parent)) {
@@ -172,6 +182,13 @@ function ensurePath(
       key = segment.key
       if (parent == null) {
         throw new Error('ensurePath encountered null/undefined parent before field segment')
+      }
+
+      // Special handling for Block objects:
+      // If we are traversing a block object and the key matches the block name,
+      // we remap the key to 'fields' to access the internal fields array.
+      if (parent && typeof parent === 'object' && parent.type === 'block' && parent.name === key) {
+        key = 'fields'
       }
 
       // If this field is followed by an index/id segment, it represents

@@ -72,7 +72,71 @@ export const FormProvider = ({
 
   const setFieldValue = useCallback((name: string, value: any) => {
     const newFieldValues = { ...fieldValues.current }
+
+    // Keep nested path values up to date for generic usage and patches.
     setNestedValue(newFieldValues, name, value)
+
+    // Special handling for content blocks so that the structured
+    // content array stays in sync with inner field edits.
+    if (name.startsWith('content[')) {
+      const rootMatch = /^content\[(\d+)\]/.exec(name)
+      if (rootMatch) {
+        const index = Number.parseInt(rootMatch[1] ?? '0', 10)
+
+        const content = Array.isArray(newFieldValues.content)
+          ? [...newFieldValues.content]
+          : Array.isArray(initialValues.current.content)
+            ? [...(initialValues.current.content as any[])]
+            : []
+
+        const existing = content[index]
+        if (existing && typeof existing === 'object') {
+          // New block shape: { id, type: 'block', name, fields, meta }
+          if (existing.type === 'block' && Array.isArray(existing.fields)) {
+            // Path is like: content[0].richTextBlock[0].richText
+            // We need to parse out the field index and key.
+
+            // Remove "content[0]."
+            const relativePath = name.substring(rootMatch[0].length + 1)
+
+            // Check if it matches the block name pattern: "blockName[fieldIndex].fieldName"
+            // We expect relativePath to start with existing.name
+            if (relativePath.startsWith(existing.name)) {
+              const parts = relativePath.split('.')
+              // parts[0] should be "blockName[fieldIndex]"
+              // parts[1] should be "fieldName"
+
+              if (parts.length >= 2) {
+                const blockRef = parts[0]
+                const fieldName = parts[1]
+
+                const fieldIndexMatch = /\[(\d+)\]$/.exec(blockRef)
+                if (fieldIndexMatch) {
+                  const fieldIndex = Number.parseInt(fieldIndexMatch[1], 10)
+
+                  if (existing.fields[fieldIndex]) {
+                    const updatedFields = [...existing.fields]
+                    // Update the specific field object in the array
+                    updatedFields[fieldIndex] = {
+                      ...updatedFields[fieldIndex],
+                      [fieldName]: value,
+                    }
+
+                    content[index] = {
+                      ...existing,
+                      fields: updatedFields,
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        newFieldValues.content = content
+      }
+    }
+
     fieldValues.current = newFieldValues
     dirtyFields.current.add(name)
     setDirtyVersion((v) => v + 1)

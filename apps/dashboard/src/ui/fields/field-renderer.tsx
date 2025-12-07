@@ -175,16 +175,36 @@ const ArrayField = ({
     // Use an index-based array path that matches the patch grammar,
     // e.g. `content[0]`, and let FieldRenderer append the field name.
     const arrayElementPath = `${path}[${index}]`
-    const outerKey = Object.keys(item)[0]
-    // Generic array item rendering (reviews, links, blocks like richTextBlock, photoBlock).
-    const subField = field.fields?.find((f) => f.name === outerKey)
+
+    let subField: Field | undefined
+    let initial: any
+    let label: ReactNode | undefined
+
+    // New block shape: { id, type: 'block', name, fields, meta }
+    if (
+      item &&
+      typeof item === 'object' &&
+      item.type === 'block' &&
+      typeof item.name === 'string'
+    ) {
+      subField = field.fields?.find((f) => f.name === item.name)
+      initial = item.fields
+      label = subField?.label ?? item.name
+    } else {
+      // Legacy shape: { blockName: [ { fieldName: value }, ... ] } or generic array item
+      const outerKey = Object.keys(item)[0]
+      subField = field.fields?.find((f) => f.name === outerKey)
+      initial = item[subField?.name ?? outerKey]
+      label = subField?.label ?? outerKey
+    }
+
     if (subField == null) return null
 
     const body = (
       <FieldRenderer
         key={subField.name}
         field={subField}
-        initialValue={item[subField.name] ?? item[outerKey]}
+        initialValue={initial}
         basePath={arrayElementPath}
         disableSorting={true}
         hideLabel={true}
@@ -197,18 +217,14 @@ const ArrayField = ({
           key={itemWrapper.id}
           className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4"
         >
-          {subField.label && <h3 className="text-[1rem] font-medium mb-1">{subField.label}</h3>}
+          {label && <h3 className="text-[1rem] font-medium mb-1">{label}</h3>}
           {body}
         </div>
       )
     }
 
     return (
-      <SortableItem
-        key={itemWrapper.id}
-        id={itemWrapper.id}
-        label={subField.label ?? subField.name}
-      >
+      <SortableItem key={itemWrapper.id} id={itemWrapper.id} label={label ?? subField.name}>
         {body}
       </SortableItem>
     )
