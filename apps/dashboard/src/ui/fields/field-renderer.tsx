@@ -35,6 +35,8 @@ import { RichTextField } from '../fields/richtext/richtext-lexical/richtext-fiel
 import { SelectField } from '../fields/select/select-field'
 import { TextField } from '../fields/text/text-field'
 import { DateTimeField } from './datetime/datetime-field'
+import { FileField } from './file/file-field'
+import { ImageField } from './image/image-field'
 import { NumericalField } from './numerical/numerical-field'
 
 const SortableItem = ({
@@ -300,6 +302,22 @@ export const FieldRenderer = ({
     case 'integer':
       return (
         <NumericalField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
+    case 'file':
+      return (
+        <FileField
+          field={hideLabel ? { ...field, label: undefined } : field}
+          initialValue={initialValue}
+          onChange={handleChange}
+        />
+      )
+    case 'image':
+      return (
+        <ImageField
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}

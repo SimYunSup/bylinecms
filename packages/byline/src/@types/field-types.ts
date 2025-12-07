@@ -146,12 +146,33 @@ export interface DateTimeField extends BaseValueField {
   initialValue?: Date
 }
 
+export interface StoredFileValue {
+  file_id: string
+  filename: string
+  original_filename: string
+  mime_type: string
+  file_size: string
+  storage_provider: string
+  storage_path: string
+  storage_url: string | null
+  file_hash: string | null
+  image_width: number | null
+  image_height: number | null
+  image_format: string | null
+  processing_status: 'pending' | 'processing' | 'complete' | 'failed'
+  thumbnail_generated: boolean
+}
+
 export interface FileField extends BaseValueField {
+  // Note - same as Image field for now.
   type: 'file'
+  // value: StoredFileValue | null // (document value shape / for future helpers)
 }
 
 export interface ImageField extends BaseValueField {
+  // Note - same as FileField for now.
   type: 'image'
+  // value: StoredFileValue | null // (document value shape / for future helpers)
 }
 
 export interface FloatField extends BaseValueField {
