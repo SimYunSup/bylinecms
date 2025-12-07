@@ -87,7 +87,7 @@ export const Docs: CollectionDefinition = {
         {
           name: 'richTextBlock',
           label: 'Richtext Block',
-          type: 'array',
+          type: 'block',
           fields: [
             {
               name: 'richText',
@@ -107,7 +107,7 @@ export const Docs: CollectionDefinition = {
         {
           name: 'photoBlock',
           label: 'Photo Block',
-          type: 'array',
+          type: 'block',
           fields: [
             { name: 'display', label: 'Display', type: 'text', required: false },
             { name: 'photo', label: 'Photo', type: 'image', required: true },

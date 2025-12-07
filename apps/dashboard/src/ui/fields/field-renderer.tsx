@@ -24,7 +24,7 @@
 
 import { type ReactNode, useEffect, useState } from 'react'
 
-import type { ArrayField as ArrayFieldType, Field } from '@byline/core'
+import type { ArrayField as ArrayFieldType, BlockField, Field } from '@byline/core'
 import { ChevronDownIcon, GripperVerticalIcon } from '@infonomic/uikit/react'
 import cx from 'classnames'
 
@@ -303,6 +303,17 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+        />
+      )
+    case 'block':
+      // For now, render blocks using the same mechanics as arrays,
+      // but with sorting disabled so internal ordering is fixed.
+      return (
+        <ArrayField
+          field={field as unknown as ArrayFieldType}
+          initialValue={initialValue}
+          path={path}
+          disableSorting={true}
         />
       )
     case 'array':
