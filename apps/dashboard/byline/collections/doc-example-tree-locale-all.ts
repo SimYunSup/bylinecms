@@ -19,9 +19,6 @@ const _doc_tree_locale_all = {
     {
       richTextBlock: [
         {
-          constrainedWidth: true,
-        },
-        {
           richText: {
             en: {
               root: {
@@ -86,6 +83,9 @@ const _doc_tree_locale_all = {
               },
             },
           },
+        },
+        {
+          constrainedWidth: true,
         },
       ],
     },
