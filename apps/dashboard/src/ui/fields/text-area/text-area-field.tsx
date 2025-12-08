@@ -24,21 +24,26 @@ import { useCallback, useRef } from 'react'
 import type { TextAreaField as FieldType } from '@byline/core'
 import { TextArea } from '@infonomic/uikit/react'
 
-import { useFieldError, useIsDirty } from '../../fields/form-context'
+import { useFieldError, useFieldValue, useIsDirty } from '../../fields/form-context'
 
 export const TextAreaField = ({
   field,
   initialValue,
   onChange,
   id,
+  path,
 }: {
   field: FieldType
   initialValue?: string
   onChange?: (value: string) => void
   id?: string
+  path?: string
 }) => {
-  const fieldError = useFieldError(field.name)
-  const isDirty = useIsDirty(field.name)
+  const fieldPath = path ?? field.name
+  const fieldError = useFieldError(fieldPath)
+  const isDirty = useIsDirty(fieldPath)
+  const fieldValue = useFieldValue<string | undefined>(fieldPath)
+  const value = fieldValue ?? initialValue ?? ''
   const dispatchFieldUpdateTask = useRef<number>(undefined)
 
   const handleChange = useCallback(
@@ -66,12 +71,12 @@ export const TextAreaField = ({
   return (
     <div>
       <TextArea
-        id={id ?? field.name}
+        id={id ?? fieldPath}
         name={field.name}
         label={field.label}
         required={field.required}
         helpText={field.helpText}
-        defaultValue={initialValue || undefined}
+        value={value}
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange(e.target.value)}
         error={fieldError != null}
         errorText={fieldError}

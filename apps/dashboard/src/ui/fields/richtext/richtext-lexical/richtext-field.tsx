@@ -21,7 +21,7 @@
 
 import type { RichTextField as FieldType } from '@byline/core'
 
-import { useFieldError, useIsDirty } from '../../form-context'
+import { useFieldError, useFieldValue, useIsDirty } from '../../form-context'
 import { RichTextField as LexicalRichTextField } from './field'
 import { defaultEditorConfig } from './field/config/default'
 
@@ -32,6 +32,7 @@ interface Props {
   initialValue?: any
   editorConfig?: any
   onChange?: (value: any) => void
+  path?: string
 }
 
 export const RichTextField = ({
@@ -41,9 +42,12 @@ export const RichTextField = ({
   readonly = false,
   instanceKey,
   onChange,
+  path,
 }: Props) => {
-  const fieldError = useFieldError(field.name)
-  const isDirty = useIsDirty(field.name)
+  const fieldPath = path ?? field.name
+  const fieldError = useFieldError(fieldPath)
+  const isDirty = useIsDirty(fieldPath)
+  const fieldValue = useFieldValue<any>(fieldPath)
 
   return (
     <div className={`flex flex-1 h-full ${isDirty ? 'border border-blue-300 rounded-md' : ''}`}>
@@ -57,7 +61,7 @@ export const RichTextField = ({
           readonly={readonly}
           label={field.label}
           required={field.required}
-          initialValue={initialValue}
+          initialValue={fieldValue ?? initialValue}
           // Ensure React fully remounts when instanceKey changes
           key={instanceKey ? `${field.name}-${instanceKey}` : field.name}
         />

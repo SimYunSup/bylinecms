@@ -22,32 +22,37 @@
 import type { DecimalField, FloatField, IntegerField } from '@byline/core'
 import { Input } from '@infonomic/uikit/react'
 
-import { useFieldError, useIsDirty } from '../form-context'
+import { useFieldError, useFieldValue, useIsDirty } from '../form-context'
 
 export const NumericalField = ({
   field,
   initialValue,
   onChange,
   id,
+  path,
 }: {
   field: IntegerField | FloatField | DecimalField
   initialValue?: string
   onChange?: (value: string) => void
   id?: string
+  path?: string
 }) => {
-  const fieldError = useFieldError(field.name)
-  const isDirty = useIsDirty(field.name)
+  const fieldPath = path ?? field.name
+  const fieldError = useFieldError(fieldPath)
+  const isDirty = useIsDirty(fieldPath)
+  const fieldValue = useFieldValue<string | number | undefined>(fieldPath)
+  const value = fieldValue ?? initialValue ?? ''
 
   return (
     <div>
       <Input
         type="number"
-        id={id ?? field.name}
+        id={id ?? fieldPath}
         name={field.name}
         label={field.label}
         required={field.required}
         helpText={field.helpText}
-        defaultValue={initialValue || undefined}
+        value={value === undefined || value === null ? '' : String(value)}
         onChange={(e) => onChange?.(e.target.value)}
         error={fieldError != null}
         errorText={fieldError}

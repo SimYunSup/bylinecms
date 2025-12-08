@@ -22,31 +22,36 @@
 import type { SelectField as FieldType } from '@byline/core'
 import { Select, SelectItem } from '@infonomic/uikit/react'
 
-import { useFieldError, useIsDirty } from '../../fields/form-context'
+import { useFieldError, useFieldValue, useIsDirty } from '../../fields/form-context'
 
 export const SelectField = ({
   field,
   initialValue,
   onChange,
   id,
+  path,
 }: {
   field: FieldType
   initialValue?: string
   onChange?: (value: any) => void
   id?: string
+  path?: string
 }) => {
-  const fieldError = useFieldError(field.name)
-  const isDirty = useIsDirty(field.name)
+  const fieldPath = path ?? field.name
+  const fieldError = useFieldError(fieldPath)
+  const isDirty = useIsDirty(fieldPath)
+  const fieldValue = useFieldValue<string | undefined>(fieldPath)
+  const value = fieldValue ?? initialValue ?? ''
 
   return (
     <div>
       <Select
         size="sm"
-        id={id ?? field.name}
+        id={id ?? fieldPath}
         name={field.name}
         placeholder="Select an option"
         required={field.required}
-        defaultValue={initialValue || ''}
+        value={value}
         helpText={field.helpText}
         onValueChange={(value) => onChange?.(value)}
         className={isDirty ? 'border-blue-300' : ''}

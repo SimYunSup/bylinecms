@@ -24,21 +24,25 @@ import { useCallback, useRef } from 'react'
 import type { TextField as FieldType } from '@byline/core'
 import { Input } from '@infonomic/uikit/react'
 
-import { useFieldError, useIsDirty } from '../../fields/form-context'
+import { useFieldError, useFieldValue, useIsDirty } from '../../fields/form-context'
 
 export const TextField = ({
   field,
   initialValue,
   onChange,
   id,
+  path,
 }: {
   field: FieldType
   initialValue?: string
   onChange?: (value: string) => void
   id?: string
+  path?: string
 }) => {
-  const fieldError = useFieldError(field.name)
-  const isDirty = useIsDirty(field.name)
+  const fieldPath = path ?? field.name
+  const fieldError = useFieldError(fieldPath)
+  const isDirty = useIsDirty(fieldPath)
+  const fieldValue = useFieldValue<string | undefined>(fieldPath)
   const dispatchFieldUpdateTask = useRef<number>(undefined)
 
   const handleChange = useCallback(
@@ -66,16 +70,16 @@ export const TextField = ({
   return (
     <div>
       <Input
-        id={id ?? field.name}
+        id={id ?? fieldPath}
         name={field.name}
         label={field.label}
         required={field.required}
         helpText={field.helpText}
-        defaultValue={initialValue || undefined}
+        value={fieldValue ?? initialValue ?? ''}
         onChange={(e) => handleChange(e.target.value)}
         error={fieldError != null}
         errorText={fieldError}
-        className={isDirty ? 'border-blue-300' : ''}
+        className={isDirty ? 'border-yellow-300' : ''}
       />
     </div>
   )

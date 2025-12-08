@@ -21,7 +21,7 @@
 
 import type { FileField as FieldType, StoredFileValue } from '@byline/core'
 
-import { useFieldError, useIsDirty } from '../form-context'
+import { useFieldError, useFieldValue, useIsDirty } from '../form-context'
 
 interface FileFieldProps {
   field: FieldType
@@ -29,13 +29,16 @@ interface FileFieldProps {
   // coming from the seed data / storage layer.
   initialValue?: StoredFileValue | null
   onChange?: (value: StoredFileValue | null) => void
+  path?: string
 }
 
-export const FileField = ({ field, initialValue, onChange }: FileFieldProps) => {
-  const fieldError = useFieldError(field.name)
-  const isDirty = useIsDirty(field.name)
+export const FileField = ({ field, initialValue, onChange, path }: FileFieldProps) => {
+  const fieldPath = path ?? field.name
+  const fieldError = useFieldError(fieldPath)
+  const isDirty = useIsDirty(fieldPath)
+  const fieldValue = useFieldValue<StoredFileValue | null | undefined>(fieldPath)
 
-  const value = initialValue ?? null
+  const value = fieldValue ?? initialValue ?? null
 
   return (
     <div className={isDirty ? 'border border-blue-300 rounded-md p-3' : ''}>

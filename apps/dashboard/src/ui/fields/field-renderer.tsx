@@ -375,6 +375,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          path={path}
           id={htmlId}
         />
       )
@@ -384,6 +385,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          path={path}
           id={htmlId}
         />
       )
@@ -393,6 +395,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          path={path}
           id={htmlId}
         />
       )
@@ -402,6 +405,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          path={path}
           id={htmlId}
         />
       )
@@ -411,6 +415,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          path={path}
           instanceKey={htmlId}
         />
       )
@@ -420,6 +425,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          path={path}
           id={htmlId}
         />
       )
@@ -429,6 +435,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          path={path}
           id={htmlId}
         />
       )
@@ -438,6 +445,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          path={path}
         />
       )
     case 'image':
@@ -446,6 +454,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          path={path}
         />
       )
     case 'block':

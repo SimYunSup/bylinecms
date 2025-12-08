@@ -454,3 +454,17 @@ export const useIsDirty = (name: string) => {
 
   return dirty
 }
+
+export const useFieldValue = <T = any>(name: string): T | undefined => {
+  const { getFieldValue, subscribeField } = useFormContext()
+  const [value, setValue] = useState<T | undefined>(() => getFieldValue(name))
+
+  useEffect(() => {
+    const unsubscribe = subscribeField(name, (nextValue) => {
+      setValue(nextValue)
+    })
+    return unsubscribe
+  }, [subscribeField, name])
+
+  return value
+}
