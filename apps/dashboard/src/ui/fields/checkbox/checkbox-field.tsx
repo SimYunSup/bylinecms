@@ -26,14 +26,16 @@ export const CheckboxField = ({
   field,
   initialValue,
   onChange,
+  id,
 }: {
   field: FieldType
   initialValue?: boolean
   onChange?: (value: boolean) => void
+  id?: string
 }) => (
   <div>
     <Checkbox
-      id={field.name}
+      id={id ?? field.name}
       name={field.name}
       label={field.label ?? field.name}
       defaultChecked={initialValue ?? false}

@@ -30,10 +30,12 @@ export const TextAreaField = ({
   field,
   initialValue,
   onChange,
+  id,
 }: {
   field: FieldType
   initialValue?: string
   onChange?: (value: string) => void
+  id?: string
 }) => {
   const { errors, isDirty } = useFormContext()
   const fieldError = errors.find((error) => error.field === field.name)
@@ -64,7 +66,7 @@ export const TextAreaField = ({
   return (
     <div>
       <TextArea
-        id={field.name}
+        id={id ?? field.name}
         name={field.name}
         label={field.label}
         required={field.required}

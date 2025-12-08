@@ -28,10 +28,12 @@ export const NumericalField = ({
   field,
   initialValue,
   onChange,
+  id,
 }: {
   field: IntegerField | FloatField | DecimalField
   initialValue?: string
   onChange?: (value: string) => void
+  id?: string
 }) => {
   const { errors, isDirty } = useFormContext()
   const fieldError = errors.find((error) => error.field === field.name)
@@ -40,7 +42,7 @@ export const NumericalField = ({
     <div>
       <Input
         type="number"
-        id={field.name}
+        id={id ?? field.name}
         name={field.name}
         label={field.label}
         required={field.required}

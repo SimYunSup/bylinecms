@@ -162,18 +162,23 @@ const FormContent = ({
   )
 }
 
-export const FormRenderer = (props: {
+export const FormRenderer = ({
+  fields,
+  onSubmit,
+  onCancel,
+  initialData,
+}: {
   fields: Field[]
   onSubmit: (data: any) => void
   onCancel: () => void
   initialData?: Record<string, any>
 }) => (
-  <FormProvider initialData={props.initialData}>
+  <FormProvider initialData={initialData}>
     <FormContent
-      fields={props.fields}
-      onSubmit={props.onSubmit}
-      onCancel={props.onCancel}
-      initialData={props.initialData}
+      fields={fields}
+      onSubmit={onSubmit}
+      onCancel={onCancel}
+      initialData={initialData}
     />
   </FormProvider>
 )

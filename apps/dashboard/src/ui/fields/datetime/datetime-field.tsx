@@ -26,18 +26,19 @@ export const DateTimeField = ({
   field,
   initialValue,
   onChange,
+  id,
 }: {
   field: FieldType
   initialValue?: Date | null
   onChange?: (value: Date | null) => void
+  id?: string
 }) => (
   <div>
     <DatePicker
-      id={field.name}
+      id={id ?? field.name}
       name={field.name}
       label={field.label}
       required={field.required}
-      helpText={field.helpText}
       initialValue={initialValue}
       mode={field.mode || 'datetime'}
       yearsInFuture={field.yearsInFuture || 1}

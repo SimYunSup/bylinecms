@@ -26,15 +26,17 @@ export const SelectField = ({
   field,
   initialValue,
   onChange,
+  id,
 }: {
   field: FieldType
   initialValue?: string
   onChange?: (value: any) => void
+  id?: string
 }) => (
   <div>
     <Select
       size="sm"
-      id={field.name}
+      id={id ?? field.name}
       name={field.name}
       placeholder="Select an option"
       required={field.required}

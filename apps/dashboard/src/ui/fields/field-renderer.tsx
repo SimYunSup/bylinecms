@@ -25,7 +25,7 @@
 import { type ReactNode, useEffect, useState } from 'react'
 
 import type { ArrayField as ArrayFieldType, BlockField, Field } from '@byline/core'
-import { ChevronDownIcon, GripperVerticalIcon } from '@infonomic/uikit/react'
+import { ChevronDownIcon, GripperVerticalIcon, IconButton, PlusIcon } from '@infonomic/uikit/react'
 import cx from 'classnames'
 
 import { DraggableSortable, moveItem, useSortable } from '@/ui/dnd/draggable-sortable'
@@ -120,7 +120,7 @@ const ArrayField = ({
   path: string
   disableSorting?: boolean
 }) => {
-  const { appendPatch, getFieldValue } = useFormContext()
+  const { appendPatch, getFieldValue, setFieldStore } = useFormContext()
   const [items, setItems] = useState<{ id: string; data: any }[]>([])
 
   useEffect(() => {
@@ -168,6 +168,56 @@ const ArrayField = ({
     }
   }
 
+  const handleAddItem = () => {
+    // Determine the shape of the new item based on the field definition
+    const newItem: any = {}
+
+    if (field.fields && field.fields.length > 0) {
+      field.fields.forEach((subField) => {
+        // Nested array field (e.g. reviews -> reviewItem[])
+        if (subField.type === 'array' && subField.fields && subField.fields.length > 0) {
+          const innerArray: any[] = []
+          subField.fields.forEach((innerField, idx) => {
+            const slot: any = {}
+            if (innerField.type === 'text') slot[innerField.name] = ''
+            else if (innerField.type === 'richText') slot[innerField.name] = undefined
+            else if (innerField.type === 'integer') slot[innerField.name] = 0
+            else slot[innerField.name] = null
+            innerArray[idx] = slot
+          })
+          newItem[subField.name] = innerArray
+          return
+        }
+
+        // Simple scalar/compound field
+        if (subField.type === 'text') newItem[subField.name] = ''
+        else if (subField.type === 'richText') newItem[subField.name] = undefined
+        else if (subField.type === 'integer') newItem[subField.name] = 0
+        else newItem[subField.name] = null
+      })
+    }
+
+    // Add to local state
+    const newId = crypto.randomUUID()
+    const newItemWrapper = { id: newId, data: newItem }
+    setItems((prev) => [...prev, newItemWrapper])
+
+    // Emit array.insert patch
+    const currentArray = (getFieldValue(path) ?? initialValue) as any[]
+    const newIndex = currentArray ? currentArray.length : 0
+
+    appendPatch({
+      kind: 'array.insert',
+      path: path,
+      index: newIndex,
+      item: newItem,
+    })
+
+    // Update the form store without emitting a field.set patch
+    const newArrayValue = currentArray ? [...currentArray, newItem] : [newItem]
+    setFieldStore(path, newArrayValue)
+  }
+
   const renderItem = (itemWrapper: { id: string; data: any }, index: number) => {
     const item = itemWrapper.data
     // Use an index-based array path that matches the patch grammar,
@@ -197,6 +247,45 @@ const ArrayField = ({
     }
 
     if (subField == null) return null
+
+    // Special handling for nested array subfields (e.g. reviews -> reviewItem[])
+    if (subField.type === 'array' && subField.fields && subField.fields.length > 0) {
+      const innerArray = Array.isArray(initial) ? initial : []
+
+      const innerBody = subField.fields.map((innerField) => {
+        const idx = innerArray.findIndex((el) => el && innerField.name in el)
+        const elementIndex = idx >= 0 ? idx : 0
+        const element = innerArray[elementIndex] ?? {}
+
+        return (
+          <FieldRenderer
+            key={innerField.name}
+            field={innerField}
+            initialValue={element[innerField.name]}
+            basePath={`${arrayElementPath}.${subField.name}[${elementIndex}]`}
+            disableSorting={true}
+          />
+        )
+      })
+
+      if (disableSorting) {
+        return (
+          <div
+            key={itemWrapper.id}
+            className="p-4 border border-dashed border-gray-600 rounded-md flex flex-col gap-4"
+          >
+            {subField.label && <h3 className="text-[1rem] font-medium mb-1">{subField.label}</h3>}
+            <div className="flex flex-col gap-4">{innerBody}</div>
+          </div>
+        )
+      }
+
+      return (
+        <SortableItem key={itemWrapper.id} id={itemWrapper.id} label={subField.label ?? ''}>
+          <div className="flex flex-col gap-4">{innerBody}</div>
+        </SortableItem>
+      )
+    }
 
     const body = (
       <FieldRenderer
@@ -244,6 +333,11 @@ const ArrayField = ({
           className="flex flex-col gap-4"
         >
           {items.map((item, index) => renderItem(item, index))}
+          <span>
+            <IconButton onClick={handleAddItem}>
+              <PlusIcon />
+            </IconButton>
+          </span>
         </DraggableSortable>
       )}
     </div>
@@ -267,6 +361,7 @@ export const FieldRenderer = ({
 }: FieldRendererProps) => {
   const { setFieldValue } = useFormContext()
   const path = basePath ? `${basePath}.${field.name}` : field.name
+  const htmlId = path.replace(/[[\].]/g, '-')
 
   const handleChange = (value: any) => {
     console.log('FieldRenderer.handleChange', { path, value })
@@ -280,6 +375,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          id={htmlId}
         />
       )
     case 'textArea':
@@ -288,6 +384,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          id={htmlId}
         />
       )
     case 'checkbox':
@@ -296,6 +393,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          id={htmlId}
         />
       )
     case 'select':
@@ -304,6 +402,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          id={htmlId}
         />
       )
     case 'richText':
@@ -312,6 +411,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          instanceKey={htmlId}
         />
       )
     case 'datetime':
@@ -320,6 +420,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          id={htmlId}
         />
       )
     case 'integer':
@@ -328,6 +429,7 @@ export const FieldRenderer = ({
           field={hideLabel ? { ...field, label: undefined } : field}
           initialValue={initialValue}
           onChange={handleChange}
+          id={htmlId}
         />
       )
     case 'file':

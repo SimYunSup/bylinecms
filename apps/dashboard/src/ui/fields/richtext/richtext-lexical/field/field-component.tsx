@@ -165,10 +165,10 @@ export function RichTextComponent({
           <EditorContext
             composerKey={id}
             editorConfig={editorConfig}
-            key={`${id}-${rerenderProviderKey?.getTime() ?? '0'}`}
+            key={id}
             onChange={handleChange}
             readOnly={disabled}
-            value={initialValue}
+            value={value ?? initialValue}
             // NOTE: 2023-05-15 disabled the deepEqual since we've set ignoreSelectionChange={true}
             // in our OnChangePlugin instances - and so a call here means that something
             // must have changed - so no need to do the comparison.

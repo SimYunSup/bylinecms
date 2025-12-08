@@ -33,6 +33,7 @@ interface FormError {
 
 interface FormContextType {
   setFieldValue: (name: string, value: any) => void
+  setFieldStore: (name: string, value: any) => void
   getFieldValue: (name: string) => any
   getFieldValues: () => Record<string, any>
   getPatches: () => DocumentPatch[]
@@ -70,7 +71,7 @@ export const FormProvider = ({
   const dirtyFields = useRef<Set<string>>(new Set())
   const patchesRef = useRef<DocumentPatch[]>([])
 
-  const setFieldValue = useCallback((name: string, value: any) => {
+  const updateFieldStoreInternal = useCallback((name: string, value: any) => {
     const newFieldValues = { ...fieldValues.current }
 
     // Keep nested path values up to date for generic usage and patches.
@@ -154,27 +155,41 @@ export const FormProvider = ({
     fieldValues.current = newFieldValues
     dirtyFields.current.add(name)
     setDirtyVersion((v) => v + 1)
-
-    const patch: FieldSetPatch = {
-      kind: 'field.set',
-      path: name,
-      value,
-    }
-
-    // Optimization: Coalesce consecutive field.set patches for the same path
-    const lastPatch = patchesRef.current[patchesRef.current.length - 1]
-    if (lastPatch && lastPatch.kind === 'field.set' && lastPatch.path === name) {
-      const newPatches = [...patchesRef.current]
-      newPatches[newPatches.length - 1] = patch
-      patchesRef.current = newPatches
-    } else {
-      patchesRef.current = [...patchesRef.current, patch]
-    }
-
-    // Clear field-specific errors when value changes
-    setErrors((prev) => prev.filter((error) => error.field !== name))
-    console.log('Current patch list:', patchesRef.current)
   }, [])
+
+  const setFieldStore = useCallback(
+    (name: string, value: any) => {
+      updateFieldStoreInternal(name, value)
+    },
+    [updateFieldStoreInternal]
+  )
+
+  const setFieldValue = useCallback(
+    (name: string, value: any) => {
+      updateFieldStoreInternal(name, value)
+
+      const patch: FieldSetPatch = {
+        kind: 'field.set',
+        path: name,
+        value,
+      }
+
+      // Optimization: Coalesce consecutive field.set patches for the same path
+      const lastPatch = patchesRef.current[patchesRef.current.length - 1]
+      if (lastPatch && lastPatch.kind === 'field.set' && lastPatch.path === name) {
+        const newPatches = [...patchesRef.current]
+        newPatches[newPatches.length - 1] = patch
+        patchesRef.current = newPatches
+      } else {
+        patchesRef.current = [...patchesRef.current, patch]
+      }
+
+      // Clear field-specific errors when value changes
+      setErrors((prev) => prev.filter((error) => error.field !== name))
+      console.log('Current patch list:', patchesRef.current)
+    },
+    [updateFieldStoreInternal]
+  )
 
   const getFieldValues = useCallback(() => fieldValues.current, [])
 
@@ -291,6 +306,7 @@ export const FormProvider = ({
     <FormContext.Provider
       value={{
         setFieldValue,
+        setFieldStore,
         getFieldValue,
         getFieldValues,
         getPatches,
