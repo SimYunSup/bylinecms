@@ -21,7 +21,7 @@
 
 import type { FileField as FieldType, StoredFileValue } from '@byline/core'
 
-import { useFormContext } from '../form-context'
+import { useFieldError, useIsDirty } from '../form-context'
 
 interface FileFieldProps {
   field: FieldType
@@ -32,13 +32,13 @@ interface FileFieldProps {
 }
 
 export const FileField = ({ field, initialValue, onChange }: FileFieldProps) => {
-  const { errors, isDirty } = useFormContext()
-  const fieldError = errors.find((error) => error.field === field.name)
+  const fieldError = useFieldError(field.name)
+  const isDirty = useIsDirty(field.name)
 
   const value = initialValue ?? null
 
   return (
-    <div className={isDirty(field.name) ? 'border border-blue-300 rounded-md p-3' : ''}>
+    <div className={isDirty ? 'border border-blue-300 rounded-md p-3' : ''}>
       <div className="flex items-baseline justify-between mb-1">
         <div>
           <div className="text-sm font-medium text-gray-100">
@@ -94,7 +94,7 @@ export const FileField = ({ field, initialValue, onChange }: FileFieldProps) => 
         </div>
       )}
 
-      {fieldError?.message && <div className="mt-1 text-xs text-red-400">{fieldError.message}</div>}
+      {fieldError && <div className="mt-1 text-xs text-red-400">{fieldError}</div>}
     </div>
   )
 }

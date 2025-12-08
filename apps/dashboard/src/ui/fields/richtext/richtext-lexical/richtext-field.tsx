@@ -21,6 +21,7 @@
 
 import type { RichTextField as FieldType } from '@byline/core'
 
+import { useFieldError, useIsDirty } from '../../form-context'
 import { RichTextField as LexicalRichTextField } from './field'
 import { defaultEditorConfig } from './field/config/default'
 
@@ -40,20 +41,28 @@ export const RichTextField = ({
   readonly = false,
   instanceKey,
   onChange,
-}: Props) => (
-  <div className="flex flex-1 h-full">
-    <LexicalRichTextField
-      onChange={onChange}
-      editorConfig={editorConfig || defaultEditorConfig}
-      id={instanceKey ? `${field.name}-${instanceKey}` : field.name}
-      name={field.name}
-      description={field.helpText}
-      readonly={readonly}
-      label={field.label}
-      required={field.required}
-      initialValue={initialValue}
-      // Ensure React fully remounts when instanceKey changes
-      key={instanceKey ? `${field.name}-${instanceKey}` : field.name}
-    />
-  </div>
-)
+}: Props) => {
+  const fieldError = useFieldError(field.name)
+  const isDirty = useIsDirty(field.name)
+
+  return (
+    <div className={`flex flex-1 h-full ${isDirty ? 'border border-blue-300 rounded-md' : ''}`}>
+      <div className="flex flex-1 flex-col gap-1">
+        <LexicalRichTextField
+          onChange={onChange}
+          editorConfig={editorConfig || defaultEditorConfig}
+          id={instanceKey ? `${field.name}-${instanceKey}` : field.name}
+          name={field.name}
+          description={field.helpText}
+          readonly={readonly}
+          label={field.label}
+          required={field.required}
+          initialValue={initialValue}
+          // Ensure React fully remounts when instanceKey changes
+          key={instanceKey ? `${field.name}-${instanceKey}` : field.name}
+        />
+        {fieldError && <div className="text-xs text-red-400 px-0.5">{fieldError}</div>}
+      </div>
+    </div>
+  )
+}

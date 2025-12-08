@@ -114,16 +114,22 @@ export const FormProvider = ({
   const notifyFieldListeners = useCallback((name: string, value: any) => {
     const listeners = fieldListeners.current.get(name)
     if (listeners) {
-      listeners.forEach((listener) => listener(value))
+      listeners.forEach((listener) => {
+        listener(value)
+      })
     }
   }, [])
 
   const notifyErrorListeners = useCallback(() => {
-    errorListeners.current.forEach((listener) => listener(errorsRef.current))
+    errorListeners.current.forEach((listener) => {
+      listener(errorsRef.current)
+    })
   }, [])
 
   const notifyMetaListeners = useCallback(() => {
-    metaListeners.current.forEach((listener) => listener())
+    metaListeners.current.forEach((listener) => {
+      listener()
+    })
   }, [])
 
   const updateFieldStoreInternal = useCallback(
