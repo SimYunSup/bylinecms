@@ -24,7 +24,7 @@ import { useCallback, useRef } from 'react'
 import type { TextField as FieldType } from '@byline/core'
 import { Input } from '@infonomic/uikit/react'
 
-import { useFormContext } from '../../fields/form-context'
+import { useFieldError, useIsDirty } from '../../fields/form-context'
 
 export const TextField = ({
   field,
@@ -37,8 +37,8 @@ export const TextField = ({
   onChange?: (value: string) => void
   id?: string
 }) => {
-  const { errors, isDirty } = useFormContext()
-  const fieldError = errors.find((error) => error.field === field.name)
+  const fieldError = useFieldError(field.name)
+  const isDirty = useIsDirty(field.name)
   const dispatchFieldUpdateTask = useRef<number>(undefined)
 
   const handleChange = useCallback(
@@ -73,9 +73,9 @@ export const TextField = ({
         helpText={field.helpText}
         defaultValue={initialValue || undefined}
         onChange={(e) => handleChange(e.target.value)}
-        error={fieldError?.message != null}
-        errorText={fieldError?.message}
-        className={isDirty(field.name) ? 'border-blue-300' : ''}
+        error={fieldError != null}
+        errorText={fieldError}
+        className={isDirty ? 'border-blue-300' : ''}
       />
     </div>
   )

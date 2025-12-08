@@ -20,7 +20,7 @@
  */
 
 import type React from 'react'
-import { createContext, useCallback, useContext, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 
 import type { Field } from '@byline/core'
 import type { DocumentPatch, FieldSetPatch } from '@byline/core/patches'
@@ -30,6 +30,10 @@ interface FormError {
   field: string
   message: string
 }
+
+type FieldListener = (value: any) => void
+type ErrorsListener = (errors: FormError[]) => void
+type MetaListener = () => void
 
 interface FormContextType {
   setFieldValue: (name: string, value: any) => void
@@ -45,6 +49,9 @@ interface FormContextType {
   errors: FormError[]
   clearErrors: () => void
   isDirty: (fieldName: string) => boolean
+  subscribeField: (name: string, listener: FieldListener) => () => void
+  subscribeErrors: (listener: ErrorsListener) => () => void
+  subscribeMeta: (listener: MetaListener) => () => void
 }
 
 const FormContext = createContext<FormContextType | null>(null)
@@ -66,96 +73,149 @@ export const FormProvider = ({
 }) => {
   const fieldValues = useRef<Record<string, any>>(JSON.parse(JSON.stringify(initialData)))
   const initialValues = useRef<Record<string, any>>(initialData)
-  const [errors, setErrors] = useState<FormError[]>([])
-  const [, setDirtyVersion] = useState(0)
+  const errorsRef = useRef<FormError[]>([])
   const dirtyFields = useRef<Set<string>>(new Set())
   const patchesRef = useRef<DocumentPatch[]>([])
 
-  const updateFieldStoreInternal = useCallback((name: string, value: any) => {
-    const newFieldValues = { ...fieldValues.current }
+  const fieldListeners = useRef<Map<string, Set<FieldListener>>>(new Map())
+  const errorListeners = useRef<Set<ErrorsListener>>(new Set())
+  const metaListeners = useRef<Set<MetaListener>>(new Set())
 
-    // Keep nested path values up to date for generic usage and patches.
-    setNestedValue(newFieldValues, name, value)
-
-    // Generic handling for block fields:
-    // If the path traverses a block object (identified by { type: 'block', name: '...' }),
-    // and the path segment matches the block name, we must also update the internal `fields` array.
-    // This ensures that the structured data (used for persistence) stays in sync with the
-    // "virtual" path used by the UI (e.g. content[0].richTextBlock[0].richText).
-
-    // We walk the path segments against the object tree.
-    // Path format: "content[0].richTextBlock[0].richText"
-    // Segments: ["content", "0", "richTextBlock", "0", "richText"]
-    // (Note: lodash/set handles the parsing implicitly, but we need to do it explicitly here to find blocks)
-
-    // Simple path parser that handles dot notation and brackets
-    const segments = name.replace(/\]/g, '').split(/[.[]/)
-
-    let current = newFieldValues
-    for (let i = 0; i < segments.length; i++) {
-      const key = segments[i]
-
-      // Check if current object is a block and the key matches its name
-      if (
-        current &&
-        typeof current === 'object' &&
-        current.type === 'block' &&
-        current.name === key
-      ) {
-        // We found a block traversal!
-        // The path continues into the block's virtual structure.
-        // We need to apply the update to the `fields` array instead.
-
-        // The remaining segments describe the path INSIDE the block's fields.
-        // e.g. if path was "content[0].richTextBlock[0].richText",
-        // we are at "richTextBlock". Remaining: ["0", "richText"].
-        // This maps to `fields[0].richText`.
-
-        const remainingSegments = segments.slice(i + 1)
-        if (remainingSegments.length > 0) {
-          // We need to update `current.fields` at `remainingSegments`.
-          // Since `current` is a reference to the object in the tree, modifying it works.
-          // However, for React/Immutability, we should ideally clone.
-          // But `setNestedValue` above already mutated the tree structure (or cloned parts of it).
-          // Since `newFieldValues` is a shallow copy of root, and `setNestedValue` handles deep cloning/mutation,
-          // we can assume `current` is the object we want to modify.
-
-          // Ensure fields array exists
-          if (!Array.isArray(current.fields)) {
-            current.fields = []
-          }
-
-          // Use setNestedValue to update the fields array
-          // We construct a path string for the remaining part
-          // e.g. "0.richText" -> "fields[0].richText"
-          // But `setNestedValue` takes an object and a path.
-          // We can just call it on `current` with path `fields.${remainingPath}`
-
-          // Reconstruct path from segments (handling array indices)
-          // Actually, `setNestedValue` supports array path.
-          const fieldsPath = ['fields', ...remainingSegments]
-          setNestedValue(current, fieldsPath, value)
+  const subscribeField = useCallback((name: string, listener: FieldListener) => {
+    if (!fieldListeners.current.has(name)) {
+      fieldListeners.current.set(name, new Set())
+    }
+    fieldListeners.current.get(name)!.add(listener)
+    return () => {
+      const listeners = fieldListeners.current.get(name)
+      if (listeners) {
+        listeners.delete(listener)
+        if (listeners.size === 0) {
+          fieldListeners.current.delete(name)
         }
-
-        // We don't need to continue traversing down the "virtual" path because
-        // we've handled the sync to "fields".
-        // (The virtual path update was already done by the first setNestedValue call at the top)
-        break
-      }
-
-      // Move to next level
-      if (current && typeof current === 'object' && key in current) {
-        current = current[key]
-      } else {
-        // Path doesn't exist in the tree (or we hit a leaf), stop.
-        break
       }
     }
-
-    fieldValues.current = newFieldValues
-    dirtyFields.current.add(name)
-    setDirtyVersion((v) => v + 1)
   }, [])
+
+  const subscribeErrors = useCallback((listener: ErrorsListener) => {
+    errorListeners.current.add(listener)
+    return () => {
+      errorListeners.current.delete(listener)
+    }
+  }, [])
+
+  const subscribeMeta = useCallback((listener: MetaListener) => {
+    metaListeners.current.add(listener)
+    return () => {
+      metaListeners.current.delete(listener)
+    }
+  }, [])
+
+  const notifyFieldListeners = useCallback((name: string, value: any) => {
+    const listeners = fieldListeners.current.get(name)
+    if (listeners) {
+      listeners.forEach((listener) => listener(value))
+    }
+  }, [])
+
+  const notifyErrorListeners = useCallback(() => {
+    errorListeners.current.forEach((listener) => listener(errorsRef.current))
+  }, [])
+
+  const notifyMetaListeners = useCallback(() => {
+    metaListeners.current.forEach((listener) => listener())
+  }, [])
+
+  const updateFieldStoreInternal = useCallback(
+    (name: string, value: any) => {
+      const newFieldValues = { ...fieldValues.current }
+
+      // Keep nested path values up to date for generic usage and patches.
+      setNestedValue(newFieldValues, name, value)
+
+      // Generic handling for block fields:
+      // If the path traverses a block object (identified by { type: 'block', name: '...' }),
+      // and the path segment matches the block name, we must also update the internal `fields` array.
+      // This ensures that the structured data (used for persistence) stays in sync with the
+      // "virtual" path used by the UI (e.g. content[0].richTextBlock[0].richText).
+
+      // We walk the path segments against the object tree.
+      // Path format: "content[0].richTextBlock[0].richText"
+      // Segments: ["content", "0", "richTextBlock", "0", "richText"]
+      // (Note: lodash/set handles the parsing implicitly, but we need to do it explicitly here to find blocks)
+
+      // Simple path parser that handles dot notation and brackets
+      const segments = name.replace(/\]/g, '').split(/[.[]/)
+
+      let current = newFieldValues
+      for (let i = 0; i < segments.length; i++) {
+        const key = segments[i]
+
+        // Check if current object is a block and the key matches its name
+        if (
+          current &&
+          typeof current === 'object' &&
+          current.type === 'block' &&
+          current.name === key
+        ) {
+          // We found a block traversal!
+          // The path continues into the block's virtual structure.
+          // We need to apply the update to the `fields` array instead.
+
+          // The remaining segments describe the path INSIDE the block's fields.
+          // e.g. if path was "content[0].richTextBlock[0].richText",
+          // we are at "richTextBlock". Remaining: ["0", "richText"].
+          // This maps to `fields[0].richText`.
+
+          const remainingSegments = segments.slice(i + 1)
+          if (remainingSegments.length > 0) {
+            // We need to update `current.fields` at `remainingSegments`.
+            // Since `current` is a reference to the object in the tree, modifying it works.
+            // However, for React/Immutability, we should ideally clone.
+            // But `setNestedValue` above already mutated the tree structure (or cloned parts of it).
+            // Since `newFieldValues` is a shallow copy of root, and `setNestedValue` handles deep cloning/mutation,
+            // we can assume `current` is the object we want to modify.
+
+            // Ensure fields array exists
+            if (!Array.isArray(current.fields)) {
+              current.fields = []
+            }
+
+            // Use setNestedValue to update the fields array
+            // We construct a path string for the remaining part
+            // e.g. "0.richText" -> "fields[0].richText"
+            // But `setNestedValue` takes an object and a path.
+            // We can just call it on `current` with path `fields.${remainingPath}`
+
+            // Reconstruct path from segments (handling array indices)
+            // Actually, `setNestedValue` supports array path.
+            const fieldsPath = ['fields', ...remainingSegments]
+            setNestedValue(current, fieldsPath, value)
+          }
+
+          // We don't need to continue traversing down the "virtual" path because
+          // we've handled the sync to "fields".
+          // (The virtual path update was already done by the first setNestedValue call at the top)
+          break
+        }
+
+        // Move to next level
+        if (current && typeof current === 'object' && key in current) {
+          current = current[key]
+        } else {
+          // Path doesn't exist in the tree (or we hit a leaf), stop.
+          break
+        }
+      }
+
+      fieldValues.current = newFieldValues
+      dirtyFields.current.add(name)
+
+      notifyFieldListeners(name, value)
+      notifyMetaListeners()
+    },
+    [notifyFieldListeners, notifyMetaListeners]
+  )
 
   const setFieldStore = useCallback(
     (name: string, value: any) => {
@@ -185,26 +245,32 @@ export const FormProvider = ({
       }
 
       // Clear field-specific errors when value changes
-      setErrors((prev) => prev.filter((error) => error.field !== name))
+      if (errorsRef.current.some((error) => error.field === name)) {
+        errorsRef.current = errorsRef.current.filter((error) => error.field !== name)
+        notifyErrorListeners()
+      }
       console.log('Current patch list:', patchesRef.current)
     },
-    [updateFieldStoreInternal]
+    [updateFieldStoreInternal, notifyErrorListeners]
   )
 
   const getFieldValues = useCallback(() => fieldValues.current, [])
 
   const getPatches = useCallback(() => patchesRef.current, [])
-  const appendPatch = useCallback((patch: DocumentPatch) => {
-    patchesRef.current = [...patchesRef.current, patch]
-    // Mark a generic dirty flag so hasChanges() becomes true even
-    // for patches that don't correspond to a specific field.set.
-    dirtyFields.current.add('__patch__')
-    setDirtyVersion((v) => v + 1)
-    if (process.env.NODE_ENV !== 'production') {
-      // eslint-disable-next-line no-console
-      console.debug('FormContext.appendPatch', { patch, dirtyCount: dirtyFields.current.size })
-    }
-  }, [])
+  const appendPatch = useCallback(
+    (patch: DocumentPatch) => {
+      patchesRef.current = [...patchesRef.current, patch]
+      // Mark a generic dirty flag so hasChanges() becomes true even
+      // for patches that don't correspond to a specific field.set.
+      dirtyFields.current.add('__patch__')
+      notifyMetaListeners()
+      if (process.env.NODE_ENV !== 'production') {
+        // eslint-disable-next-line no-console
+        console.debug('FormContext.appendPatch', { patch, dirtyCount: dirtyFields.current.size })
+      }
+    },
+    [notifyMetaListeners]
+  )
 
   const getFieldValue = useCallback((name: string) => {
     const dirty = dirtyFields.current.has(name)
@@ -226,8 +292,8 @@ export const FormProvider = ({
   const resetHasChanges = useCallback(() => {
     dirtyFields.current.clear()
     patchesRef.current = []
-    setDirtyVersion((v) => v + 1)
-  }, [])
+    notifyMetaListeners()
+  }, [notifyMetaListeners])
 
   const isDirty = useCallback((fieldName: string) => {
     return dirtyFields.current.has(fieldName)
@@ -292,15 +358,17 @@ export const FormProvider = ({
         }
       }
 
-      setErrors(formErrors)
+      errorsRef.current = formErrors
+      notifyErrorListeners()
       return formErrors
     },
-    [getFieldValue]
+    [getFieldValue, notifyErrorListeners]
   )
 
   const clearErrors = useCallback(() => {
-    setErrors([])
-  }, [])
+    errorsRef.current = []
+    notifyErrorListeners()
+  }, [notifyErrorListeners])
 
   return (
     <FormContext.Provider
@@ -317,12 +385,66 @@ export const FormProvider = ({
         hasChanges,
         resetHasChanges,
         validateForm,
-        errors,
+        errors: errorsRef.current,
         clearErrors,
         isDirty,
+        subscribeField,
+        subscribeErrors,
+        subscribeMeta,
       }}
     >
       {children}
     </FormContext.Provider>
   )
+}
+
+export const useFormStore = () => {
+  return useFormContext()
+}
+
+export const useFieldError = (name: string) => {
+  const { errors, subscribeErrors } = useFormContext()
+  const [error, setError] = useState<string | undefined>(
+    errors.find((e) => e.field === name)?.message
+  )
+
+  useEffect(() => {
+    const unsubscribe = subscribeErrors((currentErrors) => {
+      const fieldError = currentErrors.find((e) => e.field === name)
+      setError(fieldError?.message)
+    })
+    return unsubscribe
+  }, [subscribeErrors, name])
+
+  return error
+}
+
+export const useFormMeta = () => {
+  const { hasChanges, subscribeMeta } = useFormContext()
+  const [hasChangesValue, setHasChangesValue] = useState(hasChanges())
+
+  useEffect(() => {
+    const unsubscribe = subscribeMeta(() => {
+      setHasChangesValue(hasChanges())
+    })
+    return unsubscribe
+  }, [subscribeMeta, hasChanges])
+
+  return {
+    hasChanges: hasChangesValue,
+  }
+}
+
+export const useIsDirty = (name: string) => {
+  const { isDirty, subscribeMeta } = useFormContext()
+  const [dirty, setDirty] = useState(isDirty(name))
+
+  useEffect(() => {
+    const unsubscribe = subscribeMeta(() => {
+      setDirty(isDirty(name))
+    })
+    return unsubscribe
+  }, [subscribeMeta, isDirty, name])
+
+  return dirty
 }

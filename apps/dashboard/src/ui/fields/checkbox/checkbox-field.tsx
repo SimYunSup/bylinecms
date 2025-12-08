@@ -22,6 +22,8 @@
 import type { CheckboxField as FieldType } from '@byline/core'
 import { Checkbox } from '@infonomic/uikit/react'
 
+import { useFieldError, useIsDirty } from '../../fields/form-context'
+
 export const CheckboxField = ({
   field,
   initialValue,
@@ -32,16 +34,24 @@ export const CheckboxField = ({
   initialValue?: boolean
   onChange?: (value: boolean) => void
   id?: string
-}) => (
-  <div>
-    <Checkbox
-      id={id ?? field.name}
-      name={field.name}
-      label={field.label ?? field.name}
-      defaultChecked={initialValue ?? false}
-      helpText={field.helpText}
-      // TODO: Handle indeterminate state
-      onCheckedChange={(value) => onChange?.(value === 'indeterminate' ? false : value)}
-    />
-  </div>
-)
+}) => {
+  const fieldError = useFieldError(field.name)
+  const isDirty = useIsDirty(field.name)
+
+  return (
+    <div>
+      <Checkbox
+        id={id ?? field.name}
+        name={field.name}
+        label={field.label ?? field.name}
+        defaultChecked={initialValue ?? false}
+        helpText={field.helpText}
+        // TODO: Handle indeterminate state
+        onCheckedChange={(value) => onChange?.(value === 'indeterminate' ? false : value)}
+        error={fieldError != null}
+        errorText={fieldError}
+        className={isDirty ? 'border-blue-300' : ''}
+      />
+    </div>
+  )
+}

@@ -24,7 +24,7 @@ import { useCallback, useRef } from 'react'
 import type { TextAreaField as FieldType } from '@byline/core'
 import { TextArea } from '@infonomic/uikit/react'
 
-import { useFormContext } from '../../fields/form-context'
+import { useFieldError, useIsDirty } from '../../fields/form-context'
 
 export const TextAreaField = ({
   field,
@@ -37,8 +37,8 @@ export const TextAreaField = ({
   onChange?: (value: string) => void
   id?: string
 }) => {
-  const { errors, isDirty } = useFormContext()
-  const fieldError = errors.find((error) => error.field === field.name)
+  const fieldError = useFieldError(field.name)
+  const isDirty = useIsDirty(field.name)
   const dispatchFieldUpdateTask = useRef<number>(undefined)
 
   const handleChange = useCallback(
@@ -73,9 +73,9 @@ export const TextAreaField = ({
         helpText={field.helpText}
         defaultValue={initialValue || undefined}
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange(e.target.value)}
-        error={fieldError?.message != null}
-        errorText={fieldError?.message}
-        className={isDirty(field.name) ? 'border-blue-300' : ''}
+        error={fieldError != null}
+        errorText={fieldError}
+        className={isDirty ? 'border-blue-300' : ''}
         rows={4}
       />
     </div>

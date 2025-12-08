@@ -22,6 +22,8 @@
 import type { DateTimeField as FieldType } from '@byline/core'
 import { DatePicker } from '@infonomic/uikit/react'
 
+import { useFieldError, useIsDirty } from '../../fields/form-context'
+
 export const DateTimeField = ({
   field,
   initialValue,
@@ -32,18 +34,25 @@ export const DateTimeField = ({
   initialValue?: Date | null
   onChange?: (value: Date | null) => void
   id?: string
-}) => (
-  <div>
-    <DatePicker
-      id={id ?? field.name}
-      name={field.name}
-      label={field.label}
-      required={field.required}
-      initialValue={initialValue}
-      mode={field.mode || 'datetime'}
-      yearsInFuture={field.yearsInFuture || 1}
-      yearsInPast={field.yearsInPast || 10}
-      onDateChange={(date) => onChange?.(date)}
-    />
-  </div>
-)
+}) => {
+  const fieldError = useFieldError(field.name)
+  const isDirty = useIsDirty(field.name)
+
+  return (
+    <div>
+      <DatePicker
+        id={id ?? field.name}
+        name={field.name}
+        label={field.label}
+        required={field.required}
+        initialValue={initialValue}
+        mode={field.mode || 'datetime'}
+        yearsInFuture={field.yearsInFuture || 1}
+        yearsInPast={field.yearsInPast || 10}
+        onDateChange={(date) => onChange?.(date)}
+        className={isDirty ? 'border-blue-300' : ''}
+      />
+      {fieldError && <div className="mt-1 text-xs text-red-400">{fieldError}</div>}
+    </div>
+  )
+}

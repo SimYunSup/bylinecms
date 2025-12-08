@@ -22,6 +22,8 @@
 // NOTE: Before you dunk on this, this is a totally naïve  and "weekend hack"
 // implementation of a form renderer used only for prototype development.
 
+import { useEffect, useState } from 'react'
+
 import type { Field } from '@byline/core'
 import { Button } from '@infonomic/uikit/react'
 
@@ -65,8 +67,27 @@ const FormContent = ({
   onCancel: () => void
   initialData?: Record<string, any>
 }) => {
-  const { getFieldValues, validateForm, errors, hasChanges, resetHasChanges, getPatches } =
-    useFormContext()
+  const {
+    getFieldValues,
+    validateForm,
+    errors: initialErrors,
+    hasChanges: hasChangesFn,
+    resetHasChanges,
+    getPatches,
+    subscribeErrors,
+    subscribeMeta,
+  } = useFormContext()
+
+  const [errors, setErrors] = useState(initialErrors)
+  const [hasChanges, setHasChanges] = useState(hasChangesFn())
+
+  useEffect(() => {
+    return subscribeErrors((newErrors) => setErrors(newErrors))
+  }, [subscribeErrors])
+
+  useEffect(() => {
+    return subscribeMeta(() => setHasChanges(hasChangesFn()))
+  }, [subscribeMeta, hasChangesFn])
 
   const handleCancel = () => {
     if (onCancel && typeof onCancel === 'function') {
@@ -123,14 +144,9 @@ const FormContent = ({
             onClick={handleCancel}
             className="min-w-[70px]"
           >
-            {hasChanges() === false ? 'Close' : 'Cancel'}
+            {hasChanges === false ? 'Close' : 'Cancel'}
           </Button>
-          <Button
-            size="sm"
-            type="submit"
-            className="min-w-[70px]"
-            disabled={hasChanges() === false}
-          >
+          <Button size="sm" type="submit" className="min-w-[70px]" disabled={hasChanges === false}>
             Save
           </Button>
           <Button size="sm" type="submit" intent="success" className="min-w-[80px]">

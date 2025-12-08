@@ -22,6 +22,8 @@
 import type { SelectField as FieldType } from '@byline/core'
 import { Select, SelectItem } from '@infonomic/uikit/react'
 
+import { useFieldError, useIsDirty } from '../../fields/form-context'
+
 export const SelectField = ({
   field,
   initialValue,
@@ -32,23 +34,30 @@ export const SelectField = ({
   initialValue?: string
   onChange?: (value: any) => void
   id?: string
-}) => (
-  <div>
-    <Select
-      size="sm"
-      id={id ?? field.name}
-      name={field.name}
-      placeholder="Select an option"
-      required={field.required}
-      defaultValue={initialValue || ''}
-      helpText={field.helpText}
-      onValueChange={(value) => onChange?.(value)}
-    >
-      {field.options.map((opt) => (
-        <SelectItem key={opt.value} value={opt.value}>
-          {opt.label}
-        </SelectItem>
-      ))}
-    </Select>
-  </div>
-)
+}) => {
+  const fieldError = useFieldError(field.name)
+  const isDirty = useIsDirty(field.name)
+
+  return (
+    <div>
+      <Select
+        size="sm"
+        id={id ?? field.name}
+        name={field.name}
+        placeholder="Select an option"
+        required={field.required}
+        defaultValue={initialValue || ''}
+        helpText={field.helpText}
+        onValueChange={(value) => onChange?.(value)}
+        className={isDirty ? 'border-blue-300' : ''}
+      >
+        {field.options.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value}>
+            {opt.label}
+          </SelectItem>
+        ))}
+      </Select>
+      {fieldError && <div className="mt-1 text-xs text-red-400">{fieldError}</div>}
+    </div>
+  )
+}
