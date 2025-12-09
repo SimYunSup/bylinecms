@@ -28,13 +28,15 @@ import { useFieldError, useFieldValue, useIsDirty } from '../../fields/form-cont
 
 export const TextAreaField = ({
   field,
-  initialValue,
+  value,
+  defaultValue,
   onChange,
   id,
   path,
 }: {
   field: FieldType
-  initialValue?: string
+  value?: string
+  defaultValue?: string
   onChange?: (value: string) => void
   id?: string
   path?: string
@@ -43,7 +45,7 @@ export const TextAreaField = ({
   const fieldError = useFieldError(fieldPath)
   const isDirty = useIsDirty(fieldPath)
   const fieldValue = useFieldValue<string | undefined>(fieldPath)
-  const value = fieldValue ?? initialValue ?? ''
+  const incomingValue = value ?? fieldValue ?? defaultValue ?? ''
   const dispatchFieldUpdateTask = useRef<number>(undefined)
 
   const handleChange = useCallback(
@@ -76,7 +78,7 @@ export const TextAreaField = ({
         label={field.label}
         required={field.required}
         helpText={field.helpText}
-        value={value}
+        value={incomingValue}
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleChange(e.target.value)}
         error={fieldError != null}
         errorText={fieldError}

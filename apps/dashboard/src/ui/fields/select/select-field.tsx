@@ -26,14 +26,16 @@ import { useFieldError, useFieldValue, useIsDirty } from '../../fields/form-cont
 
 export const SelectField = ({
   field,
-  initialValue,
+  value,
+  defaultValue,
   onChange,
   id,
   path,
 }: {
   field: FieldType
-  initialValue?: string
-  onChange?: (value: any) => void
+  value?: string
+  defaultValue?: string
+  onChange?: (value: string) => void
   id?: string
   path?: string
 }) => {
@@ -41,7 +43,7 @@ export const SelectField = ({
   const fieldError = useFieldError(fieldPath)
   const isDirty = useIsDirty(fieldPath)
   const fieldValue = useFieldValue<string | undefined>(fieldPath)
-  const value = fieldValue ?? initialValue ?? ''
+  const incomingValue = value ?? fieldValue ?? defaultValue ?? ''
 
   return (
     <div>
@@ -51,7 +53,7 @@ export const SelectField = ({
         name={field.name}
         placeholder="Select an option"
         required={field.required}
-        value={value}
+        value={incomingValue}
         helpText={field.helpText}
         onValueChange={(value) => onChange?.(value)}
         className={isDirty ? 'border-blue-300' : ''}

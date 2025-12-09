@@ -111,12 +111,12 @@ const SortableItem = ({
 
 const ArrayField = ({
   field,
-  initialValue,
+  defaultValue,
   path,
   disableSorting = false,
 }: {
   field: ArrayFieldType
-  initialValue: any
+  defaultValue: any
   path: string
   disableSorting?: boolean
 }) => {
@@ -124,12 +124,12 @@ const ArrayField = ({
   const [items, setItems] = useState<{ id: string; data: any }[]>([])
 
   useEffect(() => {
-    if (Array.isArray(initialValue)) {
-      setItems(initialValue.map((item) => ({ id: crypto.randomUUID(), data: item })))
+    if (Array.isArray(defaultValue)) {
+      setItems(defaultValue.map((item) => ({ id: crypto.randomUUID(), data: item })))
     } else {
       setItems([])
     }
-  }, [initialValue])
+  }, [defaultValue])
 
   const handleDragEnd = ({
     moveFromIndex,
@@ -142,7 +142,7 @@ const ArrayField = ({
     console.log('ArrayField.handleDragEnd', { moveFromIndex, moveToIndex })
     // Emit an array.move patch against the array so the server can reorder items.
     // We resolve the itemId from the current array value rather than relying on local UI wrapper IDs.
-    const currentArray = (getFieldValue(path) ?? initialValue) as any[]
+    const currentArray = (getFieldValue(path) ?? defaultValue) as any[]
     console.log('ArrayField.handleDragEnd', { path, currentArray })
 
     if (Array.isArray(currentArray)) {
@@ -203,7 +203,7 @@ const ArrayField = ({
     setItems((prev) => [...prev, newItemWrapper])
 
     // Emit array.insert patch
-    const currentArray = (getFieldValue(path) ?? initialValue) as any[]
+    const currentArray = (getFieldValue(path) ?? defaultValue) as any[]
     const newIndex = currentArray ? currentArray.length : 0
 
     appendPatch({
@@ -261,7 +261,7 @@ const ArrayField = ({
           <FieldRenderer
             key={innerField.name}
             field={innerField}
-            initialValue={element[innerField.name]}
+            defaultValue={element[innerField.name]}
             basePath={`${arrayElementPath}.${subField.name}[${elementIndex}]`}
             disableSorting={true}
           />
@@ -291,7 +291,7 @@ const ArrayField = ({
       <FieldRenderer
         key={subField.name}
         field={subField}
-        initialValue={initial}
+        defaultValue={initial}
         basePath={arrayElementPath}
         disableSorting={true}
         hideLabel={true}
@@ -346,7 +346,7 @@ const ArrayField = ({
 
 interface FieldRendererProps {
   field: Field
-  initialValue?: any
+  defaultValue?: any
   basePath?: string
   disableSorting?: boolean
   hideLabel?: boolean
@@ -354,7 +354,7 @@ interface FieldRendererProps {
 
 export const FieldRenderer = ({
   field,
-  initialValue,
+  defaultValue,
   basePath,
   disableSorting,
   hideLabel,
@@ -373,7 +373,7 @@ export const FieldRenderer = ({
       return (
         <TextField
           field={hideLabel ? { ...field, label: undefined } : field}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           onChange={handleChange}
           path={path}
           id={htmlId}
@@ -383,7 +383,7 @@ export const FieldRenderer = ({
       return (
         <TextAreaField
           field={hideLabel ? { ...field, label: undefined } : field}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           onChange={handleChange}
           path={path}
           id={htmlId}
@@ -393,7 +393,7 @@ export const FieldRenderer = ({
       return (
         <CheckboxField
           field={hideLabel ? { ...field, label: undefined } : field}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           onChange={handleChange}
           path={path}
           id={htmlId}
@@ -403,7 +403,7 @@ export const FieldRenderer = ({
       return (
         <SelectField
           field={hideLabel ? { ...field, label: undefined } : field}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           onChange={handleChange}
           path={path}
           id={htmlId}
@@ -413,7 +413,7 @@ export const FieldRenderer = ({
       return (
         <RichTextField
           field={hideLabel ? { ...field, label: undefined } : field}
-          defaultValue={initialValue}
+          defaultValue={defaultValue}
           onChange={handleChange}
           path={path}
           instanceKey={htmlId}
@@ -423,7 +423,7 @@ export const FieldRenderer = ({
       return (
         <DateTimeField
           field={hideLabel ? { ...field, label: undefined } : field}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           onChange={handleChange}
           path={path}
           id={htmlId}
@@ -433,7 +433,7 @@ export const FieldRenderer = ({
       return (
         <NumericalField
           field={hideLabel ? { ...field, label: undefined } : field}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           onChange={handleChange}
           path={path}
           id={htmlId}
@@ -443,7 +443,7 @@ export const FieldRenderer = ({
       return (
         <FileField
           field={hideLabel ? { ...field, label: undefined } : field}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           onChange={handleChange}
           path={path}
         />
@@ -452,7 +452,7 @@ export const FieldRenderer = ({
       return (
         <ImageField
           field={hideLabel ? { ...field, label: undefined } : field}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           onChange={handleChange}
           path={path}
         />
@@ -463,7 +463,7 @@ export const FieldRenderer = ({
       return (
         <ArrayField
           field={field as unknown as ArrayFieldType}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           path={path}
           disableSorting={true}
         />
@@ -473,7 +473,7 @@ export const FieldRenderer = ({
       return (
         <ArrayField
           field={field}
-          initialValue={initialValue}
+          defaultValue={defaultValue}
           path={path}
           disableSorting={disableSorting}
         />

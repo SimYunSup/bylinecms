@@ -29,6 +29,7 @@ interface Props {
   field: FieldType
   readonly?: boolean
   instanceKey?: string
+  value?: any
   defaultValue?: any
   editorConfig?: any
   onChange?: (value: any) => void
@@ -37,6 +38,7 @@ interface Props {
 
 export const RichTextField = ({
   field,
+  value,
   defaultValue,
   editorConfig,
   readonly = false,
@@ -48,6 +50,8 @@ export const RichTextField = ({
   const fieldError = useFieldError(fieldPath)
   const isDirty = useIsDirty(fieldPath)
   const fieldValue = useFieldValue<any>(fieldPath)
+  const incomingValue = value ?? fieldValue
+  const incomingDefault = defaultValue
 
   return (
     <div className={`flex flex-1 h-full ${isDirty ? 'border border-yellow-300 rounded-md' : ''}`}>
@@ -61,8 +65,8 @@ export const RichTextField = ({
           readonly={readonly}
           label={field.label}
           required={field.required}
-          value={fieldValue}
-          defaultValue={defaultValue}
+          value={incomingValue}
+          defaultValue={incomingDefault}
           // Ensure React fully remounts when instanceKey changes
           key={instanceKey ? `${field.name}-${instanceKey}` : field.name}
         />

@@ -160,7 +160,7 @@ const FormContent = ({
             <FieldRenderer
               key={field.name}
               field={field}
-              initialValue={initialData?.[field.name]}
+              defaultValue={initialData?.[field.name]}
             />
           ))}
         </div>
@@ -169,7 +169,7 @@ const FormContent = ({
             <FieldRenderer
               key={field.name}
               field={field}
-              initialValue={initialData?.[field.name]}
+              defaultValue={initialData?.[field.name]}
             />
           ))}
         </div>

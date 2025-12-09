@@ -27,17 +27,18 @@ interface ImageFieldProps {
   field: FieldType
   // Stored value is currently a plain object with file/image metadata
   // coming from the seed data / storage layer.
-  initialValue?: StoredFileValue | null
+  value?: StoredFileValue | null
+  defaultValue?: StoredFileValue | null
   onChange?: (value: StoredFileValue | null) => void
   path?: string
 }
 
-export const ImageField = ({ field, initialValue, onChange, path }: ImageFieldProps) => {
+export const ImageField = ({ field, value, defaultValue, onChange, path }: ImageFieldProps) => {
   const fieldPath = path ?? field.name
   const fieldError = useFieldError(fieldPath)
   const isDirty = useIsDirty(fieldPath)
   const fieldValue = useFieldValue<StoredFileValue | null | undefined>(fieldPath)
-  const value = fieldValue ?? initialValue ?? null
+  const incomingValue = value ?? fieldValue ?? defaultValue ?? null
 
   return (
     <div className={isDirty ? 'border border-blue-300 rounded-md p-3' : ''}>
@@ -59,55 +60,55 @@ export const ImageField = ({ field, initialValue, onChange, path }: ImageFieldPr
         </button>
       </div>
 
-      {value == null ? (
+      {incomingValue == null ? (
         <div className="text-xs text-gray-500 italic">No image selected</div>
       ) : (
         <div className="mt-1 text-xs text-gray-200 space-y-0.5">
-          {'filename' in value && (
+          {'filename' in incomingValue && (
             <div>
-              <span className="font-semibold">Filename:</span> {value.filename}
+              <span className="font-semibold">Filename:</span> {incomingValue.filename}
             </div>
           )}
-          {'original_filename' in value && (
+          {'original_filename' in incomingValue && (
             <div>
-              <span className="font-semibold">Original:</span> {value.original_filename}
+              <span className="font-semibold">Original:</span> {incomingValue.original_filename}
             </div>
           )}
-          {'mime_type' in value && (
+          {'mime_type' in incomingValue && (
             <div>
-              <span className="font-semibold">Type:</span> {value.mime_type}
+              <span className="font-semibold">Type:</span> {incomingValue.mime_type}
             </div>
           )}
-          {'file_size' in value && (
+          {'file_size' in incomingValue && (
             <div>
-              <span className="font-semibold">Size:</span> {value.file_size}
+              <span className="font-semibold">Size:</span> {incomingValue.file_size}
             </div>
           )}
-          {'storage_provider' in value && (
+          {'storage_provider' in incomingValue && (
             <div>
-              <span className="font-semibold">Storage:</span> {value.storage_provider}
+              <span className="font-semibold">Storage:</span> {incomingValue.storage_provider}
             </div>
           )}
-          {'storage_path' in value && (
+          {'storage_path' in incomingValue && (
             <div>
-              <span className="font-semibold">Path:</span> {value.storage_path}
+              <span className="font-semibold">Path:</span> {incomingValue.storage_path}
             </div>
           )}
-          {'image_width' in value && value.image_width != null && (
+          {'image_width' in incomingValue && incomingValue.image_width != null && (
             <div>
-              <span className="font-semibold">Dimensions:</span> {value.image_width}
-              {value.image_height != null ? `×${value.image_height}` : ''}
+              <span className="font-semibold">Dimensions:</span> {incomingValue.image_width}
+              {incomingValue.image_height != null ? `×${incomingValue.image_height}` : ''}
             </div>
           )}
-          {'image_format' in value && value.image_format != null && (
+          {'image_format' in incomingValue && incomingValue.image_format != null && (
             <div>
-              <span className="font-semibold">Format:</span> {value.image_format}
+              <span className="font-semibold">Format:</span> {incomingValue.image_format}
             </div>
           )}
-          {'thumbnail_generated' in value && (
+          {'thumbnail_generated' in incomingValue && (
             <div>
               <span className="font-semibold">Thumbnail:</span>{' '}
-              {value.thumbnail_generated ? 'Generated' : 'Pending'}
+              {incomingValue.thumbnail_generated ? 'Generated' : 'Pending'}
             </div>
           )}
         </div>

@@ -26,13 +26,15 @@ import { useFieldError, useFieldValue, useIsDirty } from '../../fields/form-cont
 
 export const CheckboxField = ({
   field,
-  initialValue,
+  value,
+  defaultValue,
   onChange,
   id,
   path,
 }: {
   field: FieldType
-  initialValue?: boolean
+  value?: boolean
+  defaultValue?: boolean
   onChange?: (value: boolean) => void
   id?: string
   path?: string
@@ -41,7 +43,7 @@ export const CheckboxField = ({
   const fieldError = useFieldError(fieldPath)
   const isDirty = useIsDirty(fieldPath)
   const fieldValue = useFieldValue<boolean | undefined>(fieldPath)
-  const checked = fieldValue ?? initialValue ?? false
+  const checked = value ?? fieldValue ?? defaultValue ?? false
 
   return (
     <div>

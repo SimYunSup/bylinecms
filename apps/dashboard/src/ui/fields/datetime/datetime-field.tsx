@@ -26,13 +26,15 @@ import { useFieldError, useFieldValue, useIsDirty } from '../../fields/form-cont
 
 export const DateTimeField = ({
   field,
-  initialValue,
+  value,
+  defaultValue,
   onChange,
   id,
   path,
 }: {
   field: FieldType
-  initialValue?: Date | null
+  value?: Date | null
+  defaultValue?: Date | null
   onChange?: (value: Date | null) => void
   id?: string
   path?: string
@@ -41,7 +43,7 @@ export const DateTimeField = ({
   const fieldError = useFieldError(fieldPath)
   const isDirty = useIsDirty(fieldPath)
   const fieldValue = useFieldValue<Date | null | undefined>(fieldPath)
-  const value = fieldValue ?? initialValue ?? null
+  const incomingValue = value ?? fieldValue ?? defaultValue ?? null
 
   return (
     <div>
@@ -50,7 +52,7 @@ export const DateTimeField = ({
         name={field.name}
         label={field.label}
         required={field.required}
-        initialValue={value}
+        initialValue={incomingValue}
         mode={field.mode || 'datetime'}
         yearsInFuture={field.yearsInFuture || 1}
         yearsInPast={field.yearsInPast || 10}
