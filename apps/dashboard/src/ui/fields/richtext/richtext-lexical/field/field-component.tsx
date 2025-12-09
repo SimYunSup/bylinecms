@@ -49,13 +49,12 @@
  *
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 
 import { HelpText, Label } from '@infonomic/uikit/react'
 import type { EditorState, SerializedEditorState } from 'lexical'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import { useEffectEvent } from '@/hooks/use-effect-event'
 import { richTextValidate } from '../validate/validate'
 import { EditorContext } from './editor-context'
 import type { LexicalRichTextFieldProps } from '../types'
@@ -155,7 +154,7 @@ export function RichTextComponent({
     if (!Object.is(defaultValue, prevDefaultValueRef.current)) {
       handleInitialValueChange(defaultValue)
     }
-  }, [defaultValue, handleInitialValueChange])
+  }, [defaultValue])
 
   useEffect(() => {
     // If a new controlled value arrives, force the editor to pick it up by bumping the provider key.
