@@ -49,8 +49,9 @@ export function EditorContext(props: {
   onChange: (editorState: EditorState, editor: LexicalEditor, tags: Set<string>) => void
   readOnly: boolean
   value?: SerializedEditorState
+  children?: React.ReactNode
 }): React.JSX.Element {
-  const { composerKey, editorConfig, onChange, readOnly, value } = props
+  const { composerKey, editorConfig, onChange, readOnly, value, children } = props
 
   // useMemo for the initialConfig that depends on readOnly and value
   // biome-ignore lint/correctness/useExhaustiveDependencies: TODO: revisit
@@ -87,6 +88,7 @@ export function EditorContext(props: {
             <div className="editor-shell">
               <Editor />
             </div>
+            {children}
           </SharedHistoryContext>
         </SharedOnChangeContext>
       </EditorConfigContext>

@@ -23,35 +23,20 @@
 
 /**
  * Portions Copyright (c) Meta Platforms, Inc. and affiliates.
- * Copyright notices appear at the top of source files where applicable
- * and are licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * https://github.com/facebook/lexical
+ * Licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  *
  * Portions Copyright (c) Payload CMS, LLC info@payloadcms.com
- * Copyright notices appear at the top of source files where applicable
- * and are licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree
- *
- * https://github.com/payloadcms/payload/
+ * Licensed under the MIT license found in the LICENSE file in the root directory of this source tree.
  *
  * Debounce strategy adapted from
  * https://github.com/payloadcms/payload/tree/main/packages/richtext-lexical
- *
- *
- * Note: For historical context see...
- *
- * https://github.com/facebook/lexical/commits?author=58bits
- * https://github.com/infonomic/payload-alternative-lexical-richtext-editor
- * https://github.com/AlessioGr/payload-plugin-lexical/commits?author=58bits
- * https://github.com/payloadcms/payload/commits?author=58bits
- *
  */
 
-import React, { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import type React from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 
 import { HelpText, Label } from '@infonomic/uikit/react'
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext'
 import type { EditorState, SerializedEditorState } from 'lexical'
 import { ErrorBoundary } from 'react-error-boundary'
 
@@ -81,45 +66,34 @@ export function RichTextComponent({
 }: LexicalRichTextFieldProps): React.JSX.Element {
   const disabled = readonly ?? false
   const dispatchFieldUpdateTask = useRef<number>(undefined)
-  const [rerenderProviderKey, setRerenderProviderKey] = useState<Date>()
-  const prevDefaultValueRef = React.useRef<SerializedEditorState | undefined>(defaultValue)
-  const prevValueRef = React.useRef<SerializedEditorState | undefined>(value)
+  const lastEmittedHashRef = useRef<string | undefined>(undefined)
 
-  // TODO: implement validation handling
+  // TODO: implement validation handling (currently unused)
   const _memoizedValidate = useCallback(
-    (value: SerializedEditorState | undefined) => {
+    (val: SerializedEditorState | undefined) => {
       if (typeof validate === 'function') {
-        return validate(value, { required })
+        return validate(val, { required })
       }
       return true
     },
     [validate, required]
   )
 
-  // Debounce editor as per this Payload PR and commit:
-  // https://github.com/payloadcms/payload/pull/12086/files
-  // https://github.com/payloadcms/payload/commit/1d5d96d
+  // Debounced onChange -> emit to store
   const handleChange = useCallback(
     (editorState: EditorState) => {
-      const updateFieldValue = (editorState: EditorState) => {
-        const newState = editorState.toJSON()
-        prevValueRef.current = newState
-        if (onChange !== null && typeof onChange === 'function') {
+      const updateFieldValue = (state: EditorState) => {
+        const newState = state.toJSON()
+        lastEmittedHashRef.current = hashSerializedState(newState)
+        if (typeof onChange === 'function') {
           onChange(newState)
         }
       }
 
       if (typeof window.requestIdleCallback === 'function') {
-        // Cancel earlier scheduled value updates,
-        // so that a CPU-limited event loop isn't flooded with n callbacks for n keystrokes into the rich text field,
-        // but that there's only ever the latest one state update
-        // dispatch task, to be executed with the next idle time,
-        // or the deadline of 500ms.
         if (typeof window.cancelIdleCallback === 'function' && dispatchFieldUpdateTask.current) {
           cancelIdleCallback(dispatchFieldUpdateTask.current)
         }
-        // Schedule the state update to happen the next time the browser has sufficient resources,
-        // or the latest after 500ms.
         dispatchFieldUpdateTask.current = requestIdleCallback(() => updateFieldValue(editorState), {
           timeout: 500,
         })
@@ -130,43 +104,9 @@ export function RichTextComponent({
     [onChange]
   )
 
-  const handleInitialValueChange = useEffectEvent(
-    (incomingDefault: SerializedEditorState | undefined) => {
-      // Object deep equality check here, as re-mounting the editor if
-      // the new value is the same as the old one is not necessary
-      // Compare against the previous initialValue, not the (possibly undefined) controlled value.
-      // This ensures the editor re-mounts when callers provide a new initialValue (e.g., after save/navigation).
-      const prevInitial = prevDefaultValueRef.current
-      const prevStr = prevInitial == null ? undefined : JSON.stringify(prevInitial)
-      const nextStr = incomingDefault == null ? undefined : JSON.stringify(incomingDefault)
-      if (prevStr !== nextStr) {
-        prevDefaultValueRef.current = incomingDefault
-        setRerenderProviderKey(new Date())
-      }
-    }
-  )
-
-  useEffect(() => {
-    // Needs to trigger for object reference changes - otherwise,
-    // reacting to the same initial value change twice will cause
-    // the second change to be ignored, even though the value has changed.
-    // That's because initialValue is not kept up-to-date
-    if (!Object.is(defaultValue, prevDefaultValueRef.current)) {
-      handleInitialValueChange(defaultValue)
-    }
-  }, [defaultValue])
-
-  useEffect(() => {
-    // If a new controlled value arrives, force the editor to pick it up by bumping the provider key.
-    // This avoids stale content when the form store updates (e.g., reset, remote patch).
-    const prev = prevValueRef.current
-    const prevStr = prev == null ? undefined : JSON.stringify(prev)
-    const nextStr = value == null ? undefined : JSON.stringify(value)
-    if (prevStr !== nextStr) {
-      prevValueRef.current = value
-      setRerenderProviderKey(new Date())
-    }
-  }, [value])
+  const incomingValue = useMemo<SerializedEditorState | undefined>(() => {
+    return value ?? defaultValue ?? undefined
+  }, [value, defaultValue])
 
   return (
     <div className={baseClass}>
@@ -174,37 +114,58 @@ export function RichTextComponent({
         {label && <Label id="label" label={label} htmlFor={id} required={required} />}
         <ErrorBoundary fallbackRender={fallbackRender} onReset={() => {}}>
           <EditorContext
-            composerKey={`${id}-${rerenderProviderKey?.getTime() ?? 'base'}`}
+            composerKey={id}
             editorConfig={editorConfig}
-            key={`${id}-${rerenderProviderKey?.getTime() ?? 'base'}`}
+            key={id}
             onChange={handleChange}
             readOnly={disabled}
-            value={value ?? defaultValue}
-            // NOTE: 2023-05-15 disabled the deepEqual since we've set ignoreSelectionChange={true}
-            // in our OnChangePlugin instances - and so a call here means that something
-            // must have changed - so no need to do the comparison.
-            // onChange={(editorState: EditorState, editor: LexicalEditor, tags: Set<string>) => {
-            //   if (!disabled) {
-            //     const serializedEditorState = editorState.toJSON()
-            //     // TODO: 2024-01-30 - re-test this.
-            //     // NOTE: 2023-06-28 fix for setValue below. For some reason when
-            //     // this custom field is used in a block field, setValue on its
-            //     // own won't enable Save Draft or Publish Changes during a first
-            //     // add of a new block (it will after the entire document is saved
-            //     // and reloaded - but not before.) So call setModified(true) here
-            //     // to guarantee that we can always save our changes.
-            //     // setModified(true)
-            //     // NOTE: 2024-05-02: Appears to be fixed - and setModified(true)
-            //     // is no longer required.
-            //     setValue(serializedEditorState)
-            //   }
-            // }}
-          />
+            value={incomingValue}
+          >
+            <ApplyValuePlugin value={incomingValue} lastEmittedHashRef={lastEmittedHashRef} />
+          </EditorContext>
         </ErrorBoundary>
         {description && <HelpText text={description} />}
       </div>
     </div>
   )
+}
+
+export const ApplyValuePlugin = ({
+  value,
+  lastEmittedHashRef,
+}: {
+  value?: SerializedEditorState
+  lastEmittedHashRef: React.RefObject<string | undefined>
+}) => {
+  const [editor] = useLexicalComposerContext()
+  const lastAppliedHashRef = useRef<string | undefined>(undefined)
+
+  useEffect(() => {
+    if (value == null) return
+    const nextHash = hashSerializedState(value)
+    if (nextHash === lastAppliedHashRef.current) return
+    if (nextHash === lastEmittedHashRef.current) return
+
+    editor.update(() => {
+      const nextState = editor.parseEditorState(value)
+      editor.setEditorState(nextState)
+    })
+
+    lastAppliedHashRef.current = nextHash
+  }, [editor, value, lastEmittedHashRef])
+
+  return null
+}
+
+// Simple FNV-1a hash for serialized editor state
+export function hashSerializedState(state: SerializedEditorState | string): string {
+  const str = typeof state === 'string' ? state : JSON.stringify(state)
+  let hash = 2166136261 >>> 0
+  for (let i = 0; i < str.length; i++) {
+    hash ^= str.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (hash >>> 0).toString(16)
 }
 
 function fallbackRender({ error }: any): React.JSX.Element {
