@@ -29,7 +29,7 @@ interface Props {
   field: FieldType
   readonly?: boolean
   instanceKey?: string
-  initialValue?: any
+  defaultValue?: any
   editorConfig?: any
   onChange?: (value: any) => void
   path?: string
@@ -37,7 +37,7 @@ interface Props {
 
 export const RichTextField = ({
   field,
-  initialValue,
+  defaultValue,
   editorConfig,
   readonly = false,
   instanceKey,
@@ -50,7 +50,7 @@ export const RichTextField = ({
   const fieldValue = useFieldValue<any>(fieldPath)
 
   return (
-    <div className={`flex flex-1 h-full ${isDirty ? 'border border-blue-300 rounded-md' : ''}`}>
+    <div className={`flex flex-1 h-full ${isDirty ? 'border border-yellow-300 rounded-md' : ''}`}>
       <div className="flex flex-1 flex-col gap-1">
         <LexicalRichTextField
           onChange={onChange}
@@ -61,7 +61,8 @@ export const RichTextField = ({
           readonly={readonly}
           label={field.label}
           required={field.required}
-          initialValue={fieldValue ?? initialValue}
+          value={fieldValue}
+          defaultValue={defaultValue}
           // Ensure React fully remounts when instanceKey changes
           key={instanceKey ? `${field.name}-${instanceKey}` : field.name}
         />

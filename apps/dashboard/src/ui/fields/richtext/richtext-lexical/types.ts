@@ -17,7 +17,7 @@ export type LexicalRichTextFieldProps = {
   placeholder?: string
   className?: string
   editorConfig: EditorConfig
-  initialValue?: SerializedEditorState
+  defaultValue?: SerializedEditorState
   value?: SerializedEditorState
   onChange?: (value: SerializedEditorState) => void
   validate?: (

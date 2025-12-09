@@ -413,7 +413,7 @@ export const FieldRenderer = ({
       return (
         <RichTextField
           field={hideLabel ? { ...field, label: undefined } : field}
-          initialValue={initialValue}
+          defaultValue={initialValue}
           onChange={handleChange}
           path={path}
           instanceKey={htmlId}

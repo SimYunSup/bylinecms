@@ -73,7 +73,7 @@ export function RichTextComponent({
   required,
   readonly,
   editorConfig,
-  initialValue,
+  defaultValue,
   value,
   onChange,
   validate = richTextValidate,
@@ -83,7 +83,7 @@ export function RichTextComponent({
   const disabled = readonly ?? false
   const dispatchFieldUpdateTask = useRef<number>(undefined)
   const [rerenderProviderKey, setRerenderProviderKey] = useState<Date>()
-  const prevInitialValueRef = React.useRef<SerializedEditorState | undefined>(initialValue)
+  const prevDefaultValueRef = React.useRef<SerializedEditorState | undefined>(defaultValue)
   const prevValueRef = React.useRef<SerializedEditorState | undefined>(value)
 
   // TODO: implement validation handling
@@ -132,16 +132,16 @@ export function RichTextComponent({
   )
 
   const handleInitialValueChange = useEffectEvent(
-    (initialValue: SerializedEditorState | undefined) => {
+    (incomingDefault: SerializedEditorState | undefined) => {
       // Object deep equality check here, as re-mounting the editor if
       // the new value is the same as the old one is not necessary
       // Compare against the previous initialValue, not the (possibly undefined) controlled value.
       // This ensures the editor re-mounts when callers provide a new initialValue (e.g., after save/navigation).
-      const prevInitial = prevInitialValueRef.current
+      const prevInitial = prevDefaultValueRef.current
       const prevStr = prevInitial == null ? undefined : JSON.stringify(prevInitial)
-      const nextStr = initialValue == null ? undefined : JSON.stringify(initialValue)
+      const nextStr = incomingDefault == null ? undefined : JSON.stringify(incomingDefault)
       if (prevStr !== nextStr) {
-        prevInitialValueRef.current = initialValue
+        prevDefaultValueRef.current = incomingDefault
         setRerenderProviderKey(new Date())
       }
     }
@@ -152,10 +152,22 @@ export function RichTextComponent({
     // reacting to the same initial value change twice will cause
     // the second change to be ignored, even though the value has changed.
     // That's because initialValue is not kept up-to-date
-    if (!Object.is(initialValue, prevInitialValueRef.current)) {
-      handleInitialValueChange(initialValue)
+    if (!Object.is(defaultValue, prevDefaultValueRef.current)) {
+      handleInitialValueChange(defaultValue)
     }
-  }, [initialValue, handleInitialValueChange])
+  }, [defaultValue, handleInitialValueChange])
+
+  useEffect(() => {
+    // If a new controlled value arrives, force the editor to pick it up by bumping the provider key.
+    // This avoids stale content when the form store updates (e.g., reset, remote patch).
+    const prev = prevValueRef.current
+    const prevStr = prev == null ? undefined : JSON.stringify(prev)
+    const nextStr = value == null ? undefined : JSON.stringify(value)
+    if (prevStr !== nextStr) {
+      prevValueRef.current = value
+      setRerenderProviderKey(new Date())
+    }
+  }, [value])
 
   return (
     <div className={baseClass}>
@@ -163,12 +175,12 @@ export function RichTextComponent({
         {label && <Label id="label" label={label} htmlFor={id} required={required} />}
         <ErrorBoundary fallbackRender={fallbackRender} onReset={() => {}}>
           <EditorContext
-            composerKey={id}
+            composerKey={`${id}-${rerenderProviderKey?.getTime() ?? 'base'}`}
             editorConfig={editorConfig}
-            key={id}
+            key={`${id}-${rerenderProviderKey?.getTime() ?? 'base'}`}
             onChange={handleChange}
             readOnly={disabled}
-            value={value ?? initialValue}
+            value={value ?? defaultValue}
             // NOTE: 2023-05-15 disabled the deepEqual since we've set ignoreSelectionChange={true}
             // in our OnChangePlugin instances - and so a call here means that something
             // must have changed - so no need to do the comparison.
