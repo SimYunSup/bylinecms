@@ -84,7 +84,7 @@ export const EditView = ({
         <Container>
           <div className="item-view flex flex-col sm:flex-row justify-start sm:justify-between">
             <h2 className="mb-2">Edit {labels.singular}</h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pb-4 sm:pb-2">
               <IconButton
                 className="min-w-[24px] min-h-[24px]"
                 size="sm"
