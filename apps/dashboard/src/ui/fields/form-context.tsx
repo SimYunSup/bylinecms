@@ -85,7 +85,7 @@ export const FormProvider = ({
     if (!fieldListeners.current.has(name)) {
       fieldListeners.current.set(name, new Set())
     }
-    fieldListeners.current.get(name)!.add(listener)
+    fieldListeners.current.get(name)?.add(listener)
     return () => {
       const listeners = fieldListeners.current.get(name)
       if (listeners) {

@@ -33,12 +33,26 @@ interface FileFieldProps {
   path?: string
 }
 
-export const FileField = ({ field, value, defaultValue, onChange, path }: FileFieldProps) => {
+export const FileField = ({
+  field,
+  value,
+  defaultValue,
+  onChange: _onChange,
+  path,
+}: FileFieldProps) => {
   const fieldPath = path ?? field.name
   const fieldError = useFieldError(fieldPath)
   const isDirty = useIsDirty(fieldPath)
   const fieldValue = useFieldValue<StoredFileValue | null | undefined>(fieldPath)
   const incomingValue = value ?? fieldValue ?? defaultValue ?? null
+
+  const isPlaceholderStoredFileValue = (v: unknown): v is StoredFileValue => {
+    if (!v || typeof v !== 'object') return false
+    const maybe = v as Partial<StoredFileValue>
+    return maybe.storage_provider === 'placeholder' && maybe.storage_path === 'pending'
+  }
+
+  const effectiveValue = isPlaceholderStoredFileValue(incomingValue) ? null : incomingValue
 
   return (
     <div className={isDirty ? 'border border-blue-300 rounded-md p-3' : ''}>
@@ -60,38 +74,38 @@ export const FileField = ({ field, value, defaultValue, onChange, path }: FileFi
         </button>
       </div>
 
-      {incomingValue == null ? (
+      {effectiveValue == null ? (
         <div className="text-xs text-gray-500 italic">No file selected</div>
       ) : (
         <div className="mt-1 text-xs text-gray-200 space-y-0.5">
-          {'filename' in incomingValue && (
+          {'filename' in effectiveValue && (
             <div>
-              <span className="font-semibold">Filename:</span> {incomingValue.filename}
+              <span className="font-semibold">Filename:</span> {effectiveValue.filename}
             </div>
           )}
-          {'original_filename' in incomingValue && (
+          {'original_filename' in effectiveValue && (
             <div>
-              <span className="font-semibold">Original:</span> {incomingValue.original_filename}
+              <span className="font-semibold">Original:</span> {effectiveValue.original_filename}
             </div>
           )}
-          {'mime_type' in incomingValue && (
+          {'mime_type' in effectiveValue && (
             <div>
-              <span className="font-semibold">Type:</span> {incomingValue.mime_type}
+              <span className="font-semibold">Type:</span> {effectiveValue.mime_type}
             </div>
           )}
-          {'file_size' in incomingValue && (
+          {'file_size' in effectiveValue && (
             <div>
-              <span className="font-semibold">Size:</span> {incomingValue.file_size}
+              <span className="font-semibold">Size:</span> {effectiveValue.file_size}
             </div>
           )}
-          {'storage_provider' in incomingValue && (
+          {'storage_provider' in effectiveValue && (
             <div>
-              <span className="font-semibold">Storage:</span> {incomingValue.storage_provider}
+              <span className="font-semibold">Storage:</span> {effectiveValue.storage_provider}
             </div>
           )}
-          {'storage_path' in incomingValue && (
+          {'storage_path' in effectiveValue && (
             <div>
-              <span className="font-semibold">Path:</span> {incomingValue.storage_path}
+              <span className="font-semibold">Path:</span> {effectiveValue.storage_path}
             </div>
           )}
         </div>

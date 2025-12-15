@@ -22,9 +22,9 @@
 // NOTE: Before you dunk on this, this is a totally naïve and "weekend hack"
 // implementation of a field renderer used only for prototype development.
 
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 
-import type { ArrayField as ArrayFieldType, BlockField, Field } from '@byline/core'
+import type { ArrayField as ArrayFieldType, Field } from '@byline/core'
 import { ChevronDownIcon, GripperVerticalIcon, IconButton, PlusIcon } from '@infonomic/uikit/react'
 import cx from 'classnames'
 
@@ -123,13 +123,96 @@ const ArrayField = ({
   const { appendPatch, getFieldValue, setFieldStore } = useFormContext()
   const [items, setItems] = useState<{ id: string; data: any }[]>([])
 
+  const blockVariants = useMemo(
+    () => (field.fields ?? []).filter((subField) => subField.type === 'block'),
+    [field.fields]
+  )
+  const isBlockArray = blockVariants.length > 0
+  const [selectedBlockName, setSelectedBlockName] = useState<string>(() => blockVariants[0]?.name)
+
+  const placeholderStoredFileValue = useMemo(
+    () => ({
+      file_id: crypto.randomUUID(),
+      filename: 'placeholder',
+      original_filename: 'placeholder',
+      mime_type: 'application/octet-stream',
+      file_size: 0,
+      storage_provider: 'placeholder',
+      storage_path: 'pending',
+      storage_url: null,
+      file_hash: null,
+      image_width: null,
+      image_height: null,
+      image_format: null,
+      processing_status: 'pending',
+      thumbnail_generated: false,
+    }),
+    []
+  )
+
+  const placeholderForField = useMemo(
+    () =>
+      (f: Field): any => {
+        switch (f.type) {
+          case 'text':
+          case 'textArea':
+            return ''
+          case 'checkbox':
+            return false
+          case 'integer':
+            return 0
+          case 'richText':
+          case 'datetime':
+            return undefined
+          case 'select':
+            return ''
+          case 'file':
+          case 'image':
+            // Must be non-null for storage/reconstruct; this is a temporary stub until upload UI exists.
+            return placeholderStoredFileValue
+          default:
+            return null
+        }
+      },
+    [placeholderStoredFileValue]
+  )
+
+  useEffect(() => {
+    if (!isBlockArray) return
+    if (selectedBlockName == null || !blockVariants.some((b) => b.name === selectedBlockName)) {
+      setSelectedBlockName(blockVariants[0]?.name)
+    }
+  }, [blockVariants, isBlockArray, selectedBlockName])
+
   useEffect(() => {
     if (Array.isArray(defaultValue)) {
-      setItems(defaultValue.map((item) => ({ id: crypto.randomUUID(), data: item })))
+      // Block fields are currently represented as an array of single-key objects.
+      // When some values are undefined/null they may be skipped during flattening, which can
+      // reconstruct as sparse arrays with holes. Normalize to a dense per-field array.
+      const isBlockField = (field as any).type === 'block' && Array.isArray((field as any).fields)
+      const normalized = isBlockField
+        ? ((field as any).fields as Field[]).map((blockChildField) => {
+            const found = defaultValue.find(
+              (el: any) =>
+                el != null && typeof el === 'object' && Object.hasOwn(el, blockChildField.name)
+            )
+            return found ?? { [blockChildField.name]: placeholderForField(blockChildField) }
+          })
+        : defaultValue
+
+      setItems(
+        normalized.map((item: any) => ({
+          id:
+            item && typeof item === 'object' && 'id' in item
+              ? String((item as { id: string }).id)
+              : crypto.randomUUID(),
+          data: item,
+        }))
+      )
     } else {
       setItems([])
     }
-  }, [defaultValue])
+  }, [defaultValue, field, placeholderForField])
 
   const handleDragEnd = ({
     moveFromIndex,
@@ -168,37 +251,78 @@ const ArrayField = ({
     }
   }
 
-  const handleAddItem = () => {
-    // Determine the shape of the new item based on the field definition
-    const newItem: any = {}
+  const handleAddItem = (forcedVariantName?: string) => {
+    // NOTE: Array elements in this prototype behave like a tagged union:
+    // each item should select ONE sub-field variant (legacy shape: { variantName: value }).
+    const variants = field.fields ?? []
+    const variant =
+      (forcedVariantName != null
+        ? variants.find((v) => v.name === forcedVariantName)
+        : undefined) ?? variants[0]
 
-    if (field.fields && field.fields.length > 0) {
-      field.fields.forEach((subField) => {
-        // Nested array field (e.g. reviews -> reviewItem[])
-        if (subField.type === 'array' && subField.fields && subField.fields.length > 0) {
-          const innerArray: any[] = []
-          subField.fields.forEach((innerField, idx) => {
-            const slot: any = {}
-            if (innerField.type === 'text') slot[innerField.name] = ''
-            else if (innerField.type === 'richText') slot[innerField.name] = undefined
-            else if (innerField.type === 'integer') slot[innerField.name] = 0
-            else slot[innerField.name] = null
-            innerArray[idx] = slot
-          })
-          newItem[subField.name] = innerArray
-          return
-        }
-
-        // Simple scalar/compound field
-        if (subField.type === 'text') newItem[subField.name] = ''
-        else if (subField.type === 'richText') newItem[subField.name] = undefined
-        else if (subField.type === 'integer') newItem[subField.name] = 0
-        else newItem[subField.name] = null
-      })
+    if (!variant) {
+      return
     }
 
-    // Add to local state
+    const defaultScalarForField = (f: Field): any => {
+      switch (f.type) {
+        case 'text':
+        case 'textArea':
+          return ''
+        case 'checkbox':
+          return false
+        case 'integer':
+          return 0
+        case 'richText':
+          // Keep undefined so richtext widgets can initialize cleanly.
+          return undefined
+        case 'datetime':
+          return undefined
+        case 'select':
+          return ''
+        case 'file':
+        case 'image':
+          // Must be non-null for storage/reconstruct; this is a temporary stub until upload UI exists.
+          return placeholderStoredFileValue
+        default:
+          return null
+      }
+    }
+
+    const defaultValueForVariant = (v: Field): any => {
+      if (v.type === 'array' && v.fields && v.fields.length > 0) {
+        // Nested array field (e.g. reviews -> reviewItem[])
+        return v.fields.map((innerField) => ({
+          [innerField.name]: defaultScalarForField(innerField),
+        }))
+      }
+
+      if (v.type === 'block' && (v as any).fields && Array.isArray((v as any).fields)) {
+        // Legacy block value shape: an array of single-key objects, one per field.
+        const blockFields = (v as any).fields as Field[]
+        return blockFields.map((blockField) => ({
+          [blockField.name]: defaultScalarForField(blockField),
+        }))
+      }
+
+      return defaultScalarForField(v)
+    }
+
     const newId = crypto.randomUUID()
+
+    const newItem =
+      variant.type === 'block'
+        ? {
+            id: newId,
+            type: 'block',
+            name: variant.name,
+            fields: defaultValueForVariant(variant),
+          }
+        : {
+            [variant.name]: defaultValueForVariant(variant),
+          }
+
+    // Add to local state
     const newItemWrapper = { id: newId, data: newItem }
     setItems((prev) => [...prev, newItemWrapper])
 
@@ -239,8 +363,14 @@ const ArrayField = ({
       initial = item.fields
       label = subField?.label ?? item.name
     } else {
+      if (!item || typeof item !== 'object') {
+        return null
+      }
       // Legacy shape: { blockName: [ { fieldName: value }, ... ] } or generic array item
       const outerKey = Object.keys(item)[0]
+      if (outerKey == null) {
+        return null
+      }
       subField = field.fields?.find((f) => f.name === outerKey)
       initial = item[subField?.name ?? outerKey]
       label = subField?.label ?? outerKey
@@ -333,11 +463,35 @@ const ArrayField = ({
           className="flex flex-col gap-4"
         >
           {items.map((item, index) => renderItem(item, index))}
-          <span>
-            <IconButton onClick={handleAddItem}>
-              <PlusIcon />
-            </IconButton>
-          </span>
+          {disableSorting ? null : isBlockArray ? (
+            <div className="flex items-center gap-2">
+              <select
+                className="text-xs bg-canvas-900 border border-gray-800 rounded px-2 py-1"
+                value={selectedBlockName ?? ''}
+                onChange={(e) => setSelectedBlockName(e.target.value)}
+                aria-label="Choose block type"
+              >
+                {blockVariants.map((b) => (
+                  <option key={b.name} value={b.name}>
+                    {b.label ?? b.name}
+                  </option>
+                ))}
+              </select>
+              <IconButton
+                onClick={() => handleAddItem(selectedBlockName)}
+                disabled={!selectedBlockName}
+                aria-label="Add block"
+              >
+                <PlusIcon />
+              </IconButton>
+            </div>
+          ) : (
+            <span>
+              <IconButton onClick={() => handleAddItem()} aria-label="Add item">
+                <PlusIcon />
+              </IconButton>
+            </span>
+          )}
         </DraggableSortable>
       )}
     </div>

@@ -48,13 +48,13 @@ export const RichTextField = ({
 }: Props) => {
   const fieldPath = path ?? field.name
   const fieldError = useFieldError(fieldPath)
-  const isDirty = useIsDirty(fieldPath)
+  // const isDirty = useIsDirty(fieldPath)
   const fieldValue = useFieldValue<any>(fieldPath)
   const incomingValue = value ?? fieldValue
   const incomingDefault = defaultValue
 
   return (
-    <div className={`flex flex-1 h-full ${isDirty ? 'border border-yellow-300 rounded-md' : ''}`}>
+    <div className={`flex flex-1 h-full`}>
       <div className="flex flex-1 flex-col gap-1">
         <LexicalRichTextField
           onChange={onChange}
