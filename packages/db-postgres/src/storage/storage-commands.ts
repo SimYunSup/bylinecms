@@ -104,79 +104,6 @@ async function writeMetaForBlocks({
             // Handle new block shape: { type: 'block', name: '...', fields: [...] }
             if (item.type === 'block' && typeof item.name === 'string') {
               blockName = item.name
-              // The fields array in the new shape corresponds to the inner content
-              // that traverse expects. However, traverse expects an object keyed by field names,
-              // whereas item.fields is an array of { fieldName: value } objects.
-              // We need to convert it or adjust how we recurse.
-              // Actually, looking at the legacy handling below:
-              // traverse(subFieldConfig.fields, { [blockName]: subValue }, ...)
-              // It seems traverse expects `data` to be the parent object containing the fields.
-              // But here `subValue` is the array of fields?
-              // Let's look at how legacy works: `subValue = item[blockName]`.
-              // If `item` is `{ richTextBlock: [ { richText: ... } ] }`, then `subValue` is `[ { richText: ... } ]`.
-              // Then `traverse` is called with `data` as `{ richTextBlock: subValue }`.
-              // Wait, that seems wrong if `traverse` iterates `subFieldConfig.fields`.
-              // `subFieldConfig` is the block definition (e.g. richTextBlock).
-              // Its fields are e.g. `richText`.
-              // `traverse` looks for `data[fieldConfig.name]`.
-              // So if we pass `{ richTextBlock: subValue }`, it looks for `data['richText']`? No.
-              // `subFieldConfig` is the block definition. `subFieldConfig.fields` are the fields INSIDE the block.
-              // So `traverse` iterates `richText`. It looks for `data['richText']`.
-              // But we passed `{ richTextBlock: [...] }`.
-              // So `data['richText']` is undefined.
-              //
-              // Let's re-read the legacy code carefully.
-              // `traverse(subFieldConfig.fields, { [blockName]: subValue }, ...)`
-              // `subFieldConfig` is the block definition (e.g. name='richTextBlock').
-              // `subFieldConfig.fields` are the fields inside (e.g. name='richText').
-              // `traverse` iterates `subFieldConfig.fields`.
-              // It checks `data['richText']`.
-              // The data passed is `{ richTextBlock: [...] }`.
-              // So `data['richText']` is undefined.
-              //
-              // This implies the legacy recursion logic might be slightly flawed or I'm misinterpreting `subFieldConfig`.
-              // `fieldConfig` is the `content` array.
-              // `fieldConfig.fields` contains `richTextBlock`, `photoBlock`.
-              // `subFieldConfig` is found by `f.name === blockName`. So it IS `richTextBlock`.
-              // `subFieldConfig.fields` are the fields of `richTextBlock`.
-              //
-              // If `traverse` is called with `subFieldConfig.fields`, it expects `data` to contain those fields.
-              // But `subValue` is an array of field objects `[{ richText: ... }]`.
-              //
-              // Ah, `traverse` handles `array` and `block` types. But what about scalar fields inside a block?
-              // The `traverse` function shown only handles `block` and `array`. It ignores scalars?
-              // `if (fieldConfig.type === 'block' ...)`
-              // `else if (fieldConfig.type === 'array' ...)`
-              // It seems `traverse` ONLY looks for nested blocks/arrays to generate meta for.
-              // It doesn't care about scalar values.
-              //
-              // So, for the recursion to work, we just need to pass down the structure so that if there are NESTED blocks/arrays, they are found.
-              //
-              // If `richTextBlock` contains a `richText` field (scalar), `traverse` ignores it.
-              // If it contains another array/block, `traverse` needs to find it.
-              //
-              // In the legacy path:
-              // `traverse(subFieldConfig.fields, { [blockName]: subValue }, ...)`
-              // `subValue` is `[{ richText: ... }]`.
-              // If `richText` was a block/array, `traverse` would look for `data['richText']`.
-              // But `data` is `{ richTextBlock: [...] }`.
-              // So `data['richText']` is undefined.
-              //
-              // It seems the legacy recursion logic is indeed broken or I am missing something fundamental.
-              // OR, `subValue` is NOT an array?
-              // In the legacy format `[{ richTextBlock: [...] }]`, `item[blockName]` is indeed the array of fields.
-              //
-              // Wait, maybe `traverse` is only for generating IDs for the *current* level blocks?
-              // And the recursion is just to find *nested* blocks?
-              // If the recursion passes the wrong data, nested blocks won't get IDs.
-              //
-              // Let's assume the goal is to fix the *current* level blocks first (the `content` array).
-              //
-              // For the new shape:
-              // `item` is `{ type: 'block', name: 'richTextBlock', fields: [...] }`.
-              // `blockName` is `richTextBlock`.
-              // `blockFieldsData` should be the array of fields `item.fields`.
-
               blockFieldsData = item.fields
             } else {
               // Legacy shape: { richTextBlock: [...] }
@@ -190,52 +117,6 @@ async function writeMetaForBlocks({
 
             const blockPath = `${currentPath}.${index}.${blockName}`
             let itemId = existingByPath.get(blockPath)
-
-            // If we have an ID in the item itself (new shape), use it?
-            // The user says "id": null in the input, so we need to generate it.
-            // But if we are updating, we should try to preserve existing IDs if they exist in the DB.
-            // `existingByPath` has the IDs from the DB for this version (wait, `documentVersionId` is the NEW version).
-            // `existingMeta` queries `metaStore` for `documentVersionId`.
-            // But `documentVersionId` is a NEWLY created version ID (in `createDocumentVersion`).
-            // So `existingMeta` will always be empty for a new version!
-            //
-            // Wait, `writeMetaForBlocks` is called *after* `insert(documentVersions)`.
-            // So `existingMeta` is checking if we already wrote meta for *this* new version?
-            // That seems redundant unless `writeMetaForBlocks` is called multiple times?
-            //
-            // OR, does `createDocumentVersion` copy meta from the previous version?
-            // No, `createDocumentVersion` creates a fresh version.
-            //
-            // So where do we get the *stable* ID from?
-            // 1. From the `documentData` (if the frontend sent it).
-            // 2. If not in `documentData`, we should generate a new one?
-            //    If we generate a new one every time, it's not stable across versions!
-            //
-            // The frontend sends `id: null` because it doesn't have one yet.
-            // But if it's an update, the frontend *should* send the existing ID.
-            // The user says "The reason is that the block ID is still currently null."
-            // This implies that even after saving, the ID isn't being returned or persisted in a way that the frontend sees it next time.
-            //
-            // If `writeMetaForBlocks` generates a UUID, it writes it to `metaStore`.
-            // When we `GET` the document, `attachBlockMetaToDocument` reads from `metaStore`.
-            // So if we write it, we should get it back.
-            //
-            // The problem is likely that `writeMetaForBlocks` is NOT writing it because of the shape mismatch.
-            //
-            // So, if I fix the shape mismatch, `writeMetaForBlocks` will generate a UUID and write it.
-            // Then `GET` will retrieve it.
-            // Then the frontend will have it.
-            // Then the next `PUT` will send it back (if the frontend respects it).
-            //
-            // But wait, if `writeMetaForBlocks` generates a NEW UUID every time (because `existingMeta` is empty for the new version),
-            // then the ID changes on every save!
-            // That breaks "stable IDs".
-            //
-            // We need to:
-            // 1. Check if `item.id` exists in the incoming data. If so, use it.
-            // 2. If not, generate a new one.
-            //
-            // AND, we need to fix the shape parsing so we actually reach the code that generates/writes the ID.
 
             if (item.id) {
               itemId = item.id
@@ -267,15 +148,6 @@ async function writeMetaForBlocks({
 
             // Recursion logic (best effort fix for now, focusing on top-level blocks)
             if (subFieldConfig && Array.isArray(blockFieldsData)) {
-              // For the new shape, blockFieldsData is `[{ fieldName: value }]`.
-              // We need to construct an object that `traverse` can use?
-              // Or just pass `blockFieldsData` if `traverse` handled arrays?
-              // `traverse` expects `data` object.
-              // If we want to support nested blocks, we need to reconstruct the data object for the nested level.
-              // But let's just fix the top-level first.
-
-              // Actually, `traverse` iterates `subFieldConfig.fields`.
-              // We can construct a synthetic data object from `blockFieldsData`.
               const syntheticData: any = {}
               blockFieldsData.forEach((f: any) => {
                 if (f && typeof f === 'object') {
