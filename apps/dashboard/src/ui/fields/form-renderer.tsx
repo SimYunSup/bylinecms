@@ -134,7 +134,7 @@ const FormContent = ({
         </div>
       )}
 
-      <div className="form-status-and-actions mb-3 lg:mb-0 flex flex-col lg:flex-row items-start lg:items-center gap-2 justify-start lg:justify-between border-t pt-2 mt-1 border-gray-800">
+      <div className="sticky top-[45px] z-50 p-2 bg-canvas-800 form-status-and-actions mb-3 lg:mb-0 flex flex-col lg:flex-row items-start lg:items-center gap-2 justify-start lg:justify-between border border-gray-800">
         <FormStatusDisplay initialData={initialData} />
         <div className="form-actions flex items-center gap-2">
           <Button
@@ -154,7 +154,7 @@ const FormContent = ({
           </Button>
         </div>
       </div>
-      <div className="page-layout--two-columns--right-sticky">
+      <div className="page-layout--two-columns--right-sticky pt-4">
         <div className="content flex flex-col gap-4">
           {defaultFields.map((field) => (
             <FieldRenderer
