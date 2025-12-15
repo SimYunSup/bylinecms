@@ -254,13 +254,18 @@ const ArrayField = ({
   const handleAddItem = (forcedVariantName?: string) => {
     // NOTE: Array elements in this prototype behave like a tagged union:
     // each item should select ONE sub-field variant (legacy shape: { variantName: value }).
-    const variants = field.fields ?? []
+    // Defensive: for block arrays, only allow inserting block variants derived from the schema.
+    const variants = isBlockArray ? blockVariants : (field.fields ?? [])
     const variant =
       (forcedVariantName != null
         ? variants.find((v) => v.name === forcedVariantName)
         : undefined) ?? variants[0]
 
     if (!variant) {
+      return
+    }
+
+    if (isBlockArray && variant.type !== 'block') {
       return
     }
 

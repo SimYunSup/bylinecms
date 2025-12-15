@@ -21,6 +21,9 @@
 
 import type { CollectionDefinition, ColumnDefinition } from '@byline/core'
 
+import { PhotoBlock } from '../blocks/photo-block.js'
+import { RichTextBlock } from '../blocks/richtext-block.js'
+
 // import { formatDateTime } from '../utils/formatDateTime'
 
 const docsColumns: ColumnDefinition[] = [
@@ -83,45 +86,7 @@ export const Docs: CollectionDefinition = {
       name: 'content',
       label: 'Content',
       type: 'array',
-      fields: [
-        {
-          name: 'richTextBlock',
-          label: 'Richtext Block',
-          type: 'block',
-          fields: [
-            {
-              name: 'richText',
-              label: 'Richtext',
-              type: 'richText',
-              required: true,
-              localized: true,
-            },
-            {
-              name: 'constrainedWidth',
-              label: 'Constrained Width',
-              type: 'checkbox',
-              required: false,
-            },
-          ],
-        },
-        {
-          name: 'photoBlock',
-          label: 'Photo Block',
-          type: 'block',
-          fields: [
-            { name: 'display', label: 'Display', type: 'text', required: false },
-            { name: 'photo', label: 'Photo', type: 'image', required: true },
-            { name: 'alt', label: 'Alt', type: 'text', required: true, localized: false },
-            {
-              name: 'caption',
-              label: 'Caption',
-              type: 'richText',
-              required: false,
-              localized: true,
-            },
-          ],
-        },
-      ],
+      fields: [RichTextBlock, PhotoBlock],
     },
     {
       name: 'reviews',
