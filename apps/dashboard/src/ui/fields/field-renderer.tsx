@@ -25,6 +25,7 @@
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 
 import type { ArrayField as ArrayFieldType, Field } from '@byline/core'
+import { resolveFieldDefaultValue } from '@byline/core'
 import { ChevronDownIcon, GripperVerticalIcon, IconButton, PlusIcon } from '@infonomic/uikit/react'
 import cx from 'classnames'
 
@@ -120,7 +121,7 @@ const ArrayField = ({
   path: string
   disableSorting?: boolean
 }) => {
-  const { appendPatch, getFieldValue, setFieldStore } = useFormContext()
+  const { appendPatch, getFieldValue, getFieldValues, setFieldStore } = useFormContext()
   const [items, setItems] = useState<{ id: string; data: any }[]>([])
 
   const blockVariants = useMemo(
@@ -251,7 +252,7 @@ const ArrayField = ({
     }
   }
 
-  const handleAddItem = (forcedVariantName?: string) => {
+  const handleAddItem = async (forcedVariantName?: string) => {
     // NOTE: Array elements in this prototype behave like a tagged union:
     // each item should select ONE sub-field variant (legacy shape: { variantName: value }).
     // Defensive: for block arrays, only allow inserting block variants derived from the schema.
@@ -269,7 +270,17 @@ const ArrayField = ({
       return
     }
 
-    const defaultScalarForField = (f: Field): any => {
+    const defaultScalarForField = async (f: Field): Promise<any> => {
+      const schemaDefault = await resolveFieldDefaultValue(f, {
+        data: getFieldValues(),
+        now: () => new Date(),
+        uuid: () => crypto.randomUUID(),
+      })
+
+      if (schemaDefault !== undefined) {
+        return schemaDefault
+      }
+
       switch (f.type) {
         case 'text':
         case 'textArea':
@@ -294,20 +305,26 @@ const ArrayField = ({
       }
     }
 
-    const defaultValueForVariant = (v: Field): any => {
+    const defaultValueForVariant = async (v: Field): Promise<any> => {
       if (v.type === 'array' && v.fields && v.fields.length > 0) {
         // Nested array field (e.g. reviews -> reviewItem[])
-        return v.fields.map((innerField) => ({
-          [innerField.name]: defaultScalarForField(innerField),
-        }))
+        const inner = await Promise.all(
+          v.fields.map(async (innerField) => ({
+            [innerField.name]: await defaultScalarForField(innerField),
+          }))
+        )
+        return inner
       }
 
       if (v.type === 'block' && (v as any).fields && Array.isArray((v as any).fields)) {
         // Legacy block value shape: an array of single-key objects, one per field.
         const blockFields = (v as any).fields as Field[]
-        return blockFields.map((blockField) => ({
-          [blockField.name]: defaultScalarForField(blockField),
-        }))
+        const inner = await Promise.all(
+          blockFields.map(async (blockField) => ({
+            [blockField.name]: await defaultScalarForField(blockField),
+          }))
+        )
+        return inner
       }
 
       return defaultScalarForField(v)
@@ -321,10 +338,10 @@ const ArrayField = ({
             id: newId,
             type: 'block',
             name: variant.name,
-            fields: defaultValueForVariant(variant),
+            fields: await defaultValueForVariant(variant),
           }
         : {
-            [variant.name]: defaultValueForVariant(variant),
+            [variant.name]: await defaultValueForVariant(variant),
           }
 
     // Add to local state
@@ -483,7 +500,9 @@ const ArrayField = ({
                 ))}
               </select>
               <IconButton
-                onClick={() => handleAddItem(selectedBlockName)}
+                onClick={() => {
+                  void handleAddItem(selectedBlockName)
+                }}
                 disabled={!selectedBlockName}
                 aria-label="Add block"
               >
@@ -492,7 +511,12 @@ const ArrayField = ({
             </div>
           ) : (
             <span>
-              <IconButton onClick={() => handleAddItem()} aria-label="Add item">
+              <IconButton
+                onClick={() => {
+                  void handleAddItem()
+                }}
+                aria-label="Add item"
+              >
                 <PlusIcon />
               </IconButton>
             </span>

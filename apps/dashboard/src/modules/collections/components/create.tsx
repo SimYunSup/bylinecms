@@ -35,8 +35,10 @@ type CreateState = {
 
 export const CreateView = ({
   collectionDefinition,
+  initialData,
 }: {
   collectionDefinition: CollectionDefinition
+  initialData?: Record<string, any>
 }) => {
   const [toast, setToast] = useState(false)
   const [createState, setCreateState] = useState<CreateState>({
@@ -79,6 +81,7 @@ export const CreateView = ({
                 params: { collection: path },
               })
             }
+            initialData={initialData}
           />
         </Container>
       </Section>

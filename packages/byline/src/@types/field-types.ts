@@ -54,6 +54,22 @@ export interface ValidationRule {
   message?: string
 }
 
+export interface DefaultValueContext {
+  /**
+   * The current document data as it is being built/edited.
+   * Defaults may read other field values from here.
+   */
+  data: Record<string, any>
+  /** Current locale (when defaults are locale-aware). */
+  locale?: string
+  /** Clock access for time-based defaults. */
+  now: () => Date
+  /** UUID generator for defaults that need stable IDs. */
+  uuid?: () => string
+}
+
+export type DefaultValue<T = unknown> = T | ((ctx: DefaultValueContext) => T | Promise<T>)
+
 // Base properties that all fields share
 interface BaseField {
   name: string
@@ -64,6 +80,11 @@ interface BaseField {
   required?: boolean
   helpText?: string
   placeholder?: string
+  /**
+   * Default value for new documents and inserts.
+   * Can be a literal or an (async) function.
+   */
+  defaultValue?: DefaultValue
   admin?: {
     position?: 'default' | 'sidebar'
   }
@@ -141,12 +162,12 @@ export interface RichTextField extends BaseValueField {
 
 export interface TimeField extends BaseValueField {
   type: 'time'
-  initialValue?: '00:00' | string // Default to midnight
+  defaultValue?: DefaultValue<'00:00' | string> // Default to midnight
 }
 
 export interface DateField extends BaseValueField {
   type: 'date'
-  initialValue?: Date
+  defaultValue?: DefaultValue<Date>
 }
 
 export interface DateTimeField extends BaseValueField {
@@ -154,7 +175,7 @@ export interface DateTimeField extends BaseValueField {
   mode?: 'date' | 'datetime'
   yearsInFuture?: number
   yearsInPast?: number
-  initialValue?: Date
+  defaultValue?: DefaultValue<Date>
 }
 
 export interface StoredFileValue {

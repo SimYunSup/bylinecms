@@ -46,13 +46,15 @@ export const FileField = ({
   const fieldValue = useFieldValue<StoredFileValue | null | undefined>(fieldPath)
   const incomingValue = value ?? fieldValue ?? defaultValue ?? null
 
-  const isPlaceholderStoredFileValue = (v: unknown): v is StoredFileValue => {
+  const isPlaceholderStoredFileValue = (v: unknown): boolean => {
     if (!v || typeof v !== 'object') return false
     const maybe = v as Partial<StoredFileValue>
     return maybe.storage_provider === 'placeholder' && maybe.storage_path === 'pending'
   }
 
-  const effectiveValue = isPlaceholderStoredFileValue(incomingValue) ? null : incomingValue
+  const effectiveValue: StoredFileValue | null = isPlaceholderStoredFileValue(incomingValue)
+    ? null
+    : incomingValue
 
   return (
     <div className={isDirty ? 'border border-blue-300 rounded-md p-3' : ''}>
@@ -78,36 +80,24 @@ export const FileField = ({
         <div className="text-xs text-gray-500 italic">No file selected</div>
       ) : (
         <div className="mt-1 text-xs text-gray-200 space-y-0.5">
-          {'filename' in effectiveValue && (
-            <div>
-              <span className="font-semibold">Filename:</span> {effectiveValue.filename}
-            </div>
-          )}
-          {'original_filename' in effectiveValue && (
-            <div>
-              <span className="font-semibold">Original:</span> {effectiveValue.original_filename}
-            </div>
-          )}
-          {'mime_type' in effectiveValue && (
-            <div>
-              <span className="font-semibold">Type:</span> {effectiveValue.mime_type}
-            </div>
-          )}
-          {'file_size' in effectiveValue && (
-            <div>
-              <span className="font-semibold">Size:</span> {effectiveValue.file_size}
-            </div>
-          )}
-          {'storage_provider' in effectiveValue && (
-            <div>
-              <span className="font-semibold">Storage:</span> {effectiveValue.storage_provider}
-            </div>
-          )}
-          {'storage_path' in effectiveValue && (
-            <div>
-              <span className="font-semibold">Path:</span> {effectiveValue.storage_path}
-            </div>
-          )}
+          <div>
+            <span className="font-semibold">Filename:</span> {effectiveValue.filename}
+          </div>
+          <div>
+            <span className="font-semibold">Original:</span> {effectiveValue.original_filename}
+          </div>
+          <div>
+            <span className="font-semibold">Type:</span> {effectiveValue.mime_type}
+          </div>
+          <div>
+            <span className="font-semibold">Size:</span> {effectiveValue.file_size}
+          </div>
+          <div>
+            <span className="font-semibold">Storage:</span> {effectiveValue.storage_provider}
+          </div>
+          <div>
+            <span className="font-semibold">Path:</span> {effectiveValue.storage_path}
+          </div>
         </div>
       )}
 
