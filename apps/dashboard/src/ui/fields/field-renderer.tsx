@@ -99,9 +99,9 @@ const SortableItem = ({
         </button>
       </div>
       <div
-        className={cx('flex flex-col gap-4 overflow-hidden transition-all duration-200', {
+        className={cx('flex flex-col gap-4 transition-all duration-200', {
           'max-h-0 opacity-0': collapsed,
-          'max-h-[1000px] opacity-100': !collapsed,
+          'opacity-100': !collapsed,
         })}
       >
         {children}
