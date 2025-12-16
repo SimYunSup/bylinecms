@@ -50,7 +50,7 @@ export const CheckboxField = ({
       <Checkbox
         id={id ?? fieldPath}
         name={field.name}
-        label={field.label ?? field.name}
+        label={field.label}
         checked={checked}
         helpText={field.helpText}
         // TODO: Handle indeterminate state
