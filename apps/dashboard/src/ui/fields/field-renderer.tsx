@@ -22,6 +22,7 @@
 // NOTE: Before you dunk on this, this is a totally naïve and "weekend hack"
 // implementation of a field renderer used only for prototype development.
 
+import { Select, SelectItem } from '@infonomic/uikit/react'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 
 import type { ArrayField as ArrayFieldType, Field } from '@byline/core'
@@ -487,18 +488,18 @@ const ArrayField = ({
           {items.map((item, index) => renderItem(item, index))}
           {disableSorting ? null : isBlockArray ? (
             <div className="flex items-center gap-2">
-              <select
-                className="text-xs bg-canvas-900 border border-gray-800 rounded px-2 py-1"
+              <Select
+                size="sm"
                 value={selectedBlockName ?? ''}
-                onChange={(e) => setSelectedBlockName(e.target.value)}
+                onValueChange={(value) => setSelectedBlockName(value)}
                 aria-label="Choose block type"
               >
                 {blockVariants.map((b) => (
-                  <option key={b.name} value={b.name}>
+                  <SelectItem key={b.name} value={b.name}>
                     {b.label ?? b.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+              </Select>
               <IconButton
                 onClick={() => {
                   void handleAddItem(selectedBlockName)
