@@ -41,7 +41,7 @@ export const CheckboxField = ({
 }) => {
   const fieldPath = path ?? field.name
   const fieldError = useFieldError(fieldPath)
-  const isDirty = useIsDirty(fieldPath)
+  // const isDirty = useIsDirty(fieldPath)
   const fieldValue = useFieldValue<boolean | undefined>(fieldPath)
   const checked = value ?? fieldValue ?? defaultValue ?? false
 
@@ -60,7 +60,6 @@ export const CheckboxField = ({
         }}
         error={fieldError != null}
         errorText={fieldError}
-        className={isDirty ? 'border-blue-300' : ''}
       />
     </div>
   )

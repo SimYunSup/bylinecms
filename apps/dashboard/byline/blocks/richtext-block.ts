@@ -39,6 +39,8 @@ export const RichTextBlock: BlockField = {
       type: 'checkbox',
       required: false,
       defaultValue: true,
+      helpText:
+        'If enabled, the richtext content will be constrained to a maximum width for better readability.',
     },
   ],
 }
