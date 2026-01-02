@@ -50,6 +50,8 @@ import './themes/lexical-editor-theme.css'
 
 const baseClass = 'lexicalRichTextEditor'
 
+// NOTE: @See ./editor-component.md mini doc for an explanation of our editor architecture.
+
 // We memoize the EditorComponent to prevent re-renders from parent components or
 // other editor instances. Only internal state changes for a given (this)
 // editor instance should trigger re-renders. Our form-context and value handlers
@@ -79,7 +81,7 @@ export const EditorComponent = memo(function EditorComponent({
   const lastEmittedHashRef = useRef<string | undefined>(undefined)
   const normalizedIncomingHashRef = useRef<string | undefined>(undefined)
   const hasNormalizedBaselineRef = useRef<boolean>(false)
-  const _debugLogCountRef = useRef<number>(0)
+  // const _debugLogCountRef = useRef<number>(0)
 
   // TODO: implement validation handling (currently unused)
   const _memoizedValidate = useCallback(
@@ -95,7 +97,7 @@ export const EditorComponent = memo(function EditorComponent({
   // Debounced onChange -> emit to store
   const handleChange = useCallback(
     (editorState: EditorState, _editor: unknown, tags?: Set<string>) => {
-      const _capturedTags = tags != null ? Array.from(tags) : []
+      // const _capturedTags = tags != null ? Array.from(tags) : []
       const updateFieldValue = (editorState: EditorState) => {
         const newState = editorState.toJSON()
         const nextHash = hashSerializedState(newState)
@@ -150,8 +152,8 @@ export const EditorComponent = memo(function EditorComponent({
 
       if (typeof window.requestIdleCallback === 'function') {
         // Cancel earlier scheduled value updates,
-        // so that a CPU-limited event loop isn't flooded with n callbacks for n keystrokes into the rich text field,
-        // but that there's only ever the latest one state update
+        // so that a CPU-limited event loop isn't flooded with n callbacks for n keystrokes
+        // into the rich text field, but that there's only ever the latest one state update
         // dispatch task, to be executed with the next idle time,
         // or the deadline of 500ms.
         if (typeof window.cancelIdleCallback === 'function' && dispatchFieldUpdateTask.current) {
