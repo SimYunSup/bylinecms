@@ -16,7 +16,8 @@ vi.mock('@infonomic/uikit/react', () => ({
   Label: () => null,
 }))
 
-import { ApplyValuePlugin, hashSerializedState } from './editor-component'
+import { ApplyValuePlugin } from './apply-value-plugin'
+import { hashSerializedState } from './utils/hashSerializedState'
 
 // Enable React act warnings suppression for this environment
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -86,9 +87,21 @@ describe('ApplyValuePlugin', () => {
     const container = document.createElement('div')
     const root = createRoot(container)
     const lastEmitted = { current: undefined as string | undefined }
+    const normalizedIncoming = { current: undefined as string | undefined }
+    const hasNormalizedBaseline = { current: false }
+
+    const hashA = hashSerializedState(stateA)
 
     await act(async () => {
-      root.render(<ApplyValuePlugin value={stateA} lastEmittedHashRef={lastEmitted} />)
+      root.render(
+        <ApplyValuePlugin
+          value={stateA}
+          incomingHash={hashA}
+          lastEmittedHashRef={lastEmitted}
+          normalizedIncomingHashRef={normalizedIncoming}
+          hasNormalizedBaselineRef={hasNormalizedBaseline}
+        />
+      )
     })
 
     expect(mockEditor.setEditorState).toHaveBeenCalledTimes(1)
@@ -96,13 +109,30 @@ describe('ApplyValuePlugin', () => {
 
     // Re-render with same value -> no new apply
     await act(async () => {
-      root.render(<ApplyValuePlugin value={stateA} lastEmittedHashRef={lastEmitted} />)
+      root.render(
+        <ApplyValuePlugin
+          value={stateA}
+          incomingHash={hashA}
+          lastEmittedHashRef={lastEmitted}
+          normalizedIncomingHashRef={normalizedIncoming}
+          hasNormalizedBaselineRef={hasNormalizedBaseline}
+        />
+      )
     })
     expect(mockEditor.setEditorState).toHaveBeenCalledTimes(1)
 
     // New value -> apply again
+    const hashB = hashSerializedState(stateB)
     await act(async () => {
-      root.render(<ApplyValuePlugin value={stateB} lastEmittedHashRef={lastEmitted} />)
+      root.render(
+        <ApplyValuePlugin
+          value={stateB}
+          incomingHash={hashB}
+          lastEmittedHashRef={lastEmitted}
+          normalizedIncomingHashRef={normalizedIncoming}
+          hasNormalizedBaselineRef={hasNormalizedBaseline}
+        />
+      )
     })
     expect(mockEditor.setEditorState).toHaveBeenCalledTimes(2)
     expect(mockEditor.setEditorState).toHaveBeenLastCalledWith(stateB)
@@ -116,9 +146,20 @@ describe('ApplyValuePlugin', () => {
     const container = document.createElement('div')
     const root = createRoot(container)
     const lastEmitted = { current: hashSerializedState(stateA) }
+    const normalizedIncoming = { current: undefined as string | undefined }
+    const hasNormalizedBaseline = { current: false }
+    const hashA = hashSerializedState(stateA)
 
     await act(async () => {
-      root.render(<ApplyValuePlugin value={stateA} lastEmittedHashRef={lastEmitted} />)
+      root.render(
+        <ApplyValuePlugin
+          value={stateA}
+          incomingHash={hashA}
+          lastEmittedHashRef={lastEmitted}
+          normalizedIncomingHashRef={normalizedIncoming}
+          hasNormalizedBaselineRef={hasNormalizedBaseline}
+        />
+      )
     })
 
     expect(mockEditor.setEditorState).not.toHaveBeenCalled()
