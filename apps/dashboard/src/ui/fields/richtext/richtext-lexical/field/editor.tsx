@@ -22,7 +22,7 @@
  */
 
 import type * as React from 'react'
-import { useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { TRANSFORMERS } from '@lexical/markdown'
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin'
@@ -41,6 +41,7 @@ import { TablePlugin } from '@lexical/react/LexicalTablePlugin'
 import type { EditorState, LexicalEditor } from 'lexical'
 
 import { useEditorConfig } from './config/editor-config-context'
+import { ContentEditable } from './content-editable'
 import { useSharedHistoryContext } from './context/shared-history-context'
 import { useSharedOnChange } from './context/shared-on-change-context'
 import { Debug } from './debug'
@@ -61,14 +62,21 @@ import { TreeViewPlugin } from './plugins/treeview-plugin'
 import { VimeoPlugin } from './plugins/vimeo-plugin'
 import { YouTubePlugin } from './plugins/youtube-plugin'
 import { CAN_USE_DOM } from './shared/canUseDOM'
-import { ContentEditable } from './ui/content-editable'
 import { Placeholder } from './ui/placeholder'
 
 import './editor.css'
 
-export function Editor(): React.JSX.Element {
+import { APPLY_VALUE_TAG } from './constants'
+
+// We memoize the EditorComponent to prevent re-renders from parent components or
+// other editor instances. Only internal state changes for a given (this)
+// editor instance should trigger re-renders. Our form-context and value handlers
+// are subscription-based and so in theory this shouldn't be necessary, but
+// here just in case.
+export const Editor = memo(function Editor(): React.JSX.Element {
   const [floatingAnchorElem, setFloatingAnchorElem] = useState<HTMLDivElement | null>(null)
   const [isSmallWidthViewport, setIsSmallWidthViewport] = useState<boolean>(false)
+  const _debugTagLogCountRef = useState(() => ({ count: 0 }))[0]
   const { onChange } = useSharedOnChange()
   const { historyState } = useSharedHistoryContext()
   const {
@@ -99,11 +107,33 @@ export function Editor(): React.JSX.Element {
     },
   } = useEditorConfig()
 
-  const onRef = (_floatingAnchorElem: HTMLDivElement): void => {
+  const onRef = useCallback((_floatingAnchorElem: HTMLDivElement): void => {
     if (_floatingAnchorElem != null) {
       setFloatingAnchorElem(_floatingAnchorElem)
     }
-  }
+  }, [])
+
+  const richTextContentEditable = useMemo(
+    () => (
+      <div className="editor-scroller">
+        <div className="editor" ref={onRef}>
+          <ContentEditable />
+        </div>
+      </div>
+    ),
+    [onRef]
+  )
+
+  const plainTextContentEditable = useMemo(
+    () => (
+      <div className="editor-scroller">
+        <div className="editor">
+          <ContentEditable />
+        </div>
+      </div>
+    ),
+    []
+  )
 
   useEffect(() => {
     const updateViewPortWidth = (): void => {
@@ -122,7 +152,7 @@ export function Editor(): React.JSX.Element {
     }
   }, [isSmallWidthViewport])
 
-  return (
+  const content = (
     <>
       {tablePlugin && <PayloadTablePlugin />}
       {richText && <ToolbarPlugin />}
@@ -138,10 +168,15 @@ export function Editor(): React.JSX.Element {
         <TabIndentationPlugin />
         {autoLinkPlugin && <AutoLinkPlugin />}
         <OnChangePlugin
+          // Ignore any onChange event triggered by focus or selection only
           ignoreSelectionChange={true}
           onChange={(editorState: EditorState, editor: LexicalEditor, tags: Set<string>) => {
-            // Ignore any onChange event triggered by focus only
-            // console.log('Editor on change called', tags)
+            // if (process.env.NODE_ENV === 'production' && _debugTagLogCountRef.count < 10) {
+            //   _debugTagLogCountRef.count++
+            //   // eslint-disable-next-line no-console
+            //   console.log('[lexical][top] tags', Array.from(tags))
+            // }
+            if (tags.has(APPLY_VALUE_TAG)) return
             if (!tags.has('focus') || tags.size > 1) {
               if (onChange != null) onChange(editorState, editor, tags)
             }
@@ -149,18 +184,12 @@ export function Editor(): React.JSX.Element {
         />
         {richText ? (
           <>
-            <HistoryPlugin externalHistoryState={historyState} />
             <RichTextPlugin
-              contentEditable={
-                <div className="editor-scroller">
-                  <div className="editor" ref={onRef}>
-                    <ContentEditable />
-                  </div>
-                </div>
-              }
+              contentEditable={richTextContentEditable}
               placeholder={<Placeholder>{placeholderText}</Placeholder>}
               ErrorBoundary={LexicalErrorBoundary}
             />
+            <HistoryPlugin externalHistoryState={historyState} />
             {/* {inlineImagePlugin && <InlineImagePlugin collection={inlineImageUploadCollection} />} */}
             {admonitionPlugin && <AdmonitionPlugin />}
             {checkListPlugin && <CheckListPlugin />}
@@ -189,13 +218,7 @@ export function Editor(): React.JSX.Element {
         ) : (
           <>
             <PlainTextPlugin
-              contentEditable={
-                <div className="editor-scroller">
-                  <div className="editor">
-                    <ContentEditable />
-                  </div>
-                </div>
-              }
+              contentEditable={plainTextContentEditable}
               placeholder={<Placeholder>{placeholderText}</Placeholder>}
               ErrorBoundary={LexicalErrorBoundary}
             />
@@ -212,4 +235,11 @@ export function Editor(): React.JSX.Element {
       </div>
     </>
   )
-}
+
+  // TODO: re-enable when inline images are supported
+  // if (inlineImagePlugin) {
+  //   return <InlineImageContextProvider>{content}</InlineImageContextProvider>
+  // }
+
+  return content
+})

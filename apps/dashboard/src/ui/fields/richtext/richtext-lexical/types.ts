@@ -7,7 +7,7 @@ export interface LexicalEditorProps {
   lexical?: LexicalEditorConfig
 }
 
-export type LexicalRichTextFieldProps = {
+export type EditorFieldProps = {
   name: string
   id: string
   label?: string

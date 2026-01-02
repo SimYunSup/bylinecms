@@ -10,13 +10,8 @@ export const richTextValidate = async (
   // const { t, required } = options
   const { required } = options
 
-  if (required) {
-    if (value == null || value.root == null || value.root.children == null) {
-      // return t('validation:required')
-      return 'validation:required'
-    }
-
-    return hasText(value) ? true : 'validation:required'
+  if (required && hasText(value) === false) {
+    return 'validation:required'
   }
 
   return true

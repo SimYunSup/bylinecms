@@ -9,14 +9,14 @@ import type {
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('./field-component.css', () => ({}))
+vi.mock('./editor-component.css', () => ({}))
 vi.mock('./themes/lexical-editor-theme.css', () => ({}))
 vi.mock('@infonomic/uikit/react', () => ({
   HelpText: () => null,
   Label: () => null,
 }))
 
-import { ApplyValuePlugin, hashSerializedState } from './field-component'
+import { ApplyValuePlugin, hashSerializedState } from './editor-component'
 
 // Enable React act warnings suppression for this environment
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -22,8 +22,8 @@
 import type { RichTextField as FieldType } from '@byline/core'
 
 import { useFieldError, useFieldValue, useIsDirty } from '../../form-context'
-import { RichTextField as LexicalRichTextField } from './field'
 import { defaultEditorConfig } from './field/config/default'
+import { EditorField } from './field/editor-field'
 
 interface Props {
   field: FieldType
@@ -56,7 +56,7 @@ export const RichTextField = ({
   return (
     <div className={`flex flex-1 h-full`}>
       <div className="flex flex-1 flex-col gap-1">
-        <LexicalRichTextField
+        <EditorField
           onChange={onChange}
           editorConfig={editorConfig || defaultEditorConfig}
           id={instanceKey ? `${field.name}-${instanceKey}` : field.name}
